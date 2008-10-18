@@ -5,13 +5,13 @@
   <groupId>net.jradius</groupId>
   <artifactId>jradius-db</artifactId>
   <name>${project.artifactId}-${project.version}</name>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <description>JRadius DAL Utils</description>
   
   <parent>
     <groupId>net.jradius</groupId>
     <artifactId>jradius-extensions</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
