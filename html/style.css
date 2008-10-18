@@ -1,0 +1,87 @@
+
+body {
+  font: 400 0.8em verdana, arial, sans-serif;
+  line-height: 170%;
+  background: #fff;
+  color: #333;
+}
+
+html, body {
+  height: 100%; 
+}
+
+body {
+  margin: 0px 10px 0px 10px;
+}
+
+table, tr, td {
+  border: 0;
+}
+
+pre {
+  font: 400 1em courier, monospace;
+  line-height: 1.1em;
+}
+
+a {
+  color: #0072BC;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #0072BC;
+}
+
+.javadoc {
+  margin: auto;
+  border: 0;
+}
+
+tr.TableHeadingColor,
+tr.TableSubHeadingColor {
+  background-color: #ccc;
+}
+
+tr.TableHeadingColor td {
+}
+
+em h1 {
+  font-size: 100%;
+}
+
+tr.TableRowColor td, 
+ tr.TableSubHeadingColor th, 
+ tr.TableHeadingColor th { 
+  border: 1px solid #ccc;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  width: 100%;
+  background-color: #ccc;
+}
+
+.TableHeadingColor     { } 
+.TableSubHeadingColor  { } 
+.TableRowColor         { } 
+.TableRowColor td      { 
+  padding: 2px 5px 2px 5px; 
+  margin: 0;
+} 
+
+.FrameTitleFont   { display: none; }
+.FrameHeadingFont { font-size:  90%; }
+.FrameItemFont    { font-size:  90%; }
+
+.NavBarCell1    {
+  background-color: white;
+} 
+
+.NavBarCell1Rev { } 
+.NavBarFont1    { }
+.NavBarFont1Rev { }
+
+.NavBarCell2    { }
+.NavBarCell3    { }
+
