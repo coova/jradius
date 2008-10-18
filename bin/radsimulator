@@ -1,0 +1,7 @@
+#!/bin/sh
+dir=`pwd`; cd `dirname $0`; bin=`pwd`; cd $dir
+classpath="$CLASSPATH:$bin/../dist/jradius.jar:$bin/../dist/jradius-dictionary.jar"
+classpath="$classpath:$bin/../java/lib/gnu-crypto.jar" 
+classpath="$classpath:$bin/../java/lib/log4j-1.2.9.jar" 
+classpath="$classpath:$bin/../java/lib/" 
+CLASSPATH="$classpath" java net.jradius.client.gui.JRadiusSimulator $*

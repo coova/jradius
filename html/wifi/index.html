@@ -1,0 +1,317 @@
+<html>
+<head>
+<META HTTP-EQUIV="CACHE-CONTROL" CONTENT="NO-CACHE">
+<META HTTP-EQUIV="PRAGMAS" CONTENT="NO-CACHE">
+<meta name="description" content="JRadius WiFi Client">
+<meta name="keywords" content="Coova WiFi Client Applet">
+<meta name="robots" content="INDEX,FOLLOW">
+<meta name="author" content="David Bird">
+<title>HotSpot WISPr Login Client</title>
+<style type="text/css">
+body {
+  width: 94%;
+  margin: 20px auto;
+  padding: 0;
+  font: 400 0.8em verdana, arial, sans-serif;
+  line-height: 170%;
+  background: #fff; 
+  color: #333;
+}
+#body {
+  margin: 20px auto;
+}
+#config {
+}
+#online {
+}
+#nojava {
+  color: red;
+}
+#login {
+}
+#detect {
+  width: 400px;
+}
+#debug {
+}
+#header {
+}
+#title {
+  font: 400 1.6em "trebuchet ms", serif;
+}
+#applet { 
+  width:0; 
+  height:0;
+}
+#status {
+  clear: both;
+  color: orange;
+  font-weight: bold;
+  margin-top: 1.5em;
+}
+
+#nav { 
+  float: left;
+  clear: both;  
+}
+
+#nav ul {
+  margin: 0;
+  padding: 0;
+}
+
+#nav li {
+  display: inline;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+#nav li a {
+  float: left;
+  margin: 0 2px;
+  padding: 5px 0.5em;
+  font: 400 1em "trebuchet ms", serif;
+  text-decoration: none;
+  text-transform: lowercase;
+  color: #333;
+}
+
+#nav li a:hover,
+#nav li a.here {
+  color: #0072BC;
+}
+
+</style>
+<script language="javascript">
+function jr_login               (l, p) { document.jr.login(l, p); }
+function jr_logoff              ()     { document.jr.logoff(); }
+function jr_reset               ()     { document.jr.reset(); }
+function jr_getDebugString      ()     { return document.jr.getDebugString(); }
+function jr_clearDebugString    ()     { return document.jr.clearDebugString(); }
+function jr_getWISPrXML0        ()     { return document.jr.getWISPrXML0(); }
+function jr_getWISPrXML1        ()     { return document.jr.getWISPrXML1(); }
+function jr_getWISPrLogin       ()     { return document.jr.getWISPrLogin(); }
+function jr_getWISPrAbortLogin  ()     { return document.jr.getWISPrAbortLogin(); }
+function jr_getWISPrLocatonName ()     { return document.jr.getWISPrLocationName(); }
+function jr_getWISPrLogoff      ()     { return document.jr.getWISPrLogoff(); }
+function jr_getRealm            ()     { return document.jr.getRealm(); }
+function jr_setRealm            (s)    { document.jr.setRealm(s); }
+function jr_getUsername         ()     { return document.jr.getUsername(); }
+function jr_setUsername         (s)    { document.jr.setUsername(s); }
+function jr_getPublicURL        ()     { return document.jr.getPublicURL(); }
+function jr_setPublicURL        (s)    { document.jr.setPublicURL(s); }
+function jr_getBaseURL          ()     { return document.jr.getBaseURL(); }
+function jr_setBaseURL          (s)    { document.jr.setBaseURL(s); }
+function jr_getOtpProxyServer   ()     { return document.jr.getOtpProxyServer(); }
+function jr_setOtpProxyServer   (s)    { document.jr.setOtpProxyServer(s); }
+function jr_getOtpProxyPort     ()     { return document.jr.getOtpProxyPort(); }
+function jr_setOtpProxyPort     (s)    { document.jr.setOtpProxyPort(s); }
+function jr_getSecureRoaming    ()     { return document.jr.getSecureRoaming(); }
+function jr_setSecureRoaming    (s)    { document.jr.setSecureRoaming(s); }
+function jr_getOtpUseSSL        ()     { return document.jr.getOtpUseSSL(); }
+function jr_setOtpUseSSL        (s)    { document.jr.setOtpUseSSL(s); }
+function jr_getOtpTrustAnyCert  ()     { return document.jr.getOtpTrustAnyCert(); }
+function jr_setOtpTrustAnyCert  (s)    { document.jr.setOtpTrustAnyCert(s); }
+function jr_getPrefixRealm      ()     { return document.jr.getPrefixRealm(); }
+function jr_setPrefixRealm      (s)    { document.jr.setPrefixRealm(s); }
+function jr_isReady             ()     { return document.jr.isReady(); }
+function jr_isOnline            ()     { return document.jr.isOnline(); }
+function showStatus             (s)    { getElement('status').innerHTML=s; }
+
+var checkCount = 0;
+var maxChecks = 5;
+function do_onLoad () { 
+ jr_setOtpProxyServer('192.168.100.1');
+ jr_setOtpUseSSL(false);
+ jr_setSecureRoaming(false);
+  setTimeout("checkApplet()", 2000); 
+}
+
+function checkApplet() { 
+  var isReady = jr_isReady();
+  var isOnline = jr_isOnline();
+  if      (isOnline) { showPage('online'); }
+  else if (isReady)  { showPage('login'); } 
+  else  { 
+    if (checkCount == maxChecks) { showPage('nojava'); }
+    else { checkCount= checkCount + 1; setTimeout("checkApplet()", 2000); }
+  }
+}
+
+var showing="detect";
+function getElement(e) {
+  if (document.getElementById)
+    return document.getElementById(e);
+  if (document.all)
+    return document.all[e];
+  if (document.layers)
+    return document.layers[e];
+}
+function getStyle(e) {
+  return getElement(e).style;
+}
+
+function showPage(t) {
+  getStyle(showing).display = "none";
+  getStyle(t).display = "block";
+  showing=t;
+}
+
+function debug () {
+  showPage('debug');
+  document.debugform.realm.value  = jr_getRealm();
+  document.debugform.login.value  = jr_getWISPrLogin();
+  document.debugform.abort.value  = jr_getWISPrAbortLogin();
+  document.debugform.logoff.value = jr_getWISPrLogoff();
+  document.debugform.xml0.value   = jr_getWISPrXML0();
+  document.debugform.xml1.value   = jr_getWISPrXML1();
+  document.debugform.debug.value  = jr_getDebugString();
+}
+
+function reset () {
+  jr_reset(); 
+  showPage('detect');
+  do_onLoad();
+}
+
+function clearDebug () { 
+  document.debugform.debug.value = "";
+  jr_clearDebugString(); 
+}
+
+function loginpage_login () {
+  jr_login(document.loginform.username.value, document.loginform.passwd.value);
+}
+
+function login() {
+  showPage('login');
+  var s = jr_getUsername();
+  if (s != null)  document.loginform.username.value = s;
+  document.loginform.secureRoaming.checked = jr_getSecureRoaming();
+  document.loginform.secureRoaming.disabled = true;
+}
+
+function logout () {
+  showPage('login');
+  jr_logoff();
+}
+
+function config () {
+  showPage('config');
+  document.configform.secureRoaming.checked = jr_getSecureRoaming();
+  document.configform.otpUseSSL.checked = jr_getOtpUseSSL();
+  document.configform.otpTrustAnyCert.checked = jr_getOtpTrustAnyCert();
+  document.configform.prefixRealm.value = jr_getPrefixRealm();
+  document.configform.otpProxyServer.value = jr_getOtpProxyServer();
+  document.configform.otpProxyPort.value = jr_getOtpProxyPort();
+  document.configform.publicURL.value = jr_getPublicURL();
+  document.configform.baseURL.value = jr_getBaseURL();
+}
+
+function apply () {
+  jr_setSecureRoaming(document.configform.secureRoaming.checked);
+  jr_setOtpUseSSL(document.configform.otpUseSSL.checked);
+  jr_setOtpTrustAnyCert(document.configform.otpTrustAnyCert.checked);
+  jr_setPrefixRealm(document.configform.prefixRealm.value);
+  jr_setOtpProxyServer(document.configform.otpProxyServer.value);
+  jr_setOtpProxyPort(document.configform.otpProxyPort.value);
+  jr_setPublicURL(document.configform.publicURL.value);
+  jr_setBaseURL(document.configform.baseURL.value);
+  alert("Changed applied");
+}
+</script>
+</head>
+
+<body onLoad='do_onLoad();'>
+
+<div id="header">
+<div id="title">HotSpot Login</div>
+<div id="nav">
+<ul id="nav">
+<li><a href="#" onClick="login();">login</a></li>
+<li><a href="#" onClick="logout();">logout</a></li>
+<li><a href="#" onClick="reset();">reset</a></li>
+<li><a href="#" onClick="config();">config</a></li>
+<li><a href="#" onClick="debug();">debug</a></li>
+</ul>
+</div>
+<div id="applet">
+<applet id="jr" name="jr" codebase="./" code="JRadiusWiFiClient.class"
+        archive="wifi.jar" mayscript="mayscript" width="1" height="1">
+<param name="cabbase" value="wifi.cab"/>
+<blockquote>
+Unable to run applets in this browser. Please <a href="http://www.java.com/download/">Install Java</a>.
+</blockquote>
+</applet>
+</div>
+</div>
+
+<div id="body">
+<div id="status">Loading...</div>
+<div id="detect">
+<b>Note</b>: You are running an Applet that requires more permissions
+  than your typical Applet. This is because the Applet tries to access a URL
+  outside of the "walled-garden" in order to know how to login. For this
+  reason, the Applet is signed with a self-signed X509 certificate. You will
+  be asked to verify that you trust the authors before running the Applet.
+</div>
+
+<div id="debug" style="display:none;">
+<form name="debugform">
+<table>
+<tr><td nowrap>Login Realm:</td><td><input name="realm" size="30"></td></tr>
+<tr><td nowrap>WISPr Login URL:</td><td><input name="login" size="60"></td></tr>
+<tr><td nowrap>WISPr Abort URL:</td><td><input name="abort" size="60"></td></tr>
+<tr><td nowrap>WISPr Logoff URL:</td><td><input name="logoff" size="60"></td></tr>
+<tr><td nowrap>WISPr XML (0):</td><td><textarea name="xml0" rows="7" cols="60"></textarea></td></tr>
+<tr><td nowrap>WISPr XML (1):</td><td><textarea name="xml1" rows="7" cols="60"></textarea></td></tr>
+<tr><td nowrap>Debug Log:</td><td><textarea name="debug" rows="7" cols="60"></textarea><br/>
+<input type="button" name="button" value="clear" onClick='clearDebug();'></td></tr>
+</table>
+</form>
+</div>
+
+<div id="config" style="display:none;">
+<form name="configform">
+<table>
+<tr><td nowrap>Public URL:</td><td><input name="publicURL" size="30"></td></tr>
+<tr><td nowrap>Base URL:</td><td><input name="baseURL" size="30"></td></tr>
+<tr><td nowrap>Use OTP Proxy:</td><td><input type="checkbox" name="secureRoaming"></td></tr>
+<tr><td nowrap>Use OTP SSL:</td><td><input type="checkbox" name="otpUseSSL"></td></tr>
+<tr><td nowrap>Trust All:</td><td><input type="checkbox" name="otpTrustAnyCert"></td></tr>
+<tr><td nowrap>OTP Proxy Server:</td><td><input name="otpProxyServer" size="30"></td></tr>
+<tr><td nowrap>OTP Proxy Port:</td><td><input name="otpProxyPort" size="30"></td></tr>
+<tr><td nowrap>Prefix Realm:</td><td><input name="prefixRealm" size="30"></td></tr>
+</table>
+<input type="button" name="button" value="apply" onClick='apply();'>
+</form>
+</div>
+
+<div id="nojava" style="display:none;">
+The Java WiFi Client is not working... <p>You will have to do it the old fashion way.
+</div>
+
+<div id="online" style="display:none;">
+Welcome! You are logged in!
+</div>
+
+<div id="nowispr" style="display:none;">
+No or broken WISPr implementation! 
+</div>
+
+<div id="login" style="display:none;">
+<form name=loginform>
+<table>
+<tr><td>Username:</td><td><input name=username></td></tr>
+<tr><td>Password:</td><td><input name=passwd type=password></td></tr>
+</table>
+<input type=button name=button value=login onClick='loginpage_login();'>&nbsp;&nbsp;
+<small><input type="checkbox" name="secureRoaming"> Using Secure OTP Proxy</small>
+</form>
+</div>
+</div>
+
+</body>
+</html>
+

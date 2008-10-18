@@ -1,0 +1,77 @@
+
+.gwt-DialogBox input {
+  width: 120px;
+  border: 1px solid black;
+}  
+
+.gwt-DialogBox {
+  border: 2px solid black;
+  padding: 10px;
+  background-color: white;
+}
+
+.gwt-TabBar .gwt-TabBarItem {
+  border-top: 2px solid white;
+  border-left: 2px solid white;
+  border-right: 2px solid white;
+}
+
+.gwt-TabBar .gwt-TabBarItem-selected {
+  background-color: #ccc; 
+}
+
+.gwt-TabPanelBottom .gwt-TabBar {
+  background-color: #ccc; 
+}
+
+.gwt-TabPanelBottom .gwt-TabBarItem {
+  border-top: 2px solid #ccc;
+  border-left: 2px solid #ccc;
+  border-right: 2px solid #ccc;
+  border-bottom: 2px solid #ccc;
+}
+
+.gwt-TabPanelBottom .gwt-TabBarRest {
+  background-color: #ccc; 
+}
+
+.gwt-TabPanelBottom .gwt-TabBarItem-selected {
+  border-top: 2px solid #ccc;
+  border-left: 2px solid #ccc;
+  border-right: 2px solid #ccc;
+  border-bottom: 2px solid white;
+  background-color: white;
+}
+
+.inputform {
+  border: 2px solid #ccc;
+}
+
+.inputform-box {
+  border: 2px solid #ccc;
+}
+
+.fieldset-title {
+  border-bottom: solid 2px #ccc;
+}
+
+.calendar-viewer {
+  padding-top: 12px;
+}
+
+.calendar-viewer-deck {
+  border-top: 0;
+}
+
+.calendar-viewer-deck table.navbar {
+  width: 100%;
+}
+
+.calendar-viewer-deck table.navbar .gwt-Label{
+  padding: 7px;
+  font-size: 200%;
+}
+
+div.event {
+  background-color: #ccf;
+}

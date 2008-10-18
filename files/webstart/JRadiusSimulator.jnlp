@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jnlp spec="1.0+" codebase="http://jradius.net/">
+
+<information>
+  <title>JRadiusSimulator</title>
+  <vendor>coova.org</vendor>
+  <homepage href="http://coova.org/wiki/index.php/JRadius/Simulator"/>
+  <description>JRadius RADIUS Simulator Application</description>
+</information>
+
+<offline-allowed/>
+
+<security>
+  <all-permissions/>
+</security>
+
+<resources>
+  <j2se version="1.4+"/>
+  <jar href="java/jradius.jar"/>
+  <jar href="java/jradius-dictionary.jar"/>
+  <jar href="java/gnu-crypto-2.0.1.jar"/>
+  <jar href="java/commons-logging-1.0.4.jar"/>
+  <jar href="java/bcprov-jdk14-136.jar"/>
+</resources>
+
+<application-desc main-class="net.jradius.client.gui.JRadiusSimulator"/>
+
+</jnlp>

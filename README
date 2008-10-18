@@ -1,0 +1,55 @@
+
+Welcome to JRadius!
+
+JRadius should eventually be able to work with multiple underlying RADIUS
+servers, however, currently only FreeRADIUS is supported. 
+
+How to get up and running with JRadius:
+
+- First, you need to compile and configure FreeRADIUS such that it uses
+  JRadius. See freeradius/README for further instructions.
+
+- Next, copy the build.properties.template file to build.properties. You
+  also probably want to edit this file to suite your environment. See the
+  comments in the file.
+
+- Next, you need to be sure you have the required dependencies in the
+  java/lib directory. See the shell script java/lib/getJars which will
+  download the required jar files (using wget).
+
+- Next, compile the JRadius code. The following command will build
+  everything (the base code, the FreeRADIUS dictionary, and some
+  generic/sample JRadius Handlers:
+
+    ant dist
+
+- Now you should have both a jradius.jar and a jradius-dictionary.jar in the
+  dist/ directory. If you already have FreeRADIUS running with rlm_jradius
+  and want to see _something_ work, you can run an example with:
+
+    ant run-example
+
+- JRadius also provides a Java RADIUS client API and a Java program called
+  RadClient. A shell script is provided to run RadClient. To use the script,
+  create a file containing your attributes, for example:
+
+    echo "User-Name = test"      > radius.pkt
+    echo "User-Password = test" >> radius.pkt
+
+  Now, use the following script with arguments of server, shared secret,
+  and attributes file:
+
+    bin/radclient localhost sharedsecret radius.pkt
+
+  For more information, see http://jradius.sourceforge.net/radclient.html
+
+
+--
+
+JRadius Development Team:
+
+David Bird
+
+Contributers:
+
+

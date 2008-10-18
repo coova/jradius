@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.jradius</groupId>
+  <artifactId>jradius-ewt-client</artifactId>
+  <name>${project.artifactId}-${project.version}</name>
+  <version>1.0.0-SNAPSHOT</version>
+  <description>EWT Client classes</description>
+  
+  <parent>
+    <groupId>net.jradius</groupId>
+    <artifactId>jradius-extensions</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.coova</groupId>
+      <artifactId>coova-ewt-client-ui</artifactId>
+      <version>1.0.0-snapshot-103</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <resources>
+      <resource>
+	<directory>src/main/resources</directory>
+	<includes>
+	  <include>**/*.css</include>
+	  <include>**/*.xml</include>
+	  <include>**/*.html</include>
+	</includes>
+      </resource>
+    </resources>
+    <plugins>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<configuration>
+	  <source>1.5</source>
+	  <target>1.5</target>
+	</configuration>
+      </plugin>
+    </plugins>
+  </build>
+  
+  <pluginRepositories>
+    <pluginRepository>
+      <id>gwt-maven</id>
+      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo</url>
+    </pluginRepository>
+  </pluginRepositories>
+
+</project>

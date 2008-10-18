@@ -1,0 +1,93 @@
+
+Building and installing FreeRADIUS with JRadius support:
+
+- rlm_jradius is now part of the FreeRADIUS CVS tree for version 2.0!
+
+- Download the latest FreeRADIUS server.
+
+    wget ftp://ftp.freeradius.org/pub/radius/freeradius-1.X.X.tar.gz
+
+- Unpack FreeRADIUS
+
+    tar xzf freeradius-1.X.X.tar.gz
+    cd freeradius-1.X.X
+
+- Download the JRadius patch and apply it
+
+    wget http://dev.coova.org/svn/cjradius/freeradius/patch/freeradius-1.X.X.patch
+    patch -p1 < freeradius-1.X.X.patch
+
+- Compile and install.
+
+    ./configure
+    make
+    make install
+
+
+If upgrading an existing configuration:
+
+- Configure FreeRADIUS with the rlm_jradius module. Below we show bits of
+  the FreeRADIUS etc/raddb/radiusd.conf file. We are only showing the
+  configurations for JRadius. 
+
+    modules {
+       ...
+       jradius {
+          name      = "example"             # The "Requester" name (a single
+	  	      			    # JRadius server can have
+					    # multiple "applications")
+          primary   = "localhost"           # Uses default port 1814
+          secondary = "192.168.0.1"         # Fail-over server
+          tertiary  = "192.168.0.1:8002"    # Fail-over server on port 8002
+          timeout   = 1                     # Connect Timeout
+	  onfail    = NOOP		    # What to do if no JRadius
+					    # Server is found. Options are:
+					    # FAIL (default), OK, REJECT, NOOP
+       }
+    }
+
+    authorize {
+       ...
+       jradius
+    }
+
+    post-auth {
+       ...
+       jradius
+       Post-Auth-Type REJECT {             # Use this if you want to
+           jradius    	     		   # process AccessReject replies 
+       }   				   # from the post-auth handler.
+    }
+
+    preacct {
+       ...
+       jradius
+    }
+
+    accounting {
+       ...
+       jradius
+    }
+
+    For the most part, the above configurations are considered to be
+    required. Only if your FreeRADIUS server is a proxy server would the
+    following also be used:
+
+    pre-proxy {
+       ...
+       jradius
+    }
+
+    post-proxy {
+       ...
+       jradius
+    }
+
+  Just like with any FreeRADIUS module, you can add this to any of the
+  FreeRADIUS entry points. It is probably best to add 'jradius' to the
+  configurations after all other modules.
+
+- Include the dict/dictionary.jradius dictionary file in your FreeRADIUS
+  dictionary configuration. You can just simply copy the contents of dict/
+  to your FreeRADIUS dictionary directory for the default FreeRADIUS
+  dictionary plus JRadius VSAs.

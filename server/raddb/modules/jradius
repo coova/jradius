@@ -1,0 +1,10 @@
+jradius {
+	name = "coova"
+        primary = "localhost"
+        secondary = "192.168.0.1"
+        timeout = 20
+	keepalive = yes
+	connections = 10
+	onfail = NOOP
+	allow_codechange = yes
+}

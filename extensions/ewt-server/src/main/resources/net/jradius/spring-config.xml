@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans
+    PUBLIC "-//SPRING//DTD BEAN//EN"
+    "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="attributeDictionary" class="net.jradius.dictionary.AttributeDictionaryImpl" />
+
+    <bean id="radiusProcessor" class="net.jradius.freeradius.FreeRadiusProcessor" singleton="false" />
+
+    <bean id="radiusListener" class="net.jradius.freeradius.FreeRadiusListener" />
+
+    <bean id="attributeSearchTree" class="net.jradius.ewt.handler.AttributeSearchTree">
+       <property name="attributeDictionary"><ref bean="attributeDictionary"/></property>
+    </bean>
+
+    <bean id="sqlMapClientJRadius" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+        <property name="configLocation">
+            <value>classpath:net/jradius/dal/sql-map-config.xml</value>
+        </property>
+        <property name="useTransactionAwareDataSource">
+            <value>true</value>
+        </property>
+        <property name="dataSource">
+            <ref bean="dataSourceJRadius"/>
+        </property>
+    </bean>
+
+    <bean id="nasDAO" class="net.jradius.dal.dao.NASDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radAcctDAO" class="net.jradius.dal.dao.RadAcctDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radCheckDAO" class="net.jradius.dal.dao.RadCheckDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radGroupCheckDAO" class="net.jradius.dal.dao.RadGroupCheckDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radGroupReplyDAO" class="net.jradius.dal.dao.RadGroupReplyDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radIPPoolDAO" class="net.jradius.dal.dao.RadIPPoolDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radPostAuthDAO" class="net.jradius.dal.dao.RadPostAuthDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radReplyDAO" class="net.jradius.dal.dao.RadReplyDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="radUserGroupDAO" class="net.jradius.dal.dao.RadUserGroupDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+    <bean id="uiHelpDAO" class="net.jradius.dal.dao.UIHelpDAOImpl">
+        <property name="sqlMapClient"><ref bean="sqlMapClientJRadius"/></property>
+        <property name="dataCacheManager"><ref bean="dataCacheManager"/></property>
+    </bean>
+
+</beans>

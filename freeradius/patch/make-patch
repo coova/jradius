@@ -1,0 +1,14 @@
+#!/bin/sh
+v=1.1.3
+diff -baurN \
+        --exclude="*~" \
+        --exclude=".#*" \
+        --exclude="CVS" \
+        freeradius-$v.orig freeradius-$v > freeradius-$v.patch
+diff -baurN \
+        --exclude="*~" \
+        --exclude=".#*" \
+        --exclude="CVS" \
+        --exclude="share" \
+        --exclude="raddb" \
+        freeradius-$v.orig freeradius-$v > freeradius-$v-modonly.patch

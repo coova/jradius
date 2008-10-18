@@ -1,0 +1,26 @@
+
+Welcome to JRadius!
+
+How to get up and running with JRadius:
+
+First, you need to compile and configure FreeRADIUS such that it uses
+JRadius. Unzip freeradius.zip and see freeradius/README.
+
+Start the JRadius server with the jradius.sh script.
+
+    sh jradius.sh
+
+JRadius also provides a Java RADIUS client API and a Java program called
+RadClient. A shell script is provided to run RadClient. To use the script,
+create a file containing your attributes, for example:
+
+echo "User-Name = test"      > radius.pkt
+echo "User-Password = test" >> radius.pkt
+
+Now, use the following script with arguments of server, shared secret,
+and attributes file:
+
+    sh radclient.sh localhost sharedsecret radius.pkt
+
+For more information, see http://jradius.net/
+

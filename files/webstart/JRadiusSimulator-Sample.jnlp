@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jnlp spec="1.0+" codebase="http://jradius.org/">
+
+<information>
+  <title>JRadiusSimulator</title>
+  <vendor>JRadius.org</vendor>
+  <homepage href="http://jradius.org/wiki/index.php/JRadiusSimulator"/>
+  <description>JRadius RADIUS Simulator Application</description>
+</information>
+
+<offline-allowed/>
+
+<security>
+  <all-permissions/>
+</security>
+
+<resources>
+  <j2se version="1.2+"/>
+  <jar href="java/jradius.jar"/>
+  <jar href="java/jradius-dictionary.jar"/>
+  <jar href="java/gnu-crypto.jar"/>
+  <jar href="java/log4j-1.2.13.jar"/>
+  <jar href="java/commons-logging.jar"/>
+</resources>
+
+<application-desc main-class="net.jradius.client.gui.JRadiusSimulator">
+<argument>http://jradius.org/simulations/Simple-Session</argument>
+</application-desc>
+
+</jnlp>

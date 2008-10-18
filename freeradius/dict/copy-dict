@@ -1,0 +1,8 @@
+#!/bin/sh
+
+dictdir=~/coova/freeradius/radiusd/share
+
+for d in $dictdir/dictionary*; do
+  n=`basename $d`
+  cat $d |grep -v '^#' > $n
+done

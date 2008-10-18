@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.jradius</groupId>
+  <artifactId>jradius</artifactId>
+  <packaging>pom</packaging>
+  <name>${project.artifactId}-${project.version}</name>
+  <version>1.0.0-SNAPSHOT</version>
+  <description>JRadius Client/Server Project</description>
+  <url>http://jradius.net/</url>
+
+  <developers>
+    <developer>
+      <id>david</id>
+      <name>David Bird</name>
+      <email>david@coova.com</email>
+      <roles>
+        <role>Developer</role>
+      </roles>
+      <timezone>GMT+1</timezone>
+    </developer>
+  </developers>
+
+  <licenses>
+    <license>
+      <name>GNU Lessor/Library Public License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:svn:https://coova.org:1443/svn/cjradius</connection>
+    <developerConnection>scm:svn:https://coova.org:1443/svn/cjradius</developerConnection>
+    <url>http://dev.coova.org/svn/cjradius</url>
+  </scm>
+
+  <distributionManagement>
+    <repository>
+      <id>ssh-repository</id>
+      <url>scp://coova.org/home/repo/public</url>
+    </repository>
+  </distributionManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<configuration>
+	  <source>1.5</source>
+	  <target>1.5</target>
+	</configuration>
+      </plugin>
+    </plugins>
+
+    <extensions>
+      <extension>
+        <groupId>org.apache.maven.wagon</groupId>
+        <artifactId>wagon-ssh-external</artifactId>
+        <version>1.0-alpha-5</version>
+      </extension>
+    </extensions>
+    <defaultGoal>install</defaultGoal>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>release-profile</id>
+      <activation>
+        <property>
+          <name>performRelease</name>
+          <value>true</value>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+            <inherited>true</inherited>
+          </plugin>
+          <plugin>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+            <inherited>true</inherited>
+          </plugin>
+          <plugin>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <updateReleaseInfo>true</updateReleaseInfo>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <modules>
+    <module>core</module>
+    <module>dictionary</module>
+    <module>extended</module>
+    <module>extensions</module>
+    <module>example</module>
+    <module>applet</module>
+    <module>server</module>
+  </modules>
+
+  <repositories>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>coova</id>
+      <name>Coova Repository</name>
+      <url>http://dev.coova.org/mvn</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>springframework</id>
+      <name>Spring Repository</name>
+      <url>https://s3.amazonaws.com/maven.springframework.org/milestone</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>central</id>
+      <name>Maven Repository Switchboard</name>
+      <url>http://repo1.maven.org/maven2</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>ibiblio</id>
+      <name>ibiblio Repository Switchboard</name>
+      <url>http://www.ibiblio.org/maven</url>
+    </repository>
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>gwt-maven</id>
+      <name>GWT</name>
+      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo/</url>
+    </repository>
+  </repositories>
+
+  <reporting>
+    <outputDirectory>target/site</outputDirectory>
+  </reporting>
+
+</project>

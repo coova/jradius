@@ -1,0 +1,12 @@
+VENDOR        	Lancom        				16787
+ATTRIBUTE	Lancom-Location-ID			1	string	Lancom
+ATTRIBUTE	Lancom-Location-Name			2	string	Lancom
+ATTRIBUTE	Lancom-Logoff-URL			3	string	Lancom
+ATTRIBUTE	Lancom-Redirection-URL			4	string	Lancom
+ATTRIBUTE	Lancom-Bandwidth-Min-Up			5	integer	Lancom
+ATTRIBUTE	Lancom-Bandwidth-Min-Down		6	integer	Lancom
+ATTRIBUTE	Lancom-Bandwidth-Max-Up			7	integer	Lancom
+ATTRIBUTE	Lancom-Bandwidth-Max-Down		8	integer	Lancom
+ATTRIBUTE	Lancom-Session-Terminate-Time		9	string	Lancom
+ATTRIBUTE	Lancom-Session-Terminate-End-Of-Day	10	string	Lancom
+ATTRIBUTE	Lancom-Billing-Class-Of-Service		11	string	Lancom
