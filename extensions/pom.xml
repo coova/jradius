@@ -8,8 +8,16 @@
   <packaging>pom</packaging>
   <name>${project.artifactId}-${project.version}</name>
   <version>1.0.0-SNAPSHOT</version>
-  <description>Extended classes</description>
-  
+  <description>JRadius Extension</description>
+
+  <licenses>
+    <license>
+      <name>Coova Freeware</name>
+      <url>http://coova.org/wiki/index.php/FreewareLicense</url>
+      <comments>This module depends on code released under this license</comments>
+    </license>
+  </licenses>
+
   <parent>
     <groupId>net.jradius</groupId>
     <artifactId>jradius</artifactId>
@@ -42,5 +50,22 @@
     </dependency>
 
   </dependencies>
+
+  <reporting>
+    <outputDirectory>${basedir}/../../html/${project.artifactId}/</outputDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+	  <minmemory>128m</minmemory>
+          <maxmemory>1g</maxmemory>
+	  <stylesheetfile>${basedir}/../../html/style.css</stylesheetfile>
+	  <doctitle><![CDATA[<h1>${project.description} ${project.version}</h1>]]></doctitle>
+	  <bottom><![CDATA[<i>Copyright &#169; 2008 <a target="top" href="http://coova.org/">Coova Technologies</a>, All Rights Reserved.</i>]]></bottom>
+        </configuration>
+      </plugin>
+    </plugins>
+  </reporting>
 
 </project>

@@ -15,20 +15,6 @@ See doc/GPL-LICENSE, doc/LGPL-LICENSE, and source files for details.
 
 ==========================================================================
 
-CoovaEWT License:
-
-The CoovaEWT user interface and accompanying back-end add-ons (found
-in the 'extensions' directory and module) are provided with the right
-to use for non-commercial purposes, without modification or reverse
-engineering. For intructions on how to customize and extend the
-interface, as well as additional licening information, see:
-
-	http://coova.org/wiki/index.php/CoovaEWT
-
-Copyright 2008 David Bird <david@coova.com>
-
-==========================================================================
-
 Original JRadius License:
 
 The JRadius core library is licensed under the The GNU Library or "Lesser"

@@ -23,9 +23,13 @@
 
   <licenses>
     <license>
-      <name>GNU Lessor/Library Public License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
+      <name>GNU Lessor/Library Public License, Version 3.0</name>
+      <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+    </license>
+
+    <license>
+      <name>GNU Public License, Version 3.0</name>
+      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
     </license>
   </licenses>
 
@@ -109,13 +113,26 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>freeware-build</id>
+      <modules>
+	<module>extensions</module>
+	<module>server-ext</module>
+      </modules>
+    </profile>
+    <profile>
+      <id>javadoc</id>
+      <modules>
+	<module>extensions</module>
+	<module>server-ext</module>
+      </modules>
+    </profile>
   </profiles>
 
   <modules>
     <module>core</module>
     <module>dictionary</module>
     <module>extended</module>
-    <module>extensions</module>
     <module>example</module>
     <module>applet</module>
     <module>client</module>
@@ -166,7 +183,21 @@
   </repositories>
 
   <reporting>
-    <outputDirectory>target/site</outputDirectory>
+    <outputDirectory>${basedir}/../html/${project.artifactId}/</outputDirectory>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <configuration>
+	  <minmemory>128m</minmemory>
+          <maxmemory>1g</maxmemory>
+	  <stylesheetfile>${basedir}/../html/style.css</stylesheetfile>
+	  <doctitle><![CDATA[<h1>${project.description} ${project.version}</h1>]]></doctitle>
+	  <bottom><![CDATA[<i>Copyright &#169; 2008 <a target="top" href="http://jradius.net/">JRadius Project</a>, All Rights Reserved.</i>]]></bottom>
+        </configuration>
+      </plugin>
+    </plugins>
   </reporting>
+
 
 </project>

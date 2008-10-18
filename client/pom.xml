@@ -7,7 +7,7 @@
   <artifactId>jradius-client</artifactId>
   <name>${project.artifactId}-${project.version}</name>
   <version>1.0.0-SNAPSHOT</version>
-  <description>Client classes</description>
+  <description>JRadius Client Package</description>
   
   <parent>
     <groupId>net.jradius</groupId>
