@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans
+    PUBLIC "-//SPRING//DTD BEAN//EN"
+    "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+                <value>configuration.properties</value>
+			</list>
+		</property>
+	</bean>
+
+    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+        <property name="configLocation" value="classpath:ehcache.xml"/>
+    </bean>
+
+	<bean id="dataCacheManager" class="com.coova.dal.DataCacheManagerImpl">
+       <property name="cacheManager"><ref bean="cacheManager"/></property>
+    </bean>
+
+    <bean id="dataSourceJRadius" class="com.mchange.v2.c3p0.ComboPooledDataSource" destroy-method="close">
+        <property name="driverClass"><value>${db.driver}</value></property>
+        <property name="jdbcUrl"><value>${db.url}</value></property>
+        <property name="user"><value>${db.username}</value></property>
+        <property name="password"><value>${db.password}</value></property>
+        <property name="minPoolSize" value="10"/>
+        <property name="acquireIncrement" value="5"/>
+        <property name="maxPoolSize" value="100"/>
+        <property name="idleConnectionTestPeriod" value="600"/>
+    </bean>
+
+	<import resource="net/jradius/spring-config.xml"/>
+
+    <bean id="ewtServerSupport" class="net.jradius.ewt.EWTServerSupport">
+       <property name="resources" value="net/jradius/ewt/resources/"/>
+       <property name="nasDAO"><ref bean="nasDAO"/></property>
+       <property name="radAcctDAO"><ref bean="radAcctDAO"/></property>
+       <property name="radCheckDAO"><ref bean="radCheckDAO"/></property>
+       <property name="radGroupCheckDAO"><ref bean="radGroupCheckDAO"/></property>
+       <property name="radGroupReplyDAO"><ref bean="radGroupReplyDAO"/></property>
+       <property name="radIPPoolDAO"><ref bean="radIPPoolDAO"/></property>
+       <property name="radPostAuthDAO"><ref bean="radPostAuthDAO"/></property>
+       <property name="radReplyDAO"><ref bean="radReplyDAO"/></property>
+       <property name="radUserGroupDAO"><ref bean="radUserGroupDAO"/></property>
+       <property name="uiHelpDAO"><ref bean="uiHelpDAO"/></property>
+       <property name="attributeSearchTree"><ref bean="attributeSearchTree"/></property>
+    </bean>
+
+    <bean id="jsonHandler" class="net.jradius.ewt.handler.JSONHandler" singleton="false">
+       <property name="ewtServerSupport"><ref bean="ewtServerSupport"/></property>
+       <property name="uiHelpDAO"><ref bean="uiHelpDAO"/></property>
+    </bean>
+    
+    <bean id="uiHandler" class="net.jradius.ewt.handler.UIHandler" singleton="false">
+       <property name="ewtServerSupport"><ref bean="ewtServerSupport"/></property>
+    </bean>
+    
+    <bean id="sqlHandler" class="net.jradius.handler.SQLHandler" singleton="false">
+       <property name="nasDAO"><ref bean="nasDAO"/></property>
+       <property name="radAcctDAO"><ref bean="radAcctDAO"/></property>
+       <property name="radCheckDAO"><ref bean="radCheckDAO"/></property>
+       <property name="radGroupCheckDAO"><ref bean="radGroupCheckDAO"/></property>
+       <property name="radGroupReplyDAO"><ref bean="radGroupReplyDAO"/></property>
+       <property name="radIPPoolDAO"><ref bean="radIPPoolDAO"/></property>
+       <property name="radPostAuthDAO"><ref bean="radPostAuthDAO"/></property>
+       <property name="radReplyDAO"><ref bean="radReplyDAO"/></property>
+       <property name="radUserGroupDAO"><ref bean="radUserGroupDAO"/></property>
+    </bean>
+
+    <bean id="otpListener" class="net.jradius.webservice.WebServiceListener">
+       <property name="cacheManager"><ref bean="cacheManager"/></property>
+       <property name="cacheName"><value>otpRequests</value></property>
+    </bean>
+
+    <bean id="otpProcessor" class="net.jradius.webservice.OTPProxyProcessor" singleton="false" />
+    
+    <bean id="sessionFactory" class="net.jradius.session.RadiusSessionFactory">
+    </bean>
+    
+    <bean id="sessionKeyProvider" class="net.jradius.session.RadiusSessionKeyProvider">
+    </bean>
+    
+    <bean id="sessionManager" class="net.jradius.session.JRadiusSessionManager">
+       <property name="cacheManager"><ref bean="cacheManager"/></property>
+    </bean>
+
+	<bean id="jRadiusManager" class="net.jradius.impl.JRadiusManagerImpl" destroy-method="destroy">
+        <property name="configFile"><value>jradius-config.xml</value></property>
+    </bean>
+
+</beans>

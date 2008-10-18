@@ -3,7 +3,7 @@
   <formats>
     <format>zip</format>
   </formats>
-  <baseDirectory>jradius</baseDirectory>
+  <baseDirectory>jradius-ext</baseDirectory>
   <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
@@ -28,6 +28,10 @@
     </fileSet>
     <fileSet>
       <directory>../client/scripts</directory>
+      <outputDirectory></outputDirectory>
+    </fileSet>
+    <fileSet>
+      <directory>../server/scripts</directory>
       <outputDirectory></outputDirectory>
     </fileSet>
     <fileSet>

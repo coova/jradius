@@ -118,6 +118,7 @@
     <module>extensions</module>
     <module>example</module>
     <module>applet</module>
+    <module>client</module>
     <module>server</module>
   </modules>
 

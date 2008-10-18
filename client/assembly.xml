@@ -7,10 +7,14 @@
   <includeBaseDirectory>true</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>target/classes</directory>
-      <outputDirectory></outputDirectory>
-    </fileSet>
-    <fileSet>
+      <includes>
+	<include>jradius-core-*</include>
+	<include>jradius-dictionary-*</include>
+	<include>jradius-extended-*</include>
+	<include>commons-logging-*</include>
+	<include>gnu-crypto-*</include>
+	<include>bcprov-*</include>
+      </includes>
       <directory>target/lib</directory>
       <outputDirectory>lib</outputDirectory>
     </fileSet>
@@ -19,15 +23,7 @@
       <outputDirectory>share</outputDirectory>
     </fileSet>
     <fileSet>
-      <directory>config</directory>
-      <outputDirectory></outputDirectory>
-    </fileSet>
-    <fileSet>
       <directory>scripts</directory>
-      <outputDirectory></outputDirectory>
-    </fileSet>
-    <fileSet>
-      <directory>../client/scripts</directory>
       <outputDirectory></outputDirectory>
     </fileSet>
     <fileSet>
