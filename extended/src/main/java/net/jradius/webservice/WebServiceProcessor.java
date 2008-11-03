@@ -66,7 +66,7 @@ public class WebServiceProcessor extends Processor
     protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
     {
         Socket socket = ((TCPListenerRequest)listenerRequest).getSocket();
-        socket.setSoTimeout(5000); // 5 second read timeout
+        socket.setSoTimeout(15000); // 5 second read timeout
         
 		X509Certificate x509 = null;
         
@@ -96,6 +96,7 @@ public class WebServiceProcessor extends Processor
         try
         {
             request = (WebServiceRequest) listenerRequest.getRequestEvent();
+            request.setServerVariableMap(listenerRequest.getServerVariables());
             request.setCertificate(x509);
             processRequest(request);
 

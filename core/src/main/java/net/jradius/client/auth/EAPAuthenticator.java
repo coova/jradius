@@ -218,6 +218,36 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         return null;
     }
 
+    public byte[] parseEAP(byte[] eapMessage) throws RadiusException
+    {
+        if (eapMessage != null)
+        {
+            ByteBuffer bb = ByteBuffer.wrap(eapMessage);
+            byte code = bb.get();
+            byte id = bb.get();
+            int dlen = bb.getShort() - EAP_HEADERLEN - 1;
+            byte type = bb.get();
+
+            if (code != EAP_RESPONSE)
+            {
+                RadiusLog.error("Expecting an EAP-Response.. got code: " + code);
+                return null;
+            }
+            
+            byte[] data = null;
+
+            if (dlen > 0)
+            {
+                data = new byte[dlen];
+                bb.get(data);
+            }
+
+            return eapRequest(eapType, id, doEAPType(id, data, eapMessage));
+        }
+    
+        return null;
+    }
+
     /**
      * Negotiates the EAP Authentication Protocol to use
      * @param id The EAP ID
@@ -261,7 +291,23 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         if (data != null) System.arraycopy(data, 0, response, offset+1, data.length);
         return response;
     }
-    
+
+    protected byte[] eapRequest(int type, byte id, byte[] data)
+    {
+        int offset, length;
+        byte[] response;
+        length = 1 + EAP_HEADERLEN + data.length;
+        response = new byte[length];
+        response[0] = EAP_REQUEST;
+        response[1] = id;
+        response[2] = (byte)(length >> 8 & 0xFF);
+        response[3] = (byte)(length & 0xFF);
+        offset = 4;
+        response[offset] = (byte)(type & 0xFF);
+        if (data != null) System.arraycopy(data, 0, response, offset+1, data.length);
+        return response;
+    }
+
     /*
      *<pre>   
      * 2.3.1.  Result AVP

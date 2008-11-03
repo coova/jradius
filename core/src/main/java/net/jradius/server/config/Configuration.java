@@ -272,6 +272,7 @@ public class Configuration
                 }
                 catch (Exception e)
                 {
+                	System.err.println("Loading Chains URL: " + catalogURL);
                     e.printStackTrace();
                 }
             }

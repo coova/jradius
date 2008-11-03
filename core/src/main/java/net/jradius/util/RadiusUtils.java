@@ -22,7 +22,6 @@ package net.jradius.util;
 
 import gnu.crypto.hash.IMessageDigest;
 
-import java.security.MessageDigest;
 import java.util.Random;
 
 /**
@@ -139,10 +138,9 @@ public final class RadiusUtils
     public static byte[] makeRFC2865RequestAuthenticator(String sharedSecret) 
     {
     	IMessageDigest md5 = MD5.getMD5();
-        byte [] requestAuthenticator = new byte [16];
+        byte [] requestAuthenticator = new byte[16];
  
         Random r = new Random();
- 
         for (int i = 0; i < 16; i++)
         {
             requestAuthenticator[i] = (byte) r.nextInt();

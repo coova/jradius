@@ -24,11 +24,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.net.URI;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.StringTokenizer;
 
 import net.jradius.dal.dao.UIHelpDAO;
 import net.jradius.dal.model.UIHelp;
@@ -37,7 +34,7 @@ import net.jradius.server.JRadiusEvent;
 import net.jradius.webservice.WebServiceRequest;
 import net.jradius.webservice.WebServiceResponse;
 
-import com.coova.ewt.server.EWTServerSupport.EWTResponse;
+import com.coova.ewt.server.EWTResponse;
 
 public class JSONHandler extends CoreHandler 
 {   
@@ -98,7 +95,7 @@ public class JSONHandler extends CoreHandler
     	            while ((line = rd.readLine()) != null) 
     	            	sb.append(line).append("\n");
 
-                    ewtResponse = ewtServerSupport.new EWTResponse(ewtServerSupport.htmlType, sb.toString().getBytes());
+                    ewtResponse = new EWTResponse(EWTResponse.htmlType, sb.toString().getBytes());
                 }
                 /**
                  * ***  Switch based on "res" == "help"
@@ -118,7 +115,7 @@ public class JSONHandler extends CoreHandler
                         reply = list.get(0).getHelptext().getBytes();
                     }
 
-                    ewtResponse = ewtServerSupport.new EWTResponse(ewtServerSupport.htmlType, reply);
+                    ewtResponse = new EWTResponse(EWTResponse.htmlType, reply);
                 }
         	}
         	catch (Exception e)
@@ -129,8 +126,7 @@ public class JSONHandler extends CoreHandler
         }
 
         if (ewtResponse == null) {
-        	ewtResponse = ewtServerSupport.new EWTResponse(ewtServerSupport.jsonType, 
-        			("{error: '"+error+"'}").getBytes());
+        	ewtResponse = new EWTResponse(EWTResponse.jsonType, ("{error: '"+error+"'}").getBytes());
         }
         
         WebServiceResponse response = new WebServiceResponse();

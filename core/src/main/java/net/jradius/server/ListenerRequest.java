@@ -24,6 +24,7 @@ package net.jradius.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import net.jradius.exception.RadiusException;
 
@@ -43,6 +44,8 @@ public abstract class ListenerRequest
 	public abstract InputStream getInputStream() throws IOException;
 
     public abstract OutputStream getOutputStream() throws IOException;
+
+    public abstract Map<String, String> getServerVariables();
 
     public Listener getListener()
     {

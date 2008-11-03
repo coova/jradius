@@ -143,6 +143,11 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
     
     ByteArrayOutputStream appOutput = new ByteArrayOutputStream();
     
+    public void setServerMode()
+    {
+    	state = TLS_SERVER_HELLO;
+    }
+    
     public void putAppBuffer(byte []b)
     {
         try { appOutput.write(b); } catch (Exception e) { e.printStackTrace(); }
@@ -216,7 +221,7 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
                     ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), receivedEAP.position(), receivedEAP.remaining());
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
 
-                    byte []in = handler.readApplicationData(is, os);
+                    byte[] in = handler.readApplicationData(is, os);
 
                     try
                     {
@@ -231,6 +236,12 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
 
                     data = os.toByteArray();
                     receivedEAP.clear();
+                }
+                break;
+                
+                default:
+                {
+                	System.err.println("-----\n\nUnhandled EAP-TLS packet\n\n------\n");
                 }
                 break;
             }

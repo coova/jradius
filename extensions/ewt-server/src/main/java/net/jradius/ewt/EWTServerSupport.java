@@ -33,6 +33,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.InitializingBean;
 
 import com.coova.ewt.handler.JavaStatusService;
+import com.coova.ewt.server.EWTResponse;
 import com.coova.service.EWTService;
 
 public class EWTServerSupport extends com.coova.ewt.server.EWTServerSupport implements InitializingBean 
@@ -97,7 +98,7 @@ public class EWTServerSupport extends com.coova.ewt.server.EWTServerSupport impl
 
 			public Object handle(Map<String, String> parameterMap, JSONObject jsonObject, Object sessionObject) throws Exception
             {
-                parameterMap.put("responseType", txtType);
+                parameterMap.put("responseType", EWTResponse.txtType);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                 doTransform("xml2radiusd", "config", out);
                 return new String(out.toByteArray());

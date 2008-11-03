@@ -21,6 +21,8 @@
 
 package net.jradius.packet;
 
+import java.util.Arrays;
+
 import net.jradius.client.RadiusClient;
 import net.jradius.packet.attribute.AttributeDictionary;
 import net.jradius.packet.attribute.AttributeFactory;
@@ -112,5 +114,15 @@ public class AccountingRequest extends RadiusRequest
                 (byte)getCode(), (byte)getIdentifier(), attributes.length + RADIUS_HEADER_LENGTH, attributes);
 
         return this.authenticator;
+    }
+
+    public boolean verifyAuthenticator(String sharedSecret)
+    {
+        byte[] attributes = new RadiusFormat().packAttributeList(getAttributes());
+
+        byte[] newauth = RadiusUtils.makeRFC2866RequestAuthenticator(sharedSecret,
+                (byte)getCode(), (byte)getIdentifier(), attributes.length + RADIUS_HEADER_LENGTH, attributes);
+
+        return Arrays.equals(newauth, this.authenticator);
     }
 }

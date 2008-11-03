@@ -75,12 +75,7 @@ public class RadiusFormat extends Format
     public byte[] packPacket(RadiusPacket packet, String sharedSecret)
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] attributeBytes = null;
-        
-        if (packet != null)
-        {
-            attributeBytes = packAttributeList(packet.getAttributes());
-        }
+        byte[] attributeBytes = packAttributeList(packet.getAttributes());
         
         try
         {

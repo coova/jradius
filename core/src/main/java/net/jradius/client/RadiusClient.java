@@ -343,7 +343,7 @@ public class RadiusClient
      */
     private void generateMessageAuthenticator(RadiusPacket request)
     {
-    	MessageAuthenticator.generateRequest(request, sharedSecret);
+    	MessageAuthenticator.generateRequestMessageAuthenticator(request, sharedSecret);
     }
     
     /**

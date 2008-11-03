@@ -49,7 +49,10 @@ public class WebServiceRequest extends JRadiusEvent
     private String httpVersion;
     private URI uri;
     private byte[] content;
+
     private Map<String, String> headerMap;
+
+    private Map<String, String> serverVariableMap;
     
     private X509Certificate clientCertificate;
     
@@ -206,6 +209,10 @@ public class WebServiceRequest extends JRadiusEvent
                 }
             }
         }
+        
+        if (serverVariableMap != null)
+        	map.putAll(serverVariableMap);
+        
         return map;
 	}
 	
@@ -222,5 +229,13 @@ public class WebServiceRequest extends JRadiusEvent
 	public X509Certificate getCertificate()
 	{
 		return clientCertificate;
+	}
+
+	public Map<String, String> getServerVariableMap() {
+		return serverVariableMap;
+	}
+
+	public void setServerVariableMap(Map<String, String> serverVariableMap) {
+		this.serverVariableMap = serverVariableMap;
 	}
 }

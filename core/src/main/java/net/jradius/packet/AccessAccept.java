@@ -43,5 +43,4 @@ public class AccessAccept extends RadiusResponse
 		super(id, attributes);
         code = CODE;
 	}
-
 }

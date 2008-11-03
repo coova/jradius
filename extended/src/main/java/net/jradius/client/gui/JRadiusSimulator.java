@@ -40,7 +40,9 @@ import java.net.InetAddress;
 import java.net.URL;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -76,6 +78,8 @@ import javax.swing.table.TableColumn;
 import javax.swing.text.NumberFormatter;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+
+import com.ms.wfc.core.Sys;
 
 import net.jradius.client.RadiusClient;
 import net.jradius.client.auth.EAPAKAAuthenticator;
@@ -115,7 +119,7 @@ import net.jradius.util.RadiusRandom;
  * Java Swing Graphical User Interface for the JRadius RADIUS Client.
  * @author David Bird
  */
-public class JRadiusSimulator extends JFrame implements Runnable
+public class JRadiusSimulator extends JFrame
 {
     private static final long serialVersionUID = (long)0;
     public  static final String logSepLine = "----------------------------------------------------------";
@@ -780,7 +784,7 @@ public class JRadiusSimulator extends JFrame implements Runnable
                         simulationThreads = new Thread[(Integer)requestersTextField.getValue()];
                         for (int i=0; i < simulationThreads.length; i++)
                         {
-                            simulationThreads[i] = new Thread(JRadiusSimulator.this);
+                            simulationThreads[i] = new Thread(new SimulationRunner());
                             simulationThreads[i].start();
                         }
                         runButton.setText("Stop");
@@ -1970,216 +1974,6 @@ public class JRadiusSimulator extends JFrame implements Runnable
         }
         return null;
     }
-    
-    public void run()
-    {
-        String radiusServer = radiusServerTextField.getText();
-        String sharedSecret = sharedSecretTextField.getText();
-
-        Integer authPort = (Integer)radiusAuthPortTextField.getValue();
-        Integer acctPort = (Integer)radiusAcctPortTextField.getValue();
-        Integer timeout  = (Integer)radiusTimeoutTextField.getValue();
-        Integer retries  = (Integer)radiusRetriesTextField.getValue();
-        Integer requests = (Integer)requestsTextField.getValue();
-        
-        byte[] bClass = null;
-
-        if (radiusServer == null || sharedSecret == null || "".equals(radiusServer) || "".equals(sharedSecret))
-        {
-            statusLabel.setText("The RADIUS Server and Shared Secret are required");
-            return;
-        }
-
-        if (authPort == null || acctPort == null)
-        {
-            statusLabel.setText("The Auth Port and Acct Port must be set");
-            return;
-        }
-
-        for (int r=0; r<requests; r++)
-        {
-            // Default is Auth Only
-            boolean sendPackets[] = { true, false, false, false };
-            boolean sendDisconnectRequest = false;
-            boolean sendCoARequest = false;
-            boolean simulationSuccess = true;
-            interactiveSession = false; 
-            
-            switch (simulationTypeComboBox.getSelectedIndex())
-            {
-                case 1: sendPackets[1] = sendPackets[2] = sendPackets[3] = true; break;
-                case 2: sendPackets[1] = sendPackets[3] = true; break;
-                case 3: sendPackets = new boolean[]{ false, true, true, true }; break;
-                case 4: sendDisconnectRequest = true; break;
-                case 5: sendCoARequest = true; break;
-                //case 3: sendPackets[1] = true; interactiveSession = true; break;
-            }
-    
-            Attr_AcctSessionId generatedAcctSessionId = null;
-            if (generateAcctSessionIdCheckBox.isSelected())
-            {
-                generatedAcctSessionId = new Attr_AcctSessionId("JRadius-" + RadiusRandom.getRandomString(16));
-            }
-            
-            try
-            {
-                // Run the Simulation
-                AttributeList[] authAttributes = { new AttributeList(), new AttributeList() };
-                AttributeList[] acctAttributes = { new AttributeList(), new AttributeList(), new AttributeList() };
-    
-                Object[] entries = attributesTableModel.getEntries().toArray();
-                for (int i = 0; i < entries.length; i++)
-                {
-                    AttributesTableEntry entry = (AttributesTableEntry)entries[i];
-                    RadiusAttribute attribute = AttributeFactory.newAttribute(entry.getAttributeName(), entry.getAttributeValue(), "=");
-                    Boolean bool;
-                    
-                    if ((bool = entry.getAccessRequest()) != null     && bool.booleanValue()) authAttributes[0].add(attribute,false);
-                    if ((bool = entry.getTunnelRequest()) != null     && bool.booleanValue()) authAttributes[1].add(attribute,false);
-                    if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(attribute,false);
-                    if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(attribute,false);
-                    if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(attribute,false);
-                }
-                
-                RadiusClient radiusClient = new RadiusClient(InetAddress.getByName(radiusServer), sharedSecret, 
-                        authPort.intValue(), acctPort.intValue(), timeout.intValue())
-                {
-                    /* (non-Javadoc)
-                     * @see net.jradius.client.RadiusClient#receive()
-                     */
-                    protected RadiusResponse receive() throws IOException, RadiusException
-                    {
-                        statusLabel.setText("Waiting for response...");
-                        RadiusResponse res = super.receive();
-                        statusLabel.setText("Received RADIUS Packet " + res.getClass().getName());
-    
-                        logRecv.println("Received RADIUS Packet:");
-                        logRecv.println(logSepLine);
-                        logRecv.println(res.toString());
-                        logRecv.flush();
-    
-                        checkStandard(getRadiusStandard(), res);
-    
-                        return res;
-                    }
-    
-                    /* (non-Javadoc)
-                     * @see net.jradius.client.RadiusClient#send(net.jradius.packet.RadiusPacket, java.net.InetAddress, int, int)
-                     */
-                    protected void send(RadiusPacket p, InetAddress a, int port, int attempt) throws IOException
-                    {
-                        logSent.println("Sending RADIUS Packet:");
-                        logSent.println(logSepLine);
-                        logSent.println(p.toString());
-                        logSent.flush();
-    
-                        checkStandard(getRadiusStandard(), p);
-                        
-                        statusLabel.setText("Sending RADIUS Packet " + p.getClass().getName());
-                        super.send(p, a, port, attempt);
-                    }
-                };
-         
-                for (int i = 0; i < sendPackets.length; i++)
-                {
-                    if (!sendPackets[i]) continue;
-                    RadiusRequest request;
-                    if (i == 0) 
-                    {
-                        if (sendDisconnectRequest)
-                        {
-                            request = new DisconnectRequest(radiusClient, authAttributes[0]);
-                        }
-                        else if (sendCoARequest)
-                        {
-                            request = new CoARequest(radiusClient, authAttributes[0]);
-                        }
-                        else
-                        {
-                            request = new AccessRequest(radiusClient, authAttributes[0]);
-                        }
-                    }
-                    else 
-                    {
-                        request = new AccountingRequest(radiusClient, acctAttributes[i - 1]);
-                        if (request.findAttribute(Attr_AcctStatusType.TYPE) == null)
-                        {
-                            switch(i)
-                            {
-                            case 1: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.Start)); break;
-                            case 2: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.InterimUpdate)); break;
-                            case 3: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.Stop)); break;
-                            }
-                        }
-                    }
-                    
-                    if (bClass != null) request.addAttribute(new Attr_Class(bClass));
-    
-                    if (generatedAcctSessionId != null && request.findAttribute(Attr_AcctSessionId.TYPE) != null)
-                    {
-                        request.overwriteAttribute(generatedAcctSessionId);
-                    }
-    
-                    RadiusPacket reply;
-                    if (i == 0) 
-                    {
-                        if (request instanceof AccessRequest)
-                        {
-                            RadiusAuthenticator auth = getAuthenticator();
-                            if (auth instanceof TunnelAuthenticator)
-                            {
-                                ((TunnelAuthenticator)auth).setTunneledAttributes(authAttributes[1]);
-                            }
-                            if (auth instanceof EAPAKAAuthenticator)
-                            {
-                            	byte[] ik=toBinArray(akaIKTextField.getText());
-                            	byte[] ck=toBinArray(akaCKTextField.getText());
-                            	request.addAttribute(new Attr_EAPAkaIK(ik));
-                            	request.addAttribute(new Attr_EAPAkaCK(ck));
-                            }
-                            reply = radiusClient.authenticate((AccessRequest)request, auth, retries.intValue());
-                            if (!notStopOnRejectCheckBox.isSelected())
-                            {
-                                if (reply instanceof AccessReject)
-                                {
-                                    String replyMessage = (String)reply.getAttributeValue(Attr_ReplyMessage.TYPE);
-                                    if (replyMessage == null) replyMessage = "reason unknown";
-                                    statusLabel.setText("Access Rejected: " + replyMessage);
-                                    simulationSuccess = false;
-                                    break;
-                                }
-                            }
-                            if (!notSendClassAttribute.isSelected())
-                            {
-                                bClass = (byte[]) reply.getAttributeValue(Attr_Class.TYPE);
-                            }
-                        }
-                        else if (sendDisconnectRequest)
-                        {
-                            reply = radiusClient.disconnect((DisconnectRequest)request, retries.intValue());
-                        }
-                        else if (sendCoARequest)
-                        {
-                            reply = radiusClient.changeOfAuth((CoARequest)request, retries.intValue());
-                        }
-                    }
-                    else
-                    {
-                        reply = radiusClient.accounting((AccountingRequest)request, retries.intValue());
-                    }
-                }
-                
-                if (simulationSuccess) statusLabel.setText("Simulation complete");
-            }
-            catch (Exception e)
-            {
-                statusLabel.setText("Problem: " + e.getMessage());
-                e.printStackTrace();
-            }
-        }
-        runButton.setSelected(false);
-        runButton.setText("Start");
-    }
 
     /**
      * This method initializes openUrlDialog	
@@ -2349,4 +2143,224 @@ public class JRadiusSimulator extends JFrame implements Runnable
 	    return bArray;
 	}
 
-} //  @jve:decl-index=0:visual-constraint="10,10"
+    class SimulationRunner implements Runnable
+    {
+        int sent=0;
+        int recd=0;
+        
+	    public void run()
+	    {
+	    	long startTime = System.currentTimeMillis();
+	        String radiusServer = radiusServerTextField.getText();
+	        String sharedSecret = sharedSecretTextField.getText();
+	
+	        Integer authPort = (Integer)radiusAuthPortTextField.getValue();
+	        Integer acctPort = (Integer)radiusAcctPortTextField.getValue();
+	        Integer timeout  = (Integer)radiusTimeoutTextField.getValue();
+	        Integer retries  = (Integer)radiusRetriesTextField.getValue();
+	        Integer requests = (Integer)requestsTextField.getValue();
+	        
+	        byte[] bClass = null;
+	
+	        if (radiusServer == null || sharedSecret == null || "".equals(radiusServer) || "".equals(sharedSecret))
+	        {
+	            statusLabel.setText("The RADIUS Server and Shared Secret are required");
+	            return;
+	        }
+	
+	        if (authPort == null || acctPort == null)
+	        {
+	            statusLabel.setText("The Auth Port and Acct Port must be set");
+	            return;
+	        }
+	
+	        for (int r=0; r<requests; r++)
+	        {
+	            // Default is Auth Only
+	            boolean sendPackets[] = { true, false, false, false };
+	            boolean sendDisconnectRequest = false;
+	            boolean sendCoARequest = false;
+	            boolean simulationSuccess = true;
+	            interactiveSession = false; 
+	            
+	            switch (simulationTypeComboBox.getSelectedIndex())
+	            {
+	                case 1: sendPackets[1] = sendPackets[2] = sendPackets[3] = true; break;
+	                case 2: sendPackets[1] = sendPackets[3] = true; break;
+	                case 3: sendPackets = new boolean[]{ false, true, true, true }; break;
+	                case 4: sendDisconnectRequest = true; break;
+	                case 5: sendCoARequest = true; break;
+	                //case 3: sendPackets[1] = true; interactiveSession = true; break;
+	            }
+	    
+	            Attr_AcctSessionId generatedAcctSessionId = null;
+	            if (generateAcctSessionIdCheckBox.isSelected())
+	            {
+	                generatedAcctSessionId = new Attr_AcctSessionId("JRadius-" + RadiusRandom.getRandomString(16));
+	            }
+	            
+	            try
+	            {
+	                // Run the Simulation
+	                AttributeList[] authAttributes = { new AttributeList(), new AttributeList() };
+	                AttributeList[] acctAttributes = { new AttributeList(), new AttributeList(), new AttributeList() };
+	    
+	                Object[] entries = attributesTableModel.getEntries().toArray();
+	                for (int i = 0; i < entries.length; i++)
+	                {
+	                    AttributesTableEntry entry = (AttributesTableEntry)entries[i];
+	                    RadiusAttribute attribute = AttributeFactory.newAttribute(entry.getAttributeName(), entry.getAttributeValue(), "=");
+	                    Boolean bool;
+	                    
+	                    if ((bool = entry.getAccessRequest()) != null     && bool.booleanValue()) authAttributes[0].add(attribute,false);
+	                    if ((bool = entry.getTunnelRequest()) != null     && bool.booleanValue()) authAttributes[1].add(attribute,false);
+	                    if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(attribute,false);
+	                    if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(attribute,false);
+	                    if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(attribute,false);
+	                }
+	                
+	                RadiusClient radiusClient = new RadiusClient(InetAddress.getByName(radiusServer), sharedSecret, 
+	                        authPort.intValue(), acctPort.intValue(), timeout.intValue())
+	                {
+	                    /* (non-Javadoc)
+	                     * @see net.jradius.client.RadiusClient#receive()
+	                     */
+	                    protected RadiusResponse receive() throws IOException, RadiusException
+	                    {
+	                        statusLabel.setText("Waiting for response...");
+	                        RadiusResponse res = super.receive();
+	                        statusLabel.setText("Received RADIUS Packet " + res.getClass().getName());
+	    
+	                        logRecv.println("Received RADIUS Packet:");
+	                        logRecv.println(logSepLine);
+	                        logRecv.println(res.toString());
+	                        logRecv.flush();
+	    
+	                        checkStandard(getRadiusStandard(), res);
+	                        recd++;
+	    
+	                        return res;
+	                    }
+	    
+	                    /* (non-Javadoc)
+	                     * @see net.jradius.client.RadiusClient#send(net.jradius.packet.RadiusPacket, java.net.InetAddress, int, int)
+	                     */
+	                    protected void send(RadiusPacket p, InetAddress a, int port, int attempt) throws IOException
+	                    {
+	                        logSent.println("Sending RADIUS Packet:");
+	                        logSent.println(logSepLine);
+	                        logSent.println(p.toString());
+	                        logSent.flush();
+	    
+	                        checkStandard(getRadiusStandard(), p);
+	                        
+	                        sent++;
+	                        statusLabel.setText("Sending RADIUS Packet " + p.getClass().getName());
+	                        super.send(p, a, port, attempt);
+	                    }
+	                };
+	         
+	                for (int i = 0; i < sendPackets.length; i++)
+	                {
+	                    if (!sendPackets[i]) continue;
+	                    RadiusRequest request;
+	                    if (i == 0) 
+	                    {
+	                        if (sendDisconnectRequest)
+	                        {
+	                            request = new DisconnectRequest(radiusClient, authAttributes[0]);
+	                        }
+	                        else if (sendCoARequest)
+	                        {
+	                            request = new CoARequest(radiusClient, authAttributes[0]);
+	                        }
+	                        else
+	                        {
+	                            request = new AccessRequest(radiusClient, authAttributes[0]);
+	                        }
+	                    }
+	                    else 
+	                    {
+	                        request = new AccountingRequest(radiusClient, acctAttributes[i - 1]);
+	                        if (request.findAttribute(Attr_AcctStatusType.TYPE) == null)
+	                        {
+	                            switch(i)
+	                            {
+	                            case 1: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.Start)); break;
+	                            case 2: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.InterimUpdate)); break;
+	                            case 3: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.Stop)); break;
+	                            }
+	                        }
+	                    }
+	                    
+	                    if (bClass != null) request.addAttribute(new Attr_Class(bClass));
+	    
+	                    if (generatedAcctSessionId != null && request.findAttribute(Attr_AcctSessionId.TYPE) != null)
+	                    {
+	                        request.overwriteAttribute(generatedAcctSessionId);
+	                    }
+	    
+	                    RadiusPacket reply;
+	                    if (i == 0) 
+	                    {
+	                        if (request instanceof AccessRequest)
+	                        {
+	                            RadiusAuthenticator auth = getAuthenticator();
+	                            if (auth instanceof TunnelAuthenticator)
+	                            {
+	                                ((TunnelAuthenticator)auth).setTunneledAttributes(authAttributes[1]);
+	                            }
+	                            if (auth instanceof EAPAKAAuthenticator)
+	                            {
+	                            	byte[] ik=toBinArray(akaIKTextField.getText());
+	                            	byte[] ck=toBinArray(akaCKTextField.getText());
+	                            	request.addAttribute(new Attr_EAPAkaIK(ik));
+	                            	request.addAttribute(new Attr_EAPAkaCK(ck));
+	                            }
+	                            reply = radiusClient.authenticate((AccessRequest)request, auth, retries.intValue());
+	                            if (!notStopOnRejectCheckBox.isSelected())
+	                            {
+	                                if (reply instanceof AccessReject)
+	                                {
+	                                    String replyMessage = (String)reply.getAttributeValue(Attr_ReplyMessage.TYPE);
+	                                    if (replyMessage == null) replyMessage = "reason unknown";
+	                                    statusLabel.setText("Access Rejected: " + replyMessage);
+	                                    simulationSuccess = false;
+	                                    break;
+	                                }
+	                            }
+	                            if (!notSendClassAttribute.isSelected())
+	                            {
+	                                bClass = (byte[]) reply.getAttributeValue(Attr_Class.TYPE);
+	                            }
+	                        }
+	                        else if (sendDisconnectRequest)
+	                        {
+	                            reply = radiusClient.disconnect((DisconnectRequest)request, retries.intValue());
+	                        }
+	                        else if (sendCoARequest)
+	                        {
+	                            reply = radiusClient.changeOfAuth((CoARequest)request, retries.intValue());
+	                        }
+	                    }
+	                    else
+	                    {
+	                        reply = radiusClient.accounting((AccountingRequest)request, retries.intValue());
+	                    }
+	                }
+	                
+	                if (simulationSuccess) statusLabel.setText("Simulation complete");
+	            }
+	            catch (Exception e)
+	            {
+	                statusLabel.setText("Problem: " + e.getMessage());
+	                e.printStackTrace();
+	            }
+	        }
+	        runButton.setSelected(false);
+	        runButton.setText("Start");
+
+	        System.out.println("Sent: "+sent+" Recd: "+recd+" in "+((System.currentTimeMillis() - startTime))+"ms");
+	    }
+    }
+}

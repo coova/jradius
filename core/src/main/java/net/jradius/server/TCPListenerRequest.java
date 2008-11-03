@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.jradius.exception.RadiusException;
 
@@ -56,6 +58,13 @@ public class TCPListenerRequest extends ListenerRequest
         return socket.getOutputStream();
     }
 
+	public Map<String, String> getServerVariables() 
+	{
+		Map<String, String> result = new HashMap<String, String>();
+		result.put("REMOTE_ADDR", socket.getInetAddress().getHostAddress());
+		return result;
+	}
+	
     public Socket getSocket() 
     {
         return socket;

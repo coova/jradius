@@ -137,6 +137,8 @@
     <module>applet</module>
     <module>client</module>
     <module>server</module>
+	<module>extensions</module>
+	<module>server-ext</module>
   </modules>
 
   <repositories>
