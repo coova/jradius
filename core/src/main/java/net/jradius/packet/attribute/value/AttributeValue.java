@@ -26,6 +26,7 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import net.jradius.log.RadiusLog;
+import net.jradius.util.Hex;
 
 
 /**
@@ -61,11 +62,24 @@ public abstract class AttributeValue implements Serializable
 
     public abstract void setValue(byte[] b);
 
-    public void setValue(String s) { setValue(s.getBytes()); }
-
     public abstract void setValueObject(Serializable o);
 
-    public String toString() { return "[Binary Data]"; }
+    public void setValue(String s) 
+    { 
+    	if (s.startsWith("0x"))
+    	{
+        	setValue(Hex.hexStringToByteArray(s.substring(2))); 
+    	}
+    	else
+    	{
+        	setValue(s.getBytes()); 
+    	}
+    }
+
+    public String toString() 
+    { 
+    	return "[Binary Data]"; 
+    }
     
     public String toXMLString() { return ""; }
 }

@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
+import net.jradius.util.Hex;
+
 /**
  * Raw Octets attribute value
  *
@@ -61,7 +63,7 @@ public class OctetsValue extends AttributeValue
     
     public String toString()
     {
-        return "[Binary Data (length="+(byteValue == null ? 0 : byteValue.length)+")]";
+    	return "[Binary Data ("+(byteValue == null ? "null" : "0x"+Hex.byteArrayToHexString(byteValue))+")]";
     }
 
     public Serializable getValueObject()

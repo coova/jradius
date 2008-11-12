@@ -23,10 +23,11 @@ package net.jradius.ewt.handler;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import net.jradius.ewt.EWTServerSupport;
 import net.jradius.handler.EventHandlerBase;
 
 import org.springframework.beans.factory.InitializingBean;
+
+import com.coova.ewt.server.EWTServerSupport;
 
 public abstract class CoreHandler extends EventHandlerBase implements InitializingBean
 {   
