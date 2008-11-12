@@ -81,5 +81,10 @@ public abstract class AttributeValue implements Serializable
     	return "[Binary Data]"; 
     }
     
+    public String toDebugString() 
+    { 
+    	return toString(); 
+    }
+    
     public String toXMLString() { return ""; }
 }

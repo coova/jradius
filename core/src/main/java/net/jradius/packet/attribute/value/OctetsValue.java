@@ -61,9 +61,14 @@ public class OctetsValue extends AttributeValue
         byteValue = b;
     }
     
+    public String toDebugString()
+    {
+    	return "[Binary Data: "+(byteValue == null ? "null" : "0x"+Hex.byteArrayToHexString(byteValue))+"]";
+    }
+
     public String toString()
     {
-    	return "[Binary Data ("+(byteValue == null ? "null" : "0x"+Hex.byteArrayToHexString(byteValue))+")]";
+    	return "[Binary Data (length "+(byteValue == null ? 0 : byteValue.length)+")]";
     }
 
     public Serializable getValueObject()

@@ -42,6 +42,8 @@ public class MessageAuthenticator
         
         System.arraycopy(MD5.hmac_md5(format.packPacket(request, sharedSecret), sharedSecret.getBytes()), 0, hash, 0, 16);
 
+        attr.setValue(pval);
+        
         return new Boolean(Arrays.equals(pval, hash));
     }
 
