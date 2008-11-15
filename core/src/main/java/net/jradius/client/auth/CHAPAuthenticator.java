@@ -61,7 +61,7 @@ public class CHAPAuthenticator extends RadiusAuthenticator
 
 	public static boolean verifyPassword(byte[] response, byte[] challenge, byte id, byte[] clearText) 
 	{
-        byte chapResponse[] = CHAP.chapResponse(id, clearText, challenge);
+        byte chapResponse[] = CHAP.chapResponse(response[0], clearText, challenge);
         return Arrays.equals(response, chapResponse);
 	}
 }
