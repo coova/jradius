@@ -30,6 +30,8 @@ import java.util.GregorianCalendar;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import net.jradius.log.RadiusLog;
+
 /**
  * A Random Number Generator (wrapper) for JRadius
  *
@@ -67,7 +69,7 @@ public class RadiusRandom
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    RadiusLog.error("Invalid operation", e);
                 }
             }
         }

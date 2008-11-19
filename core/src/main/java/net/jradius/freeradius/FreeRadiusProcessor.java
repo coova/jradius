@@ -36,6 +36,7 @@ import net.jradius.server.JRadiusServer;
 import net.jradius.server.ListenerRequest;
 import net.jradius.server.RadiusProcessor;
 import net.jradius.server.config.Configuration;
+import org.springframework.context.ApplicationContext;
 
 
 /**
@@ -59,9 +60,17 @@ public class FreeRadiusProcessor extends RadiusProcessor
         catch (Throwable th)
         {
             request.setReturnValue(JRadiusServer.RLM_MODULE_FAIL);
-            th.printStackTrace();
+            RadiusLog.error(">>> processRequest(): Error during processing RunPacketHandlers block", th);
         }
-        writeResponse(request, listenerRequest.getOutputStream());
+
+        try
+        {
+            this.writeResponse(request, listenerRequest.getOutputStream());
+        }
+        catch(Throwable e)
+        {
+            RadiusLog.error(">>> processRequest(): Error during writing response", e);
+        }
     }
 
     public void writeResponse(JRadiusRequest request, OutputStream outputStream) throws IOException, RadiusException 
@@ -70,7 +79,7 @@ public class FreeRadiusProcessor extends RadiusProcessor
         DataOutputStream out = new DataOutputStream(outBytes);
 
         if (Configuration.isDebug()) 
-            request.printDebugInfo(System.out);
+            request.printDebugInfo();
 
         RadiusPacket[] rp = request.getPackets();
         int packetCount = rp.length;

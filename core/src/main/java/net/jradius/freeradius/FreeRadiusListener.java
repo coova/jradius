@@ -58,7 +58,7 @@ public class FreeRadiusListener extends TCPListener
         in.readFully(nameBytes);
         
         int messageType = RadiusFormat.readUnsignedByte(in);
-        int packetCount = RadiusFormat.readUnsignedByte(in);;
+        int packetCount = RadiusFormat.readUnsignedByte(in);
 
         RadiusPacket rp[] = PacketFactory.parse(in, packetCount);
         

@@ -28,6 +28,13 @@ import net.jradius.server.config.ConfigurationItem;
 
 import org.apache.commons.chain.Catalog;
 import org.apache.commons.chain.CatalogFactory;
+import org.apache.commons.chain.Command;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.BeansException;
+
+import java.util.Iterator;
 
 /**
  * The EventHandlerChain is a simple EventHandler that delegates
@@ -37,11 +44,13 @@ import org.apache.commons.chain.CatalogFactory;
  * (e.g. acct-start, acct-interim, and acct-stop).
  * @author David Bird
  */
-public class EventHandlerChain extends EventHandlerBase
+public class EventHandlerChain extends EventHandlerBase implements BeanFactoryAware
 {
     private Catalog catalog;
     private String catalogName;
-    
+
+    private BeanFactory beanFactory;
+
     private String onTrue;
     private String onFalse;
     
@@ -49,6 +58,45 @@ public class EventHandlerChain extends EventHandlerBase
     {
         super.setConfig(cfg);
         setCatalogName(cfg.getName());
+
+        Catalog c = this.getCatalog();
+
+        {
+            Iterator i = c.getNames();
+
+            while(i.hasNext())
+            {
+                String name = (String)i.next();
+                Command cmd = c.getCommand(name);
+
+                if(cmd instanceof BeanFactoryAware)
+                {
+                    ((BeanFactoryAware)cmd).setBeanFactory(beanFactory);
+                }
+            }
+        }
+
+        {
+            Iterator i = c.getNames();
+
+            while(i.hasNext())
+            {
+                try
+                {
+                    String name = (String)i.next();
+                    Command cmd = c.getCommand(name);
+
+                    if(cmd instanceof InitializingBean)
+                    {
+                        ((InitializingBean)cmd).afterPropertiesSet();
+                    }
+                }
+                catch(Exception e)
+                {
+                    RadiusLog.warn("Error during bean initialization [InitializingBean]", e);
+                }
+            }
+        }
     }
     
     public boolean handle(JRadiusEvent event) throws Exception
@@ -107,7 +155,7 @@ public class EventHandlerChain extends EventHandlerBase
         this.catalogName = catalogName;
     }
     
-    public Catalog getCatalog()
+    protected Catalog getCatalog()
     {
         if (this.catalog == null)
         {
@@ -119,5 +167,10 @@ public class EventHandlerChain extends EventHandlerBase
             }
         }
         return this.catalog;
+    }
+
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException
+    {
+        this.beanFactory = beanFactory;
     }
 }

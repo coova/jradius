@@ -40,52 +40,86 @@ import net.jradius.session.JRadiusSessionManager;
  */
 public class EventDispatcher extends JRadiusThread
 {
-    private BlockingQueue<JRadiusEvent> eventQueue;
-    private List<JRCommand> eventHandlers;
+    private BlockingQueue<JRadiusEvent> eventQueue = new LinkedBlockingQueue<JRadiusEvent>();
+    private List<JRCommand> eventHandlers = new LinkedList<JRCommand>();
+    private volatile boolean active = false;
 
     public EventDispatcher()
     {
         super();
-        eventQueue = new LinkedBlockingQueue<JRadiusEvent>();
-        eventHandlers = new LinkedList<JRCommand>();
     }
 
     public void post(JRadiusEvent event)
     {
-        try
+        while(true)
         {
-            eventQueue.put(event);
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
+            try
+            {
+                this.eventQueue.put(event);
+                break;
+            }
+            catch(InterruptedException e)
+            {
+            }
         }
     }
 
     public void run()
     {
-        while (true)
+        this.active = true;
+
+        while (this.active)
         {
             try
             {
                 Thread.yield();
-                dispatchEvent();
-            }
-            catch (InterruptedException e)
-            {
-                return;
+                this.dispatchEvent();
             }
             catch (Throwable e)
             {
-                RadiusLog.error(e.getMessage());
-                e.printStackTrace();
+                RadiusLog.error("Error during event dispatch", e);
             }
         }
     }
 
-    private void dispatchEvent() throws InterruptedException
+    public boolean getActive()
     {
-        JRadiusEvent event = eventQueue.take();
+        return this.active;
+    }
+
+
+    public void setActive(boolean active)
+    {
+        this.active = active;
+
+        if(active == false)
+        {
+            try
+            {
+                this.interrupt();
+            }
+            catch(Throwable t)
+            {
+            }
+        }
+    }
+
+    private void dispatchEvent()
+    {
+        JRadiusEvent event;
+
+        while(true)
+        {
+            try
+            {
+                event = this.eventQueue.take();
+                break;
+            }
+            catch(InterruptedException e)
+            {
+            }
+        }
+
         if (event != null)
         {
             JRadiusSessionManager sessionManager = JRadiusSessionManager.getManager(event.getSender());
@@ -113,8 +147,7 @@ public class EventDispatcher extends JRadiusThread
                     }
                     catch (Throwable e)
                     {
-                        RadiusLog.error("Event handler " + command.getName() + " threw an exception:" + e);
-                        e.printStackTrace();
+                        RadiusLog.error("Event handler " + command.getName() + " threw an exception", e);
                     }
                 }
             }

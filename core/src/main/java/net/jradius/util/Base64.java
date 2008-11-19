@@ -1,4 +1,7 @@
 package net.jradius.util;
+
+import net.jradius.log.RadiusLog;
+
 /**
  * Encodes and decodes to and from Base64 notation.
  *
@@ -339,7 +342,7 @@ public class Base64
         }   // end try
         catch( java.io.IOException e )
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
             return null;
         }   // end catch
         finally
@@ -468,7 +471,7 @@ public class Base64
             }   // end try
             catch( java.io.IOException e )
             {
-                e.printStackTrace();
+                RadiusLog.warn(e.getMessage(), e);
                 return null;
             }   // end catch
             finally
@@ -618,10 +621,11 @@ public class Base64
 
             return 3;
             }catch( Exception e){
-                System.out.println(""+source[srcOffset]+ ": " + ( DECODABET[ source[ srcOffset     ] ]  ) );
-                System.out.println(""+source[srcOffset+1]+  ": " + ( DECODABET[ source[ srcOffset + 1 ] ]  ) );
-                System.out.println(""+source[srcOffset+2]+  ": " + ( DECODABET[ source[ srcOffset + 2 ] ]  ) );
-                System.out.println(""+source[srcOffset+3]+  ": " + ( DECODABET[ source[ srcOffset + 3 ] ]  ) );
+                RadiusLog.debug(""+source[srcOffset]+ ": " + ( DECODABET[ source[ srcOffset     ] ]  ) );
+                RadiusLog.debug(""+source[srcOffset+1]+  ": " + ( DECODABET[ source[ srcOffset + 1 ] ]  ) );
+                RadiusLog.debug(""+source[srcOffset+2]+  ": " + ( DECODABET[ source[ srcOffset + 2 ] ]  ) );
+                RadiusLog.debug(""+source[srcOffset+3]+  ": " + ( DECODABET[ source[ srcOffset + 3 ] ]  ) );
+                RadiusLog.error("Base64 decode error", e);
                 return -1;
             }   //e nd catch
         }
@@ -677,7 +681,7 @@ public class Base64
             }   // end if: white space, equals sign or better
             else
             {
-                System.err.println( "Bad Base64 input character at " + i + ": " + source[i] + "(decimal)" );
+                RadiusLog.error( "Bad Base64 input character at " + i + ": " + source[i] + "(decimal)" );
                 return null;
             }   // end else: 
         }   // each input character
@@ -790,12 +794,12 @@ public class Base64
         }   // end try
         catch( java.io.IOException e )
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
             obj = null;
         }   // end catch
         catch( java.lang.ClassNotFoundException e )
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
             obj = null;
         }   // end catch
         finally
@@ -902,7 +906,7 @@ public class Base64
             // Check for size of file
             if( file.length() > Integer.MAX_VALUE )
             {
-                System.err.println( "File is too big for this convenience method (" + file.length() + " bytes)." );
+                RadiusLog.error( "File is too big for this convenience method (" + file.length() + " bytes)." );
                 return null;
             }   // end if: file too big for int index
             buffer = new byte[ (int)file.length() ];
@@ -923,11 +927,17 @@ public class Base64
         }   // end try
         catch( java.io.IOException e )
         {
-            System.err.println( "Error decoding from file " + filename );
+            RadiusLog.error( "Error decoding from file " + filename, e);
         }   // end catch: IOException
         finally
         {
-            try{ bis.close(); } catch( Exception e) {}
+            try
+            {
+                bis.close();
+            }
+            catch (Exception e)
+            {
+            }
         }   // end finally
         
         return decodedData;
@@ -971,7 +981,7 @@ public class Base64
         }   // end try
         catch( java.io.IOException e )
         {
-            System.err.println( "Error encoding from file " + filename );
+            RadiusLog.error( "Error encoding from file " + filename, e);
         }   // end catch: IOException
         finally
         {

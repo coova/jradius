@@ -75,7 +75,7 @@ public class SSOProxyService extends EventHandlerBase
         }
         catch(InvalidKeyException e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
         }
 
         int bs = cipher.currentBlockSize();

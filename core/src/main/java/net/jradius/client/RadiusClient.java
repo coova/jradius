@@ -128,8 +128,7 @@ public class RadiusClient
         }
         catch (Exception e)
         {
-            RadiusLog.error(e.getMessage());
-            e.printStackTrace();
+            RadiusLog.error(e.getMessage(), e);
         }
     }
     
@@ -235,7 +234,7 @@ public class RadiusClient
         }
         catch(Exception e) 
         { 
-            e.printStackTrace();
+            RadiusLog.error("Invalid auth protocol", e);
             return null;
         }
         if (args != null)
@@ -249,7 +248,7 @@ public class RadiusClient
             }
             catch (Exception e)
             {
-                RadiusLog.error("Could not instanciate authenticator " + protocolName);
+                RadiusLog.error("Could not instanciate authenticator " + protocolName, e);
                 return auth;
             }
             for (int p = 0; p < props.length; p++)
@@ -294,7 +293,7 @@ public class RadiusClient
                         }
                         catch (Exception e)
                         {
-                            RadiusLog.error("Error setting attribute " + name + " for authenticator " + protocolName + ": " + e.getMessage());
+                            RadiusLog.error("Error setting attribute " + name + " for authenticator " + protocolName, e);
                         }
                     }
                 }
@@ -341,7 +340,7 @@ public class RadiusClient
      * Add the Message-Authentivator attribute to the given RadiusPacket
      * @param request The RadiusPacket
      */
-    private void generateMessageAuthenticator(RadiusPacket request)
+    private void generateMessageAuthenticator(RadiusPacket request) throws IOException
     {
     	MessageAuthenticator.generateRequestMessageAuthenticator(request, sharedSecret);
     }
@@ -355,11 +354,18 @@ public class RadiusClient
      */
     private boolean verifyMessageAuthenticator(RadiusRequest request, RadiusResponse reply, boolean required)
     {
-    	Boolean verified = MessageAuthenticator.verifyReply(request, reply, sharedSecret);
-        if (verified == null && required) return false;
-        if (verified == null) return true;
-        return verified.booleanValue();
-    }
+		try
+		{
+			Boolean verified = MessageAuthenticator.verifyReply(request, reply, sharedSecret);
+			if (verified == null && required) return false;
+			if (verified == null) return true;
+			return verified.booleanValue();
+		}
+		catch(IOException e)
+		{
+			return false;
+		}
+	}
     
     /**
      * Verify the RADIUS Authenticator
@@ -423,7 +429,14 @@ public class RadiusClient
         
         if (p instanceof AccessRequest)
         {
-        	generateMessageAuthenticator(p);
+            try
+            {
+	        	generateMessageAuthenticator(p);
+            }
+            catch(IOException e)
+            {
+                throw new RadiusException(e);
+            }
         }
 
         if (retries < 0) retries = 0; retries++; // do at least one
@@ -445,7 +458,7 @@ public class RadiusClient
             }
             catch (IOException e) 
             { 
-                e.printStackTrace();
+                RadiusLog.warn("Unable to send or receive radius packet", e);
             }
             tries++;
         }

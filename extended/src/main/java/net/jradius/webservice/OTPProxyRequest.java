@@ -190,7 +190,7 @@ public class OTPProxyRequest extends JRadiusThread implements WebServiceRequestO
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
             abort(e);
         }
     }
@@ -309,8 +309,15 @@ public class OTPProxyRequest extends JRadiusThread implements WebServiceRequestO
     
     public void abort(Exception e)
     {
-        if (e==null) RadiusLog.error("aborting otp proxy request");
-        else e.printStackTrace();
+        if (e==null)
+        {
+            RadiusLog.error("aborting otp proxy request");
+        }
+        else
+        {
+            RadiusLog.error(e.getMessage(), e);
+        }
+
         wsListener.remove(this);
         shutdown();
     }

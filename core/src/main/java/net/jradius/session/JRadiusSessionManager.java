@@ -90,8 +90,14 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
             if (defaultManager == null)
             {
                 defaultManager = new JRadiusSessionManager();
-                try { defaultManager.afterPropertiesSet(); }
-                catch (Exception e) { e.printStackTrace(); }
+                try
+                {
+                    defaultManager.afterPropertiesSet();
+                }
+                catch (Exception e)
+                {
+                    RadiusLog.error("Error in JRadius Session Manager", e);
+                }
             }
          
             manager = defaultManager;
@@ -153,7 +159,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         }
         catch (Exception e)
         {
-            RadiusLog.error("Could not find extended JRadius classes - not running JRadiusSessionManager");
+            RadiusLog.error("Could not find extended JRadius classes - not running JRadiusSessionManager", e);
             throw new RuntimeException(e);
         }
     }
@@ -387,12 +393,14 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
     public void lock(JRadiusSession session)
     {
-        System.err.println("Appropriate session locking must be implemented");
+        session.lock();
+        //RadiusLog.error("Appropriate session locking must be implemented");
     }
 
     public void unlock(JRadiusSession session)
     {
-    	System.err.println("Appropriate session locking must be implemented");
+        session.unlock();
+        //RadiusLog.error("Appropriate session locking must be implemented");
     }
 
     public JRadiusLogEntry newLogEntry(JRadiusEvent event, JRadiusSession session, String packetId) 

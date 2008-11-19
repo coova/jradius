@@ -1,6 +1,7 @@
 package net.jradius.impl;
 
 import net.jradius.JRadiusManager;
+import net.jradius.log.RadiusLog;
 import net.jradius.server.EventDispatcher;
 import net.jradius.server.JRadiusServer;
 import net.jradius.server.config.Configuration;
@@ -12,10 +13,14 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.context.Lifecycle;
 
-public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, DisposableBean, JRadiusManager
+import java.io.InputStream;
+
+public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, DisposableBean, Lifecycle, JRadiusManager
 {
     protected final Log log = LogFactory.getLog(getClass());
+    private Boolean startOnLoad = Boolean.FALSE;
     private EventDispatcher eventDispatcher;
     private BeanFactory beanFactory;
     private JRadiusServer jRadiusServer;
@@ -31,17 +36,43 @@ public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, D
     	jRadiusServer.stop();
     }
 
+    public boolean isRunning()
+    {
+        return this.jRadiusServer.isRunning();
+    }
+
     public void afterPropertiesSet() throws Exception
     {
-        Configuration.initialize(Thread.currentThread().getContextClassLoader().getResourceAsStream(getConfigFile()), beanFactory);
+        String filename = this.getConfigFile();
+
+        if(filename == null || filename.trim().length() <= 0)
+        {
+            String message = "JRadiusManager: Missing settings filename ['configFile' property not specified correctly].";
+            RadiusLog.error(message);
+            throw new Exception(message);
+        }
+
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
+
+        if(is == null)
+        {
+            String message = "File '" + filename + "' not found.";
+            RadiusLog.error(message);
+            throw new Exception(message);
+        }
+
+        Configuration.initialize(is, this.beanFactory);
         
         if (jRadiusServer == null)
         {
             jRadiusServer = new JRadiusServer(eventDispatcher);
             jRadiusServer.afterPropertiesSet();
         }
-
-        jRadiusServer.start();
+        
+        if (startOnLoad.booleanValue())
+        {
+        	jRadiusServer.start();
+        }
     }
 
     public void setBeanFactory(BeanFactory beanFactory) throws BeansException
@@ -72,5 +103,8 @@ public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, D
 	public void setEventDispatcher(EventDispatcher eventDispatcher) {
 		this.eventDispatcher = eventDispatcher;
 	}
-    
+
+	public void setStartOnLoad(Boolean startOnLoad) {
+		this.startOnLoad = startOnLoad;
+	}
 }

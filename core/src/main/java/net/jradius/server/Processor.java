@@ -41,7 +41,7 @@ import org.springframework.context.ApplicationContextAware;
  */
 public abstract class Processor extends JRadiusThread implements ApplicationContextAware
 {
-    protected ApplicationContext applicationContext;
+    private ApplicationContext applicationContext;
     private EventDispatcher eventDispatcher;
     private List<JRCommand> requestHandlers;
     private BlockingQueue<ListenerRequest> queue;
@@ -91,7 +91,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
 
     public void run()
     {
-        while (isActive())
+        while (getActive())
         {
             try
             {
@@ -100,22 +100,31 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
             }
             catch (InterruptedException e)
             {
-                return;
             }
             catch (Throwable e)
             {
-                System.err.println(getName() + ": process() method threw an exception: " + e);
-                RadiusLog.error(e.getMessage());
-                e.printStackTrace();
+                RadiusLog.error("Error in radius task Processor", e);
             }
         }
     }
-    
-    public void process() throws Exception, InterruptedException
+
+    public void process() throws Exception
     {
-        Object queueElement = getRequestQueue().take();
-        
-        if (!(queueElement instanceof ListenerRequest))
+        Object queueElement;
+
+        while(true)
+        {
+            try
+            {
+                queueElement = this.queue.take();
+                break;
+            }
+            catch(InterruptedException e)
+            {
+            }
+        }
+
+		if (!(queueElement instanceof ListenerRequest))
         {
             throw new IllegalArgumentException("Expected ListenerRequest but found " + queueElement.getClass().getName());
         }
@@ -133,7 +142,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
         this.applicationContext = applicationContext;
     }
 
-    public boolean isActive()
+    public boolean getActive()
     {
         return active;
     }
@@ -143,7 +152,13 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
         this.active = active;
         if (!active)
         {
-            interrupt();
+            try
+            {
+                interrupt();
+            }
+            catch(Exception e)
+            {
+            }
         }
     }
 }

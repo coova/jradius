@@ -50,8 +50,7 @@ public abstract class AttributeValue implements Serializable
         }
         catch (Exception e)
         {
-            RadiusLog.error(e.getMessage());
-            e.printStackTrace();
+            RadiusLog.error(e.getMessage(), e);
         }
         return out.toByteArray();
     }

@@ -27,6 +27,8 @@ import gnu.crypto.mac.MacFactory;
 
 import java.util.HashMap;
 
+import net.jradius.log.RadiusLog;
+
 /**
  * MD5 Utils including HMAC-MD5
  * @author David Bird
@@ -110,7 +112,7 @@ public class MD5
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
         }
         
         mac.update(text, 0, text.length);

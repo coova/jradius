@@ -41,7 +41,7 @@ import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.standard.RadiusStandard;
 import net.jradius.util.RadiusRandom;
-
+import net.jradius.log.RadiusLog;
 
 
 /**
@@ -238,7 +238,7 @@ public class RadClient
             	    String arg = g.getOptarg();
             	    if ((auth = RadiusClient.getAuthProtocol(arg)) == null)
             	    {
-            	        System.err.println("Unsupported authentication protocol " + arg);
+            	        RadiusLog.error("Unsupported authentication protocol " + arg);
             	    }
             	}
             	break;
@@ -329,7 +329,7 @@ public class RadClient
                         }
                         else
                         {
-                	        System.err.println("Error: -T option used with a non-tunnel authenticator: " + auth.getClass().getName());
+                	        RadiusLog.error("Error: -T option used with a non-tunnel authenticator: " + auth.getClass().getName());
                         }
                     }
                     reply = client.authenticate((AccessRequest)request, auth, 5);
@@ -344,7 +344,7 @@ public class RadClient
                     }
                     catch (StandardViolatedException e)
                     {
-                        System.err.println("Warning: Access Request Missing " + standard.getName() + " Attributes:\n\t" + e.listAttributes());
+                        RadiusLog.error("Warning: Access Request Missing " + standard.getName() + " Attributes:\n\t" + e.listAttributes(), e);
                     }
 
                     try
@@ -353,12 +353,18 @@ public class RadClient
                     }
                     catch (StandardViolatedException e)
                     {
-                        System.err.println("Warning: Access Reply Missing " + standard.getName() + " Attributes:\n\t" + e.listAttributes());
+                        RadiusLog.error("Warning: Access Reply Missing " + standard.getName() + " Attributes:\n\t" + e.listAttributes(), e);
                     }
                 }
 
-                if (request != null) System.out.println(request.toString());
-                if (reply != null)   System.out.println(reply.toString());
+                if (request != null)
+                {
+                    RadiusLog.debug(request.toString());
+                }
+                if (reply != null)
+                {
+                    RadiusLog.debug(reply.toString());
+                }
             }
         }
         catch (Exception e)

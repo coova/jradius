@@ -47,8 +47,8 @@ public abstract class RadiusResponse extends RadiusPacket
 
 	/**
      * Calculates and compares the RADIUS Response Authenticator (per RFC 2865)
-     * @param client The RadiusClient being used
      * @param requestAuthenticator The Authenticator of the request
+     * @sharedSecret
      * @return Returns true of the authenticators match
      */
     public boolean verifyAuthenticator(byte[] requestAuthenticator, String sharedSecret)

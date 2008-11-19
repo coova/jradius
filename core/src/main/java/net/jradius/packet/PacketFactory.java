@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.freeradius.FreeRadiusFormat;
+import net.jradius.log.RadiusLog;
 
 
 /**
@@ -111,12 +112,12 @@ public class PacketFactory
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                RadiusLog.error(e.getMessage(), e);
             }
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            RadiusLog.error(e.getMessage(), e);
         }
         return rp;
     }
@@ -155,7 +156,7 @@ public class PacketFactory
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.error(e.getMessage(), e);
         }
         return rp;
     }
@@ -180,7 +181,7 @@ public class PacketFactory
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            RadiusLog.error(e.getMessage(), e);
         }
         return rp;
     }

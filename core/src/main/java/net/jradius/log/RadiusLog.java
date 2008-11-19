@@ -31,46 +31,163 @@ import net.jradius.session.JRadiusSession;
  */
 public final class RadiusLog 
 {
-    private static RadiusLogger radiusLogger = new BaseRadiusLog();
+    public static boolean isLoggable(int logLevel)
+    {
+        RadiusLogger ler = RadiusLog.logger;
 
-    public static void debug(Object o)
-    {
-        radiusLogger.debug(o); 
-    }
-    
-    public static void info(Object o)
-    {
-        radiusLogger.info(o); 
-    }
+        if(ler != null)
+        {
+            return ler.isLoggable(logLevel);
+        }
 
-    public static void warn(Object o)
-    {
-        radiusLogger.warn(o); 
+        return false;
     }
 
-    public static void error(Object o)
+    public static void error(String message)
     {
-        radiusLogger.error(o);
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.error(message);
+        }
     }
-    
-    public static void problem(JRadiusRequest request, JRadiusSession session, RadiusException exception, String mesg)
+
+    public static void error(String message, Throwable e)
     {
-        radiusLogger.problem(request, session, exception, mesg);
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.error(message, e);
+        }
     }
-    
-    /**
-     * @return Returns the radiusLogger.
-     */
+
+    public static void warn(String message)
+    {
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.warn(message);
+        }
+    }
+
+    public static void warn(String message, Throwable e)
+    {
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.warn(message, e);
+        }
+    }
+
+    public static void info(String message)
+    {
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.info(message);
+        }
+    }
+
+    public static void info(String message, Throwable e)
+    {
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.info(message, e);
+        }
+    }
+
+    public static void debug(String message)
+    {
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.debug(message);
+        }
+    }
+
+    public static void debug(String message, Throwable e)
+    {
+        RadiusLogger ler = RadiusLog.logger;
+
+        if(ler != null)
+        {
+            ler.debug(message, e);
+        }
+    }
+
+    public static String problem(JRadiusRequest request, JRadiusSession session, RadiusException exception, String mesg)
+    {
+        StringBuffer sb = new StringBuffer();
+        if (mesg != null)
+        {
+            sb.append("Problem: ").append(mesg).append("\n\n");
+        }
+
+        if (request != null)
+        {
+            sb.append("-----------------------------------------------------------\n")
+              .append("JRadiusRequest: ").append(request.toString()).append("\n")
+              .append("-----------------------------------------------------------\n");
+
+            try
+            {
+                sb.append("RADIUS Request:\n")
+                  .append("-----------------------------------------------------------\n")
+                  .append(request.getRequestPacket().toString())
+                  .append("-----------------------------------------------------------\n")
+                  .append("RADIUS Reply:\n")
+                  .append("-----------------------------------------------------------\n")
+                  .append(request.getReplyPacket().toString())
+                  .append("-----------------------------------------------------------\n")
+                  .append("\n\n");
+            }
+            catch (RadiusException e)
+            {
+            }
+        }
+
+        if (session != null)
+        {
+            sb.append("-----------------------------------------------------------\n")
+              .append("RadiusSession:\n")
+              .append("-----------------------------------------------------------\n")
+              .append(session.toString())
+              .append("\n\n");
+        }
+
+        if (exception != null)
+        {
+            sb.append("-----------------------------------------------------------\n")
+              .append("RadiusException:\n")
+              .append("-----------------------------------------------------------\n")
+              .append(exception.toString())
+              .append("\n\n");
+        }
+        return sb.toString();
+    }
+
     public static RadiusLogger getRadiusLogger()
     {
-        return radiusLogger;
+        return RadiusLog.logger;
     }
-    
-    /**
-     * @param radiusLogger The radiusLogger to set.
-     */
-    public static void setRadiusLogger(RadiusLogger radiusLogger)
+
+    public static void setRadiusLogger(RadiusLogger logger)
     {
-        RadiusLog.radiusLogger = radiusLogger;
+        if(logger == null)
+        {
+            throw new IllegalArgumentException("logger");
+        }
+
+        RadiusLog.logger = logger;
     }
+
+    private static RadiusLogger logger = new Log4JRadiusLogger();
 }

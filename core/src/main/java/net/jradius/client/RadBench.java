@@ -108,7 +108,11 @@ public class RadBench
                 {
                     int i = Integer.parseInt(line.substring(6));
                     if (i > 0) Thread.sleep(i * 1000);
-                } catch(Exception e) { e.printStackTrace(); }
+                }
+                catch(Exception e)
+                {
+                    RadiusLog.warn("Invalid sleep parameter");
+                }
                 continue;
             }
 
@@ -121,7 +125,7 @@ public class RadBench
             }
             catch(Exception e)
             {
-                e.printStackTrace();
+                RadiusLog.warn("Invalid radius attribute");
             }
         }
         
@@ -170,7 +174,7 @@ public class RadBench
             	    String arg = g.getOptarg();
             	    if ((auth = RadiusClient.getAuthProtocol(arg)) == null)
             	    {
-            	        System.err.println("Unsupported authentication protocol " + arg);
+            	        RadiusLog.error("Unsupported authentication protocol " + arg);
             	    }
             	}
             	break;

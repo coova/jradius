@@ -21,4 +21,7 @@ public interface Listener {
 
 	public void stop();
 
+    public boolean getActive();
+
+    public void setActive(boolean active);
 }

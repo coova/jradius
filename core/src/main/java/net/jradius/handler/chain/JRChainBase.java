@@ -28,13 +28,19 @@ import net.jradius.server.config.HandlerConfigurationItem;
 
 import org.apache.commons.chain.Context;
 import org.apache.commons.chain.impl.ChainBase;
+import org.apache.commons.chain.Command;
+import org.springframework.beans.factory.BeanFactoryAware;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.BeansException;
 
 /**
  * The JRadius ChainBase for Jakarta Commons Chain
  * @author David Bird
  */
-public class JRChainBase extends ChainBase implements JRCommand
+public class JRChainBase extends ChainBase implements JRCommand, BeanFactoryAware, InitializingBean
 {
+    private BeanFactory beanFactory;
     private String name;
   
     protected HandlerConfigurationItem config;
@@ -69,5 +75,29 @@ public class JRChainBase extends ChainBase implements JRCommand
     {
         RadiusLog.debug("Executing command: " + getName());
         return super.execute(context);
+    }
+
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException
+    {
+        this.beanFactory = beanFactory;
+    }
+
+    public void afterPropertiesSet() throws Exception
+    {
+        for(Command c : this.commands)
+        {
+            if(c instanceof BeanFactoryAware)
+            {
+                ((BeanFactoryAware)c).setBeanFactory(beanFactory);
+            }
+        }
+
+        for(Command c : this.commands)
+        {
+            if(c instanceof InitializingBean)
+            {
+                ((InitializingBean)c).afterPropertiesSet();
+            }
+        }
     }
 }

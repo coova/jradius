@@ -22,6 +22,7 @@
 package net.jradius.server;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.exception.RadiusSecurityException;
@@ -101,8 +102,16 @@ public abstract class RadiusProcessor extends Processor
             catch (RadiusException e)
             {
                 String error = e.getMessage();
-                String mesg = "Rejecting request: "+request.getRequestPacket().toString();
-                
+                String mesg = "Rejecting request";
+
+                try
+                {
+                    mesg = mesg + ": " + request.getRequestPacket().toString();
+                }
+                catch (RadiusException e2)
+                {
+                }
+
                 RadiusLog.warn(mesg + ": " + error);
                 RadiusLog.problem(request, null, e, mesg);
                 return JRadiusServer.RLM_MODULE_REJECT;
@@ -143,7 +152,6 @@ public abstract class RadiusProcessor extends Processor
                 catch (Throwable e)
                 {
                     exceptionThrown = true;
-                    e.printStackTrace();
                     String error = e.getMessage();
                     RadiusLog.error("Handler " + handler.getName() + " threw throwable: " + error);
                     result = JRadiusServer.RLM_MODULE_FAIL;
@@ -164,8 +172,7 @@ public abstract class RadiusProcessor extends Processor
                 }
                 catch (Throwable e)
                 {
-                    e.printStackTrace();
-                    RadiusLog.error("onPostProcessing threw throwable: " + e.getMessage());
+                    RadiusLog.error("Error occured during handling postprocess.", e);
                     result = JRadiusServer.RLM_MODULE_FAIL;
                 }
             }

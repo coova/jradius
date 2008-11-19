@@ -20,6 +20,8 @@
 
 package net.jradius.packet.attribute.value;
 
+import net.jradius.log.RadiusLog;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -129,7 +131,7 @@ public class IntegerValue extends AttributeValue
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.warn("Error during bean initialization [InitializingBean]", e);
         }
     }
     

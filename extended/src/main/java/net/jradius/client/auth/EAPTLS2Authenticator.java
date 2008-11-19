@@ -28,6 +28,7 @@ import net.jradius.client.RadiusClient;
 import net.jradius.client.auth.tls.TlsProtocolHandler;
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.log.RadiusLog;
 
 import org.bouncycastle.crypto.tls.AlwaysValidVerifyer;
 
@@ -122,7 +123,7 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
     }
 
     /**
-     * @see net.sf.jradius.client.auth.RadiusAuthenticator#getAuthName()
+     * @see net.jradius.client.auth.RadiusAuthenticator#getAuthName()
      */
     public String getAuthName()
     {
@@ -150,7 +151,14 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
     
     public void putAppBuffer(byte []b)
     {
-        try { appOutput.write(b); } catch (Exception e) { e.printStackTrace(); }
+        try
+        {
+            appOutput.write(b);
+        }
+        catch (Exception e)
+        {
+            RadiusLog.error(e.getMessage(), e);
+        }
     }
 
     protected byte[] getAppBuffer() 
@@ -229,7 +237,7 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
                     }
                     catch(Throwable e)
                     {
-                        e.printStackTrace();
+                        RadiusLog.error(e.getMessage(), e);
                     }
 
                     handler.writeApplicationData(is, os, getAppBuffer());
@@ -241,7 +249,7 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
                 
                 default:
                 {
-                	System.err.println("-----\n\nUnhandled EAP-TLS packet\n\n------\n");
+                	RadiusLog.error("-----\n\nUnhandled EAP-TLS packet\n\n------\n");
                 }
                 break;
             }

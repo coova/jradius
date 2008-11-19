@@ -1,6 +1,7 @@
 package net.jradius.util;
 
 import java.util.Arrays;
+import java.io.IOException;
 
 import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.RadiusPacket;
@@ -12,14 +13,14 @@ public class MessageAuthenticator
 {
     private static final RadiusFormat format = RadiusFormat.getInstance();
 
-    public static void generateRequestMessageAuthenticator(RadiusPacket request, String sharedSecret)
+    public static void generateRequestMessageAuthenticator(RadiusPacket request, String sharedSecret) throws IOException
     {
         byte[] hash = new byte[16];
         request.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
         System.arraycopy(MD5.hmac_md5(format.packPacket(request, sharedSecret), sharedSecret.getBytes()), 0, hash, 0, 16);
 	}
     
-    public static void generateResponseMessageAuthenticator(RadiusPacket request, RadiusPacket reply, String sharedSecret)
+    public static void generateResponseMessageAuthenticator(RadiusPacket request, RadiusPacket reply, String sharedSecret) throws IOException
     {
         byte[] hash = new byte[16];
         byte[] requestAuth = request.getAuthenticator();
@@ -30,7 +31,7 @@ public class MessageAuthenticator
         reply.setAuthenticator(replyAuth);
 	}
     
-    public static Boolean verifyRequest(RadiusPacket request, String sharedSecret)
+    public static Boolean verifyRequest(RadiusPacket request, String sharedSecret) throws IOException
     {
         byte[] hash = new byte[16];
         
@@ -47,7 +48,7 @@ public class MessageAuthenticator
         return new Boolean(Arrays.equals(pval, hash));
     }
 
-    public static Boolean verifyReply(RadiusPacket request, RadiusPacket reply, String sharedSecret)
+    public static Boolean verifyReply(RadiusPacket request, RadiusPacket reply, String sharedSecret) throws IOException
     {
         byte[] requestAuth = request.getAuthenticator();
         byte[] replyAuth = reply.getAuthenticator();

@@ -30,6 +30,8 @@ import gnu.crypto.hash.IMessageDigest;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.jradius.log.RadiusLog;
+
 /**
  * MSCHAP implementation translated into Java from the original 
  * pseudocode can be found in RFC 2759 and 2433. 
@@ -116,7 +118,7 @@ public final class MSCHAP
         catch (WeakKeyException e) { }
         catch (Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
         }
     }
 

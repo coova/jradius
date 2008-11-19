@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.packet.attribute.VSAttribute;
 import net.jradius.packet.attribute.value.AttributeValue;
+import net.jradius.log.RadiusLog;
 
 /**
  * Default RadiusPacket/RadiusAttribute format class. This class formats
@@ -72,8 +73,13 @@ public class RadiusFormat extends Format
      * @param packet The RadiusPacket to pack
      * @return Returns the packed RadiusPacket
      */
-    public byte[] packPacket(RadiusPacket packet, String sharedSecret)
+    public byte[] packPacket(RadiusPacket packet, String sharedSecret) throws IOException
     {
+        if(packet == null)
+        {
+            throw new IllegalArgumentException("Packet is null.");
+        }
+
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         byte[] attributeBytes = packAttributeList(packet.getAttributes());
         
@@ -85,7 +91,7 @@ public class RadiusFormat extends Format
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
         }
         
         return out.toByteArray();

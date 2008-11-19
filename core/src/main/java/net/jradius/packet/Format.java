@@ -61,7 +61,7 @@ public abstract class Format
                 }
                 catch (Exception e)
                 {
-                    e.printStackTrace();
+                    RadiusLog.warn(e.getMessage(), e);
                 }
         }
         try
@@ -70,7 +70,7 @@ public abstract class Format
         }
         catch(Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
         }
         
         return out.toByteArray();
@@ -135,7 +135,7 @@ public abstract class Format
         }
         catch (IOException e)
         {
-            e.printStackTrace();
+            RadiusLog.warn(e.getMessage(), e);
         }
     }
 

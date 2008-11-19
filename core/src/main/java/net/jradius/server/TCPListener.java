@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -60,8 +61,8 @@ import net.jradius.server.config.ListenerConfigurationItem;
 public abstract class TCPListener extends JRadiusThread implements Listener
 {
     private boolean active = false;
-    protected ListenerConfigurationItem config;
-    protected BlockingQueue<ListenerRequest> queue;
+    private ListenerConfigurationItem config;
+    private BlockingQueue<ListenerRequest> queue;
     
     private int port = 1814;
     private int backlog = 1024;
@@ -69,7 +70,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     private boolean keepAlive;
     private ServerSocket serverSocket;
     
-    private List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
+    private final List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
 
     public abstract JRadiusEvent parseRequest(InputStream inputStream) throws IOException, RadiusException;
 
@@ -78,7 +79,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     	try {
     		setConfiguration(cfg, false);
     	} catch (Exception e) {
-    		e.printStackTrace();
+    		RadiusLog.error("Invalid JRadius configuration.", e);
     	}
     }
 
@@ -203,6 +204,9 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     
     /**
      * Listen for one object and place it on the request queue
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws RadiusException
      */
     public void listen() throws IOException, InterruptedException, RadiusException
     {
@@ -220,7 +224,19 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         }
         else
         {
-            queue.put(new TCPListenerRequest(socket, this, false));
+            TCPListenerRequest lr = new TCPListenerRequest(socket, this, false);
+
+            while(true)
+            {
+                try
+                {
+                    this.queue.put(lr);
+                    break;
+                }
+                catch(InterruptedException e)
+                {
+                }
+            }
         }
     }
     
@@ -228,7 +244,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     {
     }
 
-    public boolean isActive()
+    public boolean getActive()
     {
         return active;
     }
@@ -240,18 +256,17 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         {
             for (KeepAliveListener listener : keepAliveListeners)
             {
-                try { listener.shutdown(); }
-                catch (Exception e) { e.printStackTrace(); }
+                try { listener.shutdown(true); }
+                catch (Throwable e) { }
             }
-            for (KeepAliveListener listener : keepAliveListeners)
-            {
-                try { listener.interrupt(); }
-                catch (Exception e) { e.printStackTrace(); }
-            }
-            keepAliveListeners.clear();
-            try { serverSocket.close(); }
-            catch (Exception e) { e.printStackTrace(); }
-            interrupt();
+
+            this.keepAliveListeners.clear();
+
+            try { this.serverSocket.close(); }
+            catch (Throwable e) { }
+
+            try { this.interrupt(); }
+            catch(Exception e) { }
         }
     }
     
@@ -260,22 +275,36 @@ public abstract class TCPListener extends JRadiusThread implements Listener
      */
     public void run()
     {
-        while (isActive())
+        setActive(true);
+
+        while (getActive())
         {
             try
             {
                 Thread.yield();
                 listen();
             }
+            catch(SocketException e)
+            {
+                if(getActive() == false)
+                {
+                    break;
+                }
+                else
+                {
+                    RadiusLog.error("Socket exception", e);
+                }
+            }
+            catch(InterruptedException e)
+            {
+            }
             catch (Throwable e)
             {
-                System.err.println("The Listener's listen() method threw an exception: " + e);
-                RadiusLog.error(e.getMessage());
-                e.printStackTrace();
+                RadiusLog.error("Error occured in TCPListener.", e);
             }
         }
 
-        RadiusLog.error("Listener: " + this.getClass().getName() + " exiting (not active)");
+        RadiusLog.debug("Listener: " + this.getClass().getName() + " exiting (not active)");
     }
 
     public boolean isUsingSSL() 

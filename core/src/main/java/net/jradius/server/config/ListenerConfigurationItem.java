@@ -106,16 +106,22 @@ public class ListenerConfigurationItem extends ConfigurationItem
                         cfg.getProperties().putAll(preCfg.getProperties());
                     }
                 }
-                
-                try
+
+                // Load instance of class
                 {
-                    // Instantiate the PacketHandler
-                    command = (EventHandler) Configuration.getBean(cfg.getClassName());
-                }
-                catch (Exception e)
-                {
-                    RadiusLog.error(e.getMessage());
-                    continue;
+                    String cfgClassName = cfg.getClassName();
+
+                    try
+                    {
+                        // Instantiate the PacketHandler
+                        command = (EventHandler) Configuration.getBean(cfgClassName);
+                    }
+                    catch (Exception e)
+                    {
+                        String message = (cfgClassName == null) ? "Class/bean name not defined." : "Class/bean '" + cfgClassName + "' not found.";
+                        RadiusLog.error(message, e);
+                        continue;
+                    }
                 }
             }
             
@@ -175,7 +181,7 @@ public class ListenerConfigurationItem extends ConfigurationItem
                     }
                     catch (Exception e)
                     {
-                        RadiusLog.error(e.getMessage());
+                        RadiusLog.error(e.getMessage(), e);
                         continue;
                     }
                 }
@@ -234,7 +240,7 @@ public class ListenerConfigurationItem extends ConfigurationItem
                 }
                 catch (Exception e)
                 {
-                    RadiusLog.error(e.getMessage());
+                    RadiusLog.error(e.getMessage(), e);
                     continue;
                 }
             }

@@ -68,7 +68,7 @@ public class OctetsValue extends AttributeValue
 
     public String toString()
     {
-    	return "[Binary Data (length "+(byteValue == null ? 0 : byteValue.length)+")]";
+    	return "[Binary Data (length="+(byteValue == null ? 0 : byteValue.length)+")]";
     }
 
     public Serializable getValueObject()

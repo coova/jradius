@@ -43,7 +43,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     private byte eapType;
     
     /**
-     * @see net.sf.jradius.client.auth.RadiusAuthenticator#processRequest(net.jradius.packet.RadiusPacket)
+     * @see net.jradius.client.auth.RadiusAuthenticator#processRequest(net.jradius.packet.RadiusPacket)
      */
     public void processRequest(RadiusPacket p) throws RadiusException
     {
@@ -56,7 +56,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     /**
      * EAP requires a challenge/response. The request packet is reset with a new 
      * RADIUS itentifier and the EAP-Message is encoded.
-     * @see net.sf.jradius.client.auth.RadiusAuthenticator#processChallenge(net.jradius.packet.RadiusPacket, net.jradius.packet.RadiusPacket)
+     * @see net.jradius.client.auth.RadiusAuthenticator#processChallenge(net.jradius.packet.RadiusPacket, net.jradius.packet.RadiusPacket)
      */
     public void processChallenge(RadiusPacket p, RadiusPacket r)  throws RadiusException
     {

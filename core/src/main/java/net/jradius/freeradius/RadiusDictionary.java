@@ -21,6 +21,8 @@
 
 package net.jradius.freeradius;
 
+import net.jradius.log.RadiusLog;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -125,7 +127,7 @@ public class RadiusDictionary
             }
             catch(Exception e)
             {
-                System.err.println("WARNING!! You have not included the JRadius Dictionary (dictionary.jradius)");
+                RadiusLog.error("WARNING!! You have not included the JRadius Dictionary (dictionary.jradius)");
             }
         }
     }
@@ -148,7 +150,7 @@ public class RadiusDictionary
                 String parts[] = line.split("[\t ]+");
                 String file = parts[1];
                 if ("dictionary.jradius".equals(file)) haveSeenJRadius = true;
-                System.err.println("Including file: " + file);
+                RadiusLog.error("Including file: " + file);
                 readFile(new BufferedReader(new FileReader(ddir + "/" + file)));
             }
             else if (upperLine.startsWith("BEGIN-VENDOR"))
@@ -198,7 +200,7 @@ public class RadiusDictionary
                         map = vdesc.attrMap;
                     }
                     map.put(attrName, new AttrDesc(attrName, attrNum, attrType, attrExtra, attrVendor));
-                    //System.err.println(line);
+                    //RadiusLog.error(line);
                     seenNames.add(attrName.toLowerCase());
                 }
             }
@@ -254,7 +256,7 @@ public class RadiusDictionary
                     vendorPkg = bpkg + "." + vendor;
 
                     vendorMap.put(vendorName, new VendorDesc(vendorName, vendorNum, vendorPkg));
-                    //System.err.println(line);
+                    //RadiusLog.error(line);
                 }
             }
         }
@@ -576,7 +578,9 @@ public class RadiusDictionary
                 }
                 writer.println("        attributeValue = new " + valueClass + "(" + valueArgs + ");");
                 if (integerLength < 4)
-                writer.println("        ((IntegerValue)attributeValue).setLength("+integerLength+");");
+                {
+                    writer.println("        ((IntegerValue)attributeValue).setLength("+integerLength+");");
+                }
                 writer.println("    }");
                 writer.println("");
                 writer.println("    public " + className + "()");
@@ -606,9 +610,10 @@ public class RadiusDictionary
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                RadiusLog.error(e.getMessage(), e);
             }
-            System.err.println(desc.name);
+
+            RadiusLog.info(desc.name);
         }
 
         loadAttributes.append("    }\n");
@@ -688,6 +693,9 @@ public class RadiusDictionary
             RadiusDictionary d = new RadiusDictionary(file, pkg, dDir, jDir);
             d.writeJavaClasses();
         }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e)
+        {
+            RadiusLog.error(e.getMessage(), e);
+        }
     }
 }

@@ -53,7 +53,7 @@ public class FreeRadiusFormat extends RadiusFormat
     }
 
     /**
-     * @see net.jradius.packet.RadiusFormat#packHeader(java.io.OutputStream, net.jradius.packet.RadiusPacket, byte[])
+     * @see net.jradius.packet.RadiusFormat#packHeader(java.io.OutputStream, net.jradius.packet.RadiusPacket, byte[], String)
      */
     public void packHeader(OutputStream out, RadiusPacket p, byte[] attributeBytes, String sharedSecret) throws IOException
     {

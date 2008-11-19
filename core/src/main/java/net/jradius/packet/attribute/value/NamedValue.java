@@ -21,6 +21,8 @@
 
 package net.jradius.packet.attribute.value;
 
+import net.jradius.log.RadiusLog;
+
 import java.io.Serializable;
 
 /**
@@ -78,7 +80,7 @@ public class NamedValue extends IntegerValue
         }
         else
         {
-            System.err.println("Error: invalid NamedValue string value: " + s);
+            RadiusLog.error("Invalid NamedValue string value: " + s);
         }
     }
     

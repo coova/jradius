@@ -184,7 +184,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     }
 
     /**
-     * @see net.sf.jradius.client.auth.RadiusAuthenticator#getAuthName()
+     * @see net.jradius.client.auth.RadiusAuthenticator#getAuthName()
      */
     public String getAuthName()
     {

@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.net.URL;
 
 import net.jradius.handler.chain.JRCommand;
 import net.jradius.handler.chain.JRConfigParser;
@@ -49,6 +50,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.BeanFactoryAware;
 
 /**
  * Reads JRadius configuration options and provides methods to access them
@@ -81,7 +83,10 @@ public class Configuration
     }
  
     public static void initialize(InputStream input, BeanFactory factory) throws FileNotFoundException, ConfigurationException
-    {        
+    {
+        //let new initalization configure it's own logger
+        logConfig = null;
+
         beanFactory = factory;
         xmlCfg = new XMLConfiguration(new InputStreamReader(input));
         root = xmlCfg.getRoot();
@@ -268,12 +273,40 @@ public class Configuration
                 {
                     ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
                     RadiusLog.debug("Loading Chains URL: " + catalogURL);
-                    parser.parse(classLoader.getResource(catalogURL));
+
+                    URL url = classLoader.getResource(catalogURL);
+
+                    if(url == null)
+                    {
+                        RadiusLog.error("File " + catalogURL + " not found.");
+                    }
+                    else
+                    {
+                        boolean failure;
+
+                        try
+                        {
+                            url.openStream().close();
+                            failure = false;
+                        }
+                        catch(Exception e)
+                        {
+                            failure = true;
+                        }
+
+                        if(failure)
+                        {
+                            RadiusLog.error("file " + url + " not found.");
+                        }
+                        else
+                        {
+                            parser.parse(url);
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
-                	System.err.println("Loading Chains URL: " + catalogURL);
-                    e.printStackTrace();
+                	RadiusLog.error("Error loading catalog chain.", e);
                 }
             }
             
@@ -317,11 +350,11 @@ public class Configuration
             {
                 RadiusLogger logger = (RadiusLogger)Configuration.getBean(logConfig.getClassName());
                 RadiusLog.setRadiusLogger(logger);
-                RadiusLog.info("  Configuring RadiusLogger " + logConfig.getName() + ": " + logger.getClass().getName());
+                RadiusLog.debug("Configuring RadiusLogger " + logConfig.getName() + ": " + logger.getClass().getName());
             }
             catch (Exception e)
             {
-                RadiusLog.error(e.getMessage());
+                RadiusLog.error(e.getMessage(), e);
                 logConfig = null;
             }
 
@@ -397,7 +430,7 @@ public class Configuration
     {
         List list = root.getChildren(SESSION_MANAGER_KEY);
         
-        RadiusLog.info("  Initializing session manager");
+        RadiusLog.info("Initializing session manager");
 
         HierarchicalConfiguration.Node node;
         for (Iterator l = list.iterator(); l.hasNext();)
@@ -414,13 +447,13 @@ public class Configuration
             {
                 try
                 {
-                    RadiusLog.info("    Session Manager (" + requester + "): " + clazz);
+                    RadiusLog.debug("Session Manager (" + requester + "): " + clazz);
                     JRadiusSessionManager manager = (JRadiusSessionManager) getBean(clazz);
                     JRadiusSessionManager.setManager(requester, manager);
                 }
                 catch (Exception e)
                 {
-                    RadiusLog.error(e.getMessage());
+                    RadiusLog.error(e.getMessage(), e);
                 }
             }
             
@@ -428,13 +461,13 @@ public class Configuration
             {
                 try
                 {
-                    RadiusLog.info("    Session Key Provider (" + requester + "): " + keyProvider);
+                    RadiusLog.debug("Session Key Provider (" + requester + "): " + keyProvider);
                     SessionKeyProvider provider = (SessionKeyProvider) getBean(keyProvider);
                     JRadiusSessionManager.getManager(requester).setSessionKeyProvider(requester, provider);
                 }
                 catch (Exception e)
                 {
-                    RadiusLog.error(e.getMessage());
+                    RadiusLog.error(e.getMessage(), e);
                 }
             }
             
@@ -442,14 +475,14 @@ public class Configuration
             {
                 try
                 {
-                    RadiusLog.info("    Session Factory (" + requester + "): " + sessionFactory);
+                    RadiusLog.debug("Session Factory (" + requester + "): " + sessionFactory);
                     SessionFactory factory = (SessionFactory) getBean(sessionFactory);
                     factory.setConfig(xmlCfg, node);
                     JRadiusSessionManager.getManager(requester).setSessionFactory(requester, factory);
                 }
                 catch (Exception e)
                 {
-                    RadiusLog.error(e.getMessage());
+                    RadiusLog.error(e.getMessage(), e);
                 }
             }
         }
@@ -467,10 +500,27 @@ public class Configuration
         {
             Class clazz = Class.forName(name);
             o = clazz.newInstance();
+            if (o instanceof BeanFactoryAware)
+            {
+                try
+                {
+                    ((BeanFactoryAware)o).setBeanFactory(Configuration.beanFactory);
+                }
+                catch(Exception e)
+                {
+                    RadiusLog.warn("Error during bean initialization [BeanFactoryAware]", e);
+                }
+            }
             if (o instanceof InitializingBean)
             {
-                try { ((InitializingBean)o).afterPropertiesSet(); }
-                catch (Exception e) { e.printStackTrace(); }
+                try
+                {
+                    ((InitializingBean)o).afterPropertiesSet();
+                }
+                catch (Exception e)
+                {
+                    RadiusLog.warn("Error during bean initialization [InitializingBean]", e);
+                }
             }
         }
         return o;
@@ -480,7 +530,7 @@ public class Configuration
     {
         List list = root.getChildren(REALM_MANAGER_KEY);
         
-        RadiusLog.info("  Initializing realm manager");
+        RadiusLog.info("Initializing realm manager");
 
         HierarchicalConfiguration.Node node;
         for (Iterator l = list.iterator(); l.hasNext();)
@@ -495,14 +545,14 @@ public class Configuration
             {
                 try
                 {
-                    RadiusLog.info("    Realm Factory (" + requester + "): " + realmFactory);
+                    RadiusLog.debug("Realm Factory (" + requester + "): " + realmFactory);
                     RealmFactory factory = (RealmFactory) getBean(realmFactory);
                     factory.setConfig(xmlCfg, node);
                     JRadiusRealmManager.getManager().setRealmFactory(requester, factory);
                 }
                 catch (Exception e)
                 {
-                    RadiusLog.error(e.getMessage());
+                    RadiusLog.error(e.getMessage(), e);
                 }
             }
         }

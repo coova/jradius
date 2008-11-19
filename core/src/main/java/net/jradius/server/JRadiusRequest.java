@@ -21,7 +21,8 @@
 
 package net.jradius.server;
 
-import java.io.PrintStream;
+import java.io.StringWriter;
+import java.io.PrintWriter;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.AccountingRequest;
@@ -30,6 +31,7 @@ import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.server.config.Configuration;
 import net.jradius.session.JRadiusSession;
+import net.jradius.log.RadiusLog;
 
 /**
  * An abstract class representing a JRadius Server Request.
@@ -104,7 +106,7 @@ public abstract class JRadiusRequest extends JRadiusEvent
      * @return a RadiusPacket containing the radius request
      * @throws RadiusException
      */
-    public RadiusPacket getRequestPacket()
+    public RadiusPacket getRequestPacket() throws RadiusException
     {
         RadiusPacket p[] = getPackets();
         if (p.length == 0)
@@ -172,24 +174,31 @@ public abstract class JRadiusRequest extends JRadiusEvent
         else getConfigItems().add(a);
     }
     
-    public void printDebugInfo(PrintStream out)
+    public void printDebugInfo()
     {
-        if (!Configuration.isDebug()) return;
-        
-        RadiusPacket[] rp = getPackets();
-        
-        // debug info:
-        out.println("\n>>> packets in request from \"" + getSender() + "\":");
-        
-        for (int i=0; i < rp.length; i++)
-            if (rp[i] != null)
-            {
-                System.out.println("--- packet " + (i+1) + " of " + rp.length);
-                System.out.println(rp[i].toString());
-            }
-            
-        out.println("Configuration Items:");
-        out.println(getConfigItems().toString());
+        if (Configuration.isDebug())
+        {
+            RadiusPacket[] rp = this.getPackets();
+
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+
+            // debug info:
+            pw.println(">>> packets in request from \"" + getSender() + "\":");
+
+            for (int i=0; i < rp.length; i++)
+                if (rp[i] != null)
+                {
+                    pw.println("--- packet " + (i+1) + " of " + rp.length);
+                    pw.println(rp[i].toString());
+                }
+
+            pw.println("Configuration Items:");
+            pw.println(getConfigItems().toString());
+
+            pw.flush();
+            RadiusLog.debug(sw.toString());
+        }
     }
     
     public String toString()

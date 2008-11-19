@@ -78,6 +78,8 @@ public class JRadiusServer implements InitializingBean
     
     private EventDispatcher eventDispatcher;
     
+    private boolean running = false;
+
     /**
      * Initializes a new JRadiusServer. The constructor calls initializeServer(),
      * the initialization method that reads the configuration file and sets up
@@ -110,55 +112,70 @@ public class JRadiusServer implements InitializingBean
     	initializeServer();
 	}
 
+    public boolean isRunning()
+    {
+        return this.running;
+    }
+
 	/**
      * Start the JRadiusServer. Make sure the server is
      * initialized first by calling initializeServer()
      */
     public void start()
     {
-        RadiusLog.info("Starting Event Dispatcher...");
-        eventDispatcher.start();
-        
-        RadiusLog.info("Starting Processors...");
-        for (Iterator i = processors.iterator(); i.hasNext();)
+        if(this.running == false)
         {
-            Processor processor = (Processor) i.next();
-            processor.start();
-            RadiusLog.info("  Started processor " + processor.getName());
+            RadiusLog.info("Starting Event Dispatcher...");
+            this.eventDispatcher.start();
+
+            RadiusLog.info("Starting Processors...");
+            for (Iterator i = processors.iterator(); i.hasNext();)
+            {
+                Processor processor = (Processor) i.next();
+                processor.start();
+                RadiusLog.info("  Started processor " + processor.getName());
+            }
+            RadiusLog.info("Processors succesfully started.");
+
+            RadiusLog.info("Starting Listeners...");
+            for (Iterator i = listeners.iterator(); i.hasNext();)
+            {
+                Listener listener = (Listener) i.next();
+                listener.start();
+                RadiusLog.info("  Started listener " + listener.getName());
+            }
+            RadiusLog.info("Listeners succesfully started.");
+
+            this.running = true;
         }
-        RadiusLog.info("Processors succesfully started.");
-        
-        RadiusLog.info("Starting Listeners...");
-        for (Iterator i = listeners.iterator(); i.hasNext();)
-        {
-            Listener listener = (Listener) i.next();
-            listener.start();
-            RadiusLog.info("  Started listener " + listener.getName());
-        }
-        RadiusLog.info("Listeners succesfully started.");
     }
     
     public void stop()
     {
-        for (Iterator i = processors.iterator(); i.hasNext();)
+        if(this.running)
         {
-            Processor processor = (Processor) i.next();
-            processor.stop();
-            RadiusLog.info("Stopping processor " + processor.getName());
-        }
+            for (Iterator i = processors.iterator(); i.hasNext();)
+            {
+                Processor processor = (Processor) i.next();
+                processor.setActive(false);
+                RadiusLog.info("Stopping processor " + processor.getName());
+            }
 
-        for (Iterator i = listeners.iterator(); i.hasNext();)
-        {
-            Listener listener = (Listener) i.next();
-            listener.stop();
-            RadiusLog.info("Stopping listener " + listener.getName());
-        }
+            for (Iterator i = listeners.iterator(); i.hasNext();)
+            {
+                Listener listener = (Listener) i.next();
+                listener.setActive(false);
+                RadiusLog.info("Stopping listener " + listener.getName());
+            }
 
-        JRadiusSessionManager.shutdownManagers();
-        eventDispatcher.interrupt();
+            JRadiusSessionManager.shutdownManagers();
+
+            this.eventDispatcher.setActive(false);
+
+            this.running = false;
+        }
     }
 
-    
     /**
      * Read the configuration and initialize the JRadiusServer
      * @throws SecurityException
@@ -175,7 +192,7 @@ public class JRadiusServer implements InitializingBean
         for (Iterator i = Configuration.getDictionaryConfigs().iterator(); i.hasNext();)
         {
             DictionaryConfigurationItem dictionaryConfig = (DictionaryConfigurationItem) i.next();
-            RadiusLog.info("  Loading dictionary: " + dictionaryConfig.getClassName());
+            RadiusLog.info("Loading dictionary: " + dictionaryConfig.getClassName());
             AttributeFactory.loadAttributeDictionary((AttributeDictionary)Configuration.getBean(dictionaryConfig.getClassName()));
         }
         for (ListenerConfigurationItem listenerConfig :  Configuration.getListenerConfigs())
@@ -194,7 +211,7 @@ public class JRadiusServer implements InitializingBean
         {
             Processor processor = newProcessorForName(listenerConfig.getProcessorClassName());
             processor.setRequestQueue(queue);
-            RadiusLog.info("    Created processor " + processor.getName());
+            RadiusLog.info("Created processor " + processor.getName());
             setPacketHandlersForProcessor(listenerConfig, processor);
             setEventHandlersForProcessor(listenerConfig, eventDispatcher);
             processor.setEventDispatcher(eventDispatcher);
@@ -210,10 +227,12 @@ public class JRadiusServer implements InitializingBean
             RadiusLog.debug("No packet handlers are configured, maybe using chains instead.");
             return;
         }
+
         for (JRCommand handler : requestHandlers)
         {
-            RadiusLog.info("      Packet handler " + handler.getClass().getName());
+            RadiusLog.info("Packet handler " + handler.getClass().getName());
         }
+
         processor.setRequestHandlers(requestHandlers);
     }
     
@@ -226,8 +245,9 @@ public class JRadiusServer implements InitializingBean
         }
         for (JRCommand handler : eventHandlers)
         {
-            RadiusLog.info("      Event handler " + handler.getClass().getName());
+            RadiusLog.info("Event handler " + handler.getClass().getName());
         }
+
         dispatcher.setEventHandlers(eventHandlers);
     }
     
@@ -235,17 +255,19 @@ public class JRadiusServer implements InitializingBean
     {
         Listener listener = newListenerWithConfig(listenerConfig);
         listener.setRequestQueue(queue);
-        listeners.add(listener);
-        RadiusLog.info("  Created listener " + listener.getName());
+
+        this.listeners.add(listener);
+
+        RadiusLog.info("Created listener " + listener.getName());
     }
     
     private Listener newListenerWithConfig(ListenerConfigurationItem cfg) throws Exception
     {
         Listener listener = (Listener) Configuration.getBean(cfg.getClassName());
         listener.setConfiguration(cfg);
+
         return listener;
     }
-    
     
     private Processor newProcessorForName(String className) throws Exception
     {

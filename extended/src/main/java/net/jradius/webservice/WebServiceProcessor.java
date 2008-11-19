@@ -66,7 +66,7 @@ public class WebServiceProcessor extends Processor
     protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
     {
         Socket socket = ((TCPListenerRequest)listenerRequest).getSocket();
-        socket.setSoTimeout(15000); // 5 second read timeout
+        socket.setSoTimeout(15000); // 15 second read timeout
         
 		X509Certificate x509 = null;
         
@@ -133,18 +133,17 @@ public class WebServiceProcessor extends Processor
             }
             catch (WebServiceException e)
             {
-                e.printStackTrace();
+                RadiusLog.error(e.getMessage(), e);
                 break;
             }
             catch (RadiusException e)
             {
-                RadiusLog.error(e.getMessage());
-                e.printStackTrace();
+                RadiusLog.error(e.getMessage(), e);
                 break;
             }
             catch (Throwable e)
             {
-                e.printStackTrace();
+                RadiusLog.error(e.getMessage(), e);
                 break;
             }
         }
@@ -217,7 +216,7 @@ public class WebServiceProcessor extends Processor
         writer.write(toHTTPBytes("Invalid request"));
     }
     
-    protected static final byte[] toHTTPBytes(String text)
+    protected static byte[] toHTTPBytes(String text)
     {
     	if (text == null) text = "";
     	

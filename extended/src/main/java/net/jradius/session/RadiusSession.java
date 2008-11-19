@@ -138,7 +138,40 @@ public class RadiusSession implements JRadiusSession, Serializable
     private Date startTime;
     private Date lastInterimTime;
     private Date stopTime;
-    
+
+	private volatile boolean locked = false;
+
+	public void lock()
+	{
+		synchronized (this)
+		{
+			//check whether we are locked, if so... enter wait()
+			while (this.locked)
+			{
+				try
+				{
+					this.wait();
+				}
+				catch (InterruptedException e)
+				{
+					Thread.yield();
+				}
+			}
+
+			this.locked = true;
+		}
+	}
+
+	public void unlock()
+	{
+		synchronized (this)
+		{
+			//set unlocked, notify one
+			this.locked = false;
+			this.notify();
+		}
+	}
+
     public RadiusSession ()
     {
     }

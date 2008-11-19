@@ -73,6 +73,9 @@ public interface JRadiusSession extends Serializable
 
     public void commitLogEntries(int result);
 
+    public void lock();
+    public void unlock();
+
     /**
      * This method is kicked off by the InitSessionHandler after a new
      * PPRadiusSession has been created.

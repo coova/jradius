@@ -20,8 +20,11 @@
 
 package net.jradius.server;
 
+import net.jradius.log.RadiusLog;
+
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
+import java.io.IOException;
 
 /**
  * @author David Bird
@@ -41,33 +44,79 @@ public class KeepAliveListener extends JRadiusThread
     
     public void run()
     {
+        RadiusLog.debug("JRadius/KeepAliveListener.run(): starting tcp socket listener");
+
         try
         {
             while (true)
             {
-                queue.put(new TCPListenerRequest(socket, listener, true));
+                //connects to input stream, try to parse input and if succeeded create new TCPListenerRequest
+                ListenerRequest lr = new TCPListenerRequest(this.socket, this.listener, true);
+
+                //enqueue item to list so one of processors can start processing
+                while(true)
+                {
+                    try
+                    {
+                        this.queue.put(lr);
+                        break;
+                    }
+                    catch(InterruptedException e)
+                    {
+                    }
+                }
             }
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            RadiusLog.debug("JRadius/KeepAliveListener.run(): shutting down tcp socket listener", e);
         }
         
-        shutdown();
+        shutdown(false);
 
         listener.deadKeepAliveListener(this);
     }
     
-    public void shutdown()
+    public void shutdown(boolean tryToInterrupt)
     {
-        if (socket == null) return;
-        try { socket.shutdownInput(); }
-        catch (Exception e) { }
-        try { socket.shutdownOutput(); }
-        catch (Exception e) { }
-        try { socket.close(); }
-        catch (Exception e) { }
-        socket = null;
+        if (this.socket != null)
+        {
+            try
+            {
+                this.socket.shutdownInput();
+            }
+            catch (Exception e)
+            {
+            }
+
+            try
+            {
+                this.socket.shutdownOutput();
+            }
+            catch (Exception e)
+            {
+            }
+
+            try
+            {
+                this.socket.close();
+            }
+            catch (Exception e)
+            {
+            }
+
+            this.socket = null;
+
+            if(tryToInterrupt)
+            {
+                try
+                {
+                    this.interrupt();
+                }
+                catch(Exception e)
+                {
+                }
+            }
+        }
     }
 }
-
