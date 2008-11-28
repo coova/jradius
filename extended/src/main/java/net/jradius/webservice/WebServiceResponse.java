@@ -51,7 +51,8 @@ public class WebServiceResponse extends JRadiusEvent
      */
     public byte[] getContent()
     {
-        if (content == null) return "<NOOP/>".getBytes();
+        if (content == null) 
+        	return "<NOOP/>".getBytes();
         return content;
     }
     
