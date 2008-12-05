@@ -122,7 +122,7 @@ public class OTPProxyRequest extends JRadiusThread implements WebServiceRequestO
         {
             radiusClient = new RadiusClient(InetAddress.getByName(this.radiusRealm.getServer()), this.radiusRealm.getSharedSecret());
         }
-        catch (UnknownHostException e)
+        catch (Exception e)
         {
             throw new OTPProxyException(e.getMessage());
         }

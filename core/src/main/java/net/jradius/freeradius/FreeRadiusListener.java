@@ -31,6 +31,7 @@ import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusEvent;
+import net.jradius.server.ListenerRequest;
 import net.jradius.server.TCPListener;
 
 /**
@@ -42,7 +43,7 @@ public class FreeRadiusListener extends TCPListener
 {
     private static final FreeRadiusFormat format = new FreeRadiusFormat();
 
-    public JRadiusEvent parseRequest(InputStream inputStream) throws IOException, RadiusException
+    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException 
     {
         FreeRadiusRequest request = new FreeRadiusRequest();
         DataInputStream in = new DataInputStream(inputStream);

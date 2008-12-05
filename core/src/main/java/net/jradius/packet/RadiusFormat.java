@@ -75,13 +75,18 @@ public class RadiusFormat extends Format
      */
     public byte[] packPacket(RadiusPacket packet, String sharedSecret) throws IOException
     {
-        if(packet == null)
+    	return packPacket(packet, sharedSecret, false);
+    }
+    
+    public byte[] packPacket(RadiusPacket packet, String sharedSecret, boolean onWire) throws IOException
+    {
+        if (packet == null)
         {
             throw new IllegalArgumentException("Packet is null.");
         }
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] attributeBytes = packAttributeList(packet.getAttributes());
+        byte[] attributeBytes = packAttributeList(packet.getAttributes(), onWire);
         
         try
         {

@@ -49,12 +49,18 @@ public abstract class Format
      */
     public byte[] packAttributeList(AttributeList attrs)
     {
+    	return packAttributeList(attrs, false);
+    }
+    
+    public byte[] packAttributeList(AttributeList attrs, boolean onWire)
+    {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         
         Iterator iterator = attrs.getAttributeList().iterator();
         while (iterator.hasNext())
         {
                 RadiusAttribute attr = (RadiusAttribute)iterator.next();
+                if (onWire && attr.getType() > 1024) continue;
                 try
                 {
                     packAttribute(out, attr);

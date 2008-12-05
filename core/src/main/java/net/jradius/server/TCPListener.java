@@ -72,7 +72,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     
     private final List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
 
-    public abstract JRadiusEvent parseRequest(InputStream inputStream) throws IOException, RadiusException;
+    public abstract JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException;
 
     public void setConfiguration(ListenerConfigurationItem cfg) 
     {
@@ -179,7 +179,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         }
         
         serverSocket.setReuseAddress(true);
-        setActive(serverSocket != null);
+        setActive(true);
     }
     
     /**
@@ -275,8 +275,6 @@ public abstract class TCPListener extends JRadiusThread implements Listener
      */
     public void run()
     {
-        setActive(true);
-
         while (getActive())
         {
             try

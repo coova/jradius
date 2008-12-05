@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.StringTokenizer;
 
 import net.jradius.server.JRadiusEvent;
+import net.jradius.server.ListenerRequest;
 import net.jradius.server.TCPListener;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheException;
@@ -58,7 +59,7 @@ public class WebServiceListener extends TCPListener implements InitializingBean,
     private Integer timeToLive;
     private Integer idleTime;
     
-    public JRadiusEvent parseRequest(InputStream inputStream) throws IOException, WebServiceException
+    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, WebServiceException
     {
         DataInputStream reader = new DataInputStream(inputStream);
         WebServiceRequest request = new WebServiceRequest();

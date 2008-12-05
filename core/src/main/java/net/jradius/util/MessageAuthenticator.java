@@ -17,7 +17,7 @@ public class MessageAuthenticator
     {
         byte[] hash = new byte[16];
         request.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
-        System.arraycopy(MD5.hmac_md5(format.packPacket(request, sharedSecret), sharedSecret.getBytes()), 0, hash, 0, 16);
+        System.arraycopy(MD5.hmac_md5(format.packPacket(request, sharedSecret, true), sharedSecret.getBytes()), 0, hash, 0, 16);
 	}
     
     public static void generateResponseMessageAuthenticator(RadiusPacket request, RadiusPacket reply, String sharedSecret) throws IOException
@@ -27,7 +27,7 @@ public class MessageAuthenticator
         byte[] replyAuth = reply.getAuthenticator();
         reply.setAuthenticator(requestAuth);
         reply.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
-        System.arraycopy(MD5.hmac_md5(format.packPacket(reply, sharedSecret), sharedSecret.getBytes()), 0, hash, 0, 16);
+        System.arraycopy(MD5.hmac_md5(format.packPacket(reply, sharedSecret, true), sharedSecret.getBytes()), 0, hash, 0, 16);
         reply.setAuthenticator(replyAuth);
 	}
     
@@ -41,7 +41,7 @@ public class MessageAuthenticator
         byte[] pval = attr.getValue().getBytes();
         attr.setValue(hash);
         
-        System.arraycopy(MD5.hmac_md5(format.packPacket(request, sharedSecret), sharedSecret.getBytes()), 0, hash, 0, 16);
+        System.arraycopy(MD5.hmac_md5(format.packPacket(request, sharedSecret, true), sharedSecret.getBytes()), 0, hash, 0, 16);
 
         attr.setValue(pval);
         
@@ -62,7 +62,7 @@ public class MessageAuthenticator
         
         reply.setAuthenticator(requestAuth);
 
-        System.arraycopy(MD5.hmac_md5(format.packPacket(reply, sharedSecret), sharedSecret.getBytes()), 0, hash, 0, 16);
+        System.arraycopy(MD5.hmac_md5(format.packPacket(reply, sharedSecret, true), sharedSecret.getBytes()), 0, hash, 0, 16);
 
         reply.setAuthenticator(replyAuth);
         

@@ -21,6 +21,7 @@
 package net.jradius.security.auth;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.util.Map;
 
 import javax.security.auth.Subject;
@@ -100,7 +101,11 @@ public class JRadiusModule implements LoginModule
 
         if (radiusClient == null)
         {
-            radiusClient = new RadiusClient();
+            try {
+				radiusClient = new RadiusClient();
+			} catch (SocketException e) {
+				throw new LoginException();
+			}
         }
         
         NameCallback nameCallback = new NameCallback("User Name: ");

@@ -28,8 +28,8 @@ import java.lang.reflect.Method;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -82,7 +82,6 @@ public class RadiusClient
     protected int socketTimeout = defaultTimeout * 1000;
 
     protected DatagramSocket socket;
-    private MessageDigest md5Digest;
 
     protected JRadiusSession session;
 
@@ -118,29 +117,33 @@ public class RadiusClient
     
     /**
      * Default constructor
+     * @throws SocketException 
      */
-    public RadiusClient() 
+    public RadiusClient() throws SocketException 
     { 
-        try
-        {
-            this.socket = new DatagramSocket();
-            this.md5Digest = MessageDigest.getInstance("MD5");
-        }
-        catch (Exception e)
-        {
-            RadiusLog.error(e.getMessage(), e);
-        }
+    	socket = new DatagramSocket();
     }
-    
+
+    public RadiusClient(DatagramSocket socket) 
+    { 
+    	this.socket = socket;
+    }
+
     /**
      * RadiusClient constructor
      * @param address The Internet address to send to
      * @param secret Our shared secret
+     * @throws SocketException 
      * @throws RadiusException
      */
-    public RadiusClient(InetAddress address, String secret) 
+    public RadiusClient(InetAddress address, String secret) throws SocketException 
     {
-        this();
+        this(new DatagramSocket(), address, secret);
+    }
+
+    public RadiusClient(DatagramSocket socket, InetAddress address, String secret)
+    {
+        this(socket);
         setRemoteInetAddress(address);
         setSharedSecret(secret);
     }
@@ -152,11 +155,17 @@ public class RadiusClient
      * @param authPort The authentication port
      * @param acctPort The accounting port
      * @param timeout Timeout (time to wait for a reply)
+     * @throws SocketException 
      * @throws RadiusException
      */
-    public RadiusClient(InetAddress address, String secret, int authPort, int acctPort, int timeout) 
+    public RadiusClient(InetAddress address, String secret, int authPort, int acctPort, int timeout) throws SocketException 
     {
-        this();
+        this(new DatagramSocket(), address, secret, authPort, acctPort, timeout);
+    }
+
+    public RadiusClient(DatagramSocket socket, InetAddress address, String secret, int authPort, int acctPort, int timeout) throws SocketException 
+    {
+        this(socket);
         setRemoteInetAddress(address);
         setSharedSecret(secret);
         setAuthPort(authPort);
@@ -340,7 +349,7 @@ public class RadiusClient
      * Add the Message-Authentivator attribute to the given RadiusPacket
      * @param request The RadiusPacket
      */
-    private void generateMessageAuthenticator(RadiusPacket request) throws IOException
+    protected void generateMessageAuthenticator(RadiusPacket request) throws IOException
     {
     	MessageAuthenticator.generateRequestMessageAuthenticator(request, sharedSecret);
     }
@@ -487,7 +496,7 @@ public class RadiusClient
         {
             RadiusLog.warn("RadiusClient retrying request (attempt " + attempt + ")...");
         }
-        byte[] b = format.packPacket(p, sharedSecret);
+        byte[] b = format.packPacket(p, sharedSecret, true);
         DatagramPacket request = new DatagramPacket(b, b.length, a, port);
         socket.send(request);
     }
@@ -507,14 +516,6 @@ public class RadiusClient
         }
 
         return (RadiusResponse)replyPacket;
-    }
-
-    /**
-     * @return Returns the MD5 MessageDigest being used
-     */
-    public MessageDigest getMD()
-    {
-        return this.md5Digest;
     }
 
     /**

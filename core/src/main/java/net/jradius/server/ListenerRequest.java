@@ -54,7 +54,8 @@ public abstract class ListenerRequest
 
     public JRadiusEvent getEventFromListener() throws IOException, RadiusException
     {
-        JRadiusEvent e = listener.parseRequest(getInputStream());
+        JRadiusEvent e = listener.parseRequest(this, getInputStream());
+        if (e == null) return null;
         e.setListener(listener);
         return e;
     }

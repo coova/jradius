@@ -15,7 +15,7 @@ public interface Listener {
 
 	public String getName();
 
-	public JRadiusEvent parseRequest(InputStream inputStream) throws IOException, RadiusException;
+	public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException;
 
 	public void start();
 
