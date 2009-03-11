@@ -63,7 +63,8 @@ public abstract class RadiusPacket implements Serializable
      */
     public RadiusPacket(AttributeList list)
     {
-        attributes.add(list);
+    	if (list != null)
+    		attributes.add(list);
     }
 
     /**

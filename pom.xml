@@ -113,20 +113,6 @@
         </plugins>
       </build>
     </profile>
-    <profile>
-      <id>freeware-build</id>
-      <modules>
-	<module>extensions</module>
-	<module>server-ext</module>
-      </modules>
-    </profile>
-    <profile>
-      <id>javadoc</id>
-      <modules>
-	<module>extensions</module>
-	<module>server-ext</module>
-      </modules>
-    </profile>
   </profiles>
 
   <modules>
@@ -137,8 +123,6 @@
     <module>applet</module>
     <module>client</module>
     <module>server</module>
-	<module>extensions</module>
-	<module>server-ext</module>
   </modules>
 
   <repositories>

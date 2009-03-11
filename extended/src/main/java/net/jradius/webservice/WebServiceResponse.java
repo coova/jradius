@@ -36,7 +36,14 @@ public class WebServiceResponse extends JRadiusEvent
 
     private LinkedHashMap<String, String> headers = new LinkedHashMap<String, String>();
 
-    public int getType()
+	public WebServiceResponse() {
+	}
+
+    public WebServiceResponse(byte[] replyContent) {
+    	setContent(replyContent);
+	}
+
+	public int getType()
     {
         return type;
     }

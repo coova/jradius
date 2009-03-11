@@ -55,8 +55,8 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
     private ApplicationContext applicationContext;
 
-    private int minInterimInterval  = 5 * 60;
-    private int maxInactiveInterval = 12 * 60;
+    private int minInterimInterval  = 300;
+    private int maxInactiveInterval = 2100;
 
     private String cacheName = "jradius-session";
     private String logCacheName = "jradius-log";

@@ -35,7 +35,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             return ler.isLoggable(logLevel);
         }
@@ -47,7 +47,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.error(message);
         }
@@ -57,7 +57,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.error(message, e);
         }
@@ -67,7 +67,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.warn(message);
         }
@@ -77,7 +77,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.warn(message, e);
         }
@@ -87,7 +87,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.info(message);
         }
@@ -97,7 +97,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.info(message, e);
         }
@@ -107,7 +107,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.debug(message);
         }
@@ -117,7 +117,7 @@ public final class RadiusLog
     {
         RadiusLogger ler = RadiusLog.logger;
 
-        if(ler != null)
+        if (ler != null)
         {
             ler.debug(message, e);
         }
@@ -181,7 +181,7 @@ public final class RadiusLog
 
     public static void setRadiusLogger(RadiusLogger logger)
     {
-        if(logger == null)
+        if (logger == null)
         {
             throw new IllegalArgumentException("logger");
         }
