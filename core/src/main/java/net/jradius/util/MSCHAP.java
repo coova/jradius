@@ -21,6 +21,7 @@
 
 package net.jradius.util;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
 import gnu.crypto.cipher.CipherFactory;
 import gnu.crypto.cipher.IBlockCipher;
 import gnu.crypto.cipher.WeakKeyException;
@@ -148,7 +149,7 @@ public final class MSCHAP
     
     private static byte[] GenerateNTResponse(byte[] AuthenticatorChallenge, byte[] PeerChallenge, byte[] UserName, byte[] Password)
     {
-        byte Challenge[] = ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName);
+    	byte Challenge[] = ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName);
         byte PasswordHash[] = NtPasswordHash(Password);
         return ChallengeResponse(Challenge, PasswordHash);
     }
@@ -226,5 +227,18 @@ public final class MSCHAP
         System.arraycopy(peerChallenge, 0, response, 2, 16);
         System.arraycopy(ntResponse, 0, response, 26, 24);
         return response;
+    }
+    
+    public static boolean verifyMSCHAPv2(byte[] UserName, byte[] Password, byte[] Challenge, byte[] Response)
+    {
+		byte peerChallenge[] = new byte[16];
+		byte sentNtResponse[] = new byte[24];
+
+		System.arraycopy(Response, 2, peerChallenge, 0, 16);
+		System.arraycopy(Response, 26, sentNtResponse, 0, 24);
+
+        byte ntResponse[] = GenerateNTResponse(Challenge, peerChallenge, UserName, Password);
+
+        return Arrays.equals(ntResponse, sentNtResponse);
     }
 }

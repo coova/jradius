@@ -69,7 +69,7 @@ public class IPAddrValue extends AttributeValue
     
     public int getLength()
     {
-        return inetAddressValue == null ? 0 : 4;
+        return inetAddressValue == null ? 0 : inetAddressValue.getAddress().length;
     }
     
     public void getBytes(OutputStream out) throws IOException

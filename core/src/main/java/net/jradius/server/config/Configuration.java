@@ -276,7 +276,7 @@ public class Configuration
 
                     URL url = classLoader.getResource(catalogURL);
 
-                    if(url == null)
+                    if (url == null)
                     {
                         RadiusLog.error("File " + catalogURL + " not found.");
                     }
