@@ -169,7 +169,9 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
 
             byte codeOrType = bb.get();
             
-            if (!peap || codeOrType == EAP_REQUEST)
+            // change: check the size
+            // if (!peap || codeOrType == EAP_REQUEST)
+            if (eapReply.length > 4 && (!peap || codeOrType == EAP_REQUEST))
             {
                 rtype  = codeOrType;
                 id     = bb.get();
@@ -180,19 +182,19 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
             {
                 dlen = bb.remaining();
             }
-
+            
             if (rtype != EAP_REQUEST)
             {
                 RadiusLog.error("Expecting an EAP-Request.. got code: " + rtype);
                 return null;
             }
             
-            byte eapcode = 0;
+            byte eapcode = codeOrType; // change: init the eapcode with codeOrType
             byte[] data = null;
 
             if (dlen > 0)
             {
-                eapcode = codeOrType;
+            	// eapcode = codeOrType;
                 data = new byte[dlen];
                 bb.get(data);
             }

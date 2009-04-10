@@ -231,17 +231,21 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
 
                     byte[] in = handler.readApplicationData(is, os);
 
-                    try
+                    // change: do not do tunnel auth if there is no more data
+                    if (in != null && in.length > 0) 
                     {
-                        doTunnelAuthentication(id, in);
-                    }
-                    catch(Throwable e)
-                    {
-                        RadiusLog.error(e.getMessage(), e);
-                    }
+	                    try
+	                    {
+	                        doTunnelAuthentication(id, in);
+	                    }
+	                    catch(Throwable e)
+	                    {
+	                        RadiusLog.error(e.getMessage(), e);
+	                    }
 
-                    handler.writeApplicationData(is, os, getAppBuffer());
-
+	                    handler.writeApplicationData(is, os, getAppBuffer());
+                    }
+                    
                     data = os.toByteArray();
                     receivedEAP.clear();
                 }

@@ -77,14 +77,16 @@ public class EAPMSCHAPv2Authenticator extends EAPAuthenticator
                 byte[] challenge = new byte[16];
                 System.arraycopy(data, 5, challenge, 0, 16);
 
-                short length = 55 + EAP_HEADERLEN; 
-                byte[] response = new byte[54];
+                int length = 54 + getUsername().length;
+                byte[] response = new byte[length];
                 response[0] = EAP_MSCHAPV2_RESPONSE;        // OpCode
-                response[1] = (byte) (data[1] + 1);         // MS-CHAPv2-ID
+                response[1] = data[1];                           // MS-CHAPv2-ID
                 response[2] = (byte) (length << 8 & 0xFF);  // MS-Length
                 response[3] = (byte) (length & 0xFF);       // MS-Length
                 response[4] = 49;                           // Value-Size
-                System.arraycopy(MSCHAP.doMSCHAPv2(getUsername(), getPassword(), challenge), 2, response, 5, 48);
+                System.arraycopy(MSCHAP.doMSCHAPv2(getUsername(), getPassword(), challenge), 2, response, 5, 48); // Response
+                response[53] = 0;                            // Flags
+                System.arraycopy(getUsername(), 0, response, 54, getUsername().length); // Name
                 return response;
             }
             
@@ -96,16 +98,11 @@ public class EAPMSCHAPv2Authenticator extends EAPAuthenticator
                  *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                  *  |     Code      |   Identifier  |            Length             |
                  *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                 *  |     Type      |   OpCode      |  MS-CHAPv2-ID |  MS-Length...
-                 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                 *  |   MS-Length   |                    Message...
-                 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                 *  |     Type      |   OpCode      |
+                 *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                  */
-                byte[] response = new byte[4];
+                byte[] response = new byte[1];
                 response[0] = EAP_MSCHAPV2_SUCCESS;
-                response[1] = data[1];
-                response[2] = (byte) 0;
-                response[3] = (byte) 0;
                 return response;
             }
         }
