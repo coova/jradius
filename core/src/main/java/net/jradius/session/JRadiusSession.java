@@ -44,11 +44,11 @@ public interface JRadiusSession extends Serializable
     public static final int RADIUS_ERROR      = -1;
     public static final int UNKNOWN_STATE     = 0;
 
-    public static final int AUTH_PENDING      = (1 << 0);
-    public static final int AUTH_ACCEPTED     = (1 << 1);
-    public static final int AUTH_REJECTED     = (1 << 2);
-    public static final int ACCT_STARTED      = (1 << 3);
-    public static final int ACCT_STOPPED      = (1 << 4);
+    public static final int AUTH_PENDING      = (1 << 0); //  1
+    public static final int AUTH_ACCEPTED     = (1 << 1); //  2
+    public static final int AUTH_REJECTED     = (1 << 2); //  4
+    public static final int ACCT_STARTED      = (1 << 3); //  8
+    public static final int ACCT_STOPPED      = (1 << 4); // 16
     
     public static final int SESSION_STARTED   = (AUTH_PENDING|AUTH_ACCEPTED|ACCT_STARTED);
     public static final int SESSION_STOPPED   = (AUTH_PENDING|AUTH_ACCEPTED|ACCT_STARTED|ACCT_STOPPED);

@@ -52,33 +52,35 @@ public class RadIPPoolConvert extends JSONConverter<RadIPPool>
     {
         jsonObject.put("name", beanField(radippool, nameColumn, encodeId));
         jsonObject.put("value", radippool.getId());
+        jsonObject.put("uid", radippool.getId());
         return jsonObject;
     }
 
     public JSONObject toSuggestJSON(RadIPPool radippool, String nameColumn, boolean encodeId, JSONObject jsonObject) throws JSONException
     {
         jsonObject.put("suggest", beanField(radippool, nameColumn, encodeId));
+        jsonObject.put("uid", radippool.getId());
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void insertFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
-        dao.insert(fromJSON(new RadIPPool(), jsonObject));
+        jsonObject.put("uid", dao.insert(fromJSON(new RadIPPool(), jsonObject)));
     }
 
-    public void updateFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void updateFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         Long id = jsonObject.optLong("uid");
         RadIPPool record = dao.selectByPrimaryKey(id);
         if (record != null) dao.updateByPrimaryKey(fromJSON(record, jsonObject));
     }
 
-    public void deleteFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void deleteFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         dao.deleteByPrimaryKey(jsonObject.getLong("uid"));
     }
 
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
+    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, Integer startRow, Integer rowCount, String orderByClause, String groupByClause) throws JSONException
     {
         RadIPPoolExample example = new RadIPPoolExample();
         if (requestMap != null)
@@ -93,6 +95,7 @@ public class RadIPPoolConvert extends JSONConverter<RadIPPool>
         example.setStartRow(startRow);
         example.setRowCount(rowCount);
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadIPPool> list = dao.selectByExample(example);
         for (RadIPPool radippool : list)
         {
@@ -100,7 +103,7 @@ public class RadIPPoolConvert extends JSONConverter<RadIPPool>
         }
     }
 
-    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadIPPoolExample example = new RadIPPoolExample();
         if (requestMap != null)
@@ -109,6 +112,7 @@ public class RadIPPoolConvert extends JSONConverter<RadIPPool>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadIPPool> list = dao.selectByExample(example);
         for (RadIPPool radippool : list)
         {
@@ -116,7 +120,7 @@ public class RadIPPoolConvert extends JSONConverter<RadIPPool>
         }
     }
 
-    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadIPPoolExample example = new RadIPPoolExample();
         if (requestMap != null)
@@ -125,6 +129,7 @@ public class RadIPPoolConvert extends JSONConverter<RadIPPool>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadIPPool> list = dao.selectByExample(example);
         for (RadIPPool radippool : list)
         {

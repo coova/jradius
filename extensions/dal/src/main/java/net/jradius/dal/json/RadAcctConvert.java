@@ -86,33 +86,35 @@ public class RadAcctConvert extends JSONConverter<RadAcct>
     {
         jsonObject.put("name", beanField(radacct, nameColumn, encodeId));
         jsonObject.put("value", radacct.getId());
+        jsonObject.put("uid", radacct.getId());
         return jsonObject;
     }
 
     public JSONObject toSuggestJSON(RadAcct radacct, String nameColumn, boolean encodeId, JSONObject jsonObject) throws JSONException
     {
         jsonObject.put("suggest", beanField(radacct, nameColumn, encodeId));
+        jsonObject.put("uid", radacct.getId());
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void insertFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
-        dao.insert(fromJSON(new RadAcct(), jsonObject));
+        jsonObject.put("uid", dao.insert(fromJSON(new RadAcct(), jsonObject)));
     }
 
-    public void updateFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void updateFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         Long id = jsonObject.optLong("uid");
         RadAcct record = dao.selectByPrimaryKey(id);
         if (record != null) dao.updateByPrimaryKey(fromJSON(record, jsonObject));
     }
 
-    public void deleteFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void deleteFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         dao.deleteByPrimaryKey(jsonObject.getLong("uid"));
     }
 
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
+    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, Integer startRow, Integer rowCount, String orderByClause, String groupByClause) throws JSONException
     {
         RadAcctExample example = new RadAcctExample();
         if (requestMap != null)
@@ -127,6 +129,7 @@ public class RadAcctConvert extends JSONConverter<RadAcct>
         example.setStartRow(startRow);
         example.setRowCount(rowCount);
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadAcct> list = dao.selectByExample(example);
         for (RadAcct radacct : list)
         {
@@ -134,7 +137,7 @@ public class RadAcctConvert extends JSONConverter<RadAcct>
         }
     }
 
-    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadAcctExample example = new RadAcctExample();
         if (requestMap != null)
@@ -143,6 +146,7 @@ public class RadAcctConvert extends JSONConverter<RadAcct>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadAcct> list = dao.selectByExample(example);
         for (RadAcct radacct : list)
         {
@@ -150,7 +154,7 @@ public class RadAcctConvert extends JSONConverter<RadAcct>
         }
     }
 
-    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadAcctExample example = new RadAcctExample();
         if (requestMap != null)
@@ -159,6 +163,7 @@ public class RadAcctConvert extends JSONConverter<RadAcct>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadAcct> list = dao.selectByExample(example);
         for (RadAcct radacct : list)
         {

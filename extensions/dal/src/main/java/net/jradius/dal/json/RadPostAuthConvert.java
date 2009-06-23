@@ -44,33 +44,35 @@ public class RadPostAuthConvert extends JSONConverter<RadPostAuth>
     {
         jsonObject.put("name", beanField(radpostauth, nameColumn, encodeId));
         jsonObject.put("value", radpostauth.getId());
+        jsonObject.put("uid", radpostauth.getId());
         return jsonObject;
     }
 
     public JSONObject toSuggestJSON(RadPostAuth radpostauth, String nameColumn, boolean encodeId, JSONObject jsonObject) throws JSONException
     {
         jsonObject.put("suggest", beanField(radpostauth, nameColumn, encodeId));
+        jsonObject.put("uid", radpostauth.getId());
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void insertFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
-        dao.insert(fromJSON(new RadPostAuth(), jsonObject));
+        jsonObject.put("uid", dao.insert(fromJSON(new RadPostAuth(), jsonObject)));
     }
 
-    public void updateFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void updateFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         Long id = jsonObject.optLong("uid");
         RadPostAuth record = dao.selectByPrimaryKey(id);
         if (record != null) dao.updateByPrimaryKey(fromJSON(record, jsonObject));
     }
 
-    public void deleteFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void deleteFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         dao.deleteByPrimaryKey(jsonObject.getLong("uid"));
     }
 
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
+    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, Integer startRow, Integer rowCount, String orderByClause, String groupByClause) throws JSONException
     {
         RadPostAuthExample example = new RadPostAuthExample();
         if (requestMap != null)
@@ -85,6 +87,7 @@ public class RadPostAuthConvert extends JSONConverter<RadPostAuth>
         example.setStartRow(startRow);
         example.setRowCount(rowCount);
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadPostAuth> list = dao.selectByExample(example);
         for (RadPostAuth radpostauth : list)
         {
@@ -92,7 +95,7 @@ public class RadPostAuthConvert extends JSONConverter<RadPostAuth>
         }
     }
 
-    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadPostAuthExample example = new RadPostAuthExample();
         if (requestMap != null)
@@ -101,6 +104,7 @@ public class RadPostAuthConvert extends JSONConverter<RadPostAuth>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadPostAuth> list = dao.selectByExample(example);
         for (RadPostAuth radpostauth : list)
         {
@@ -108,7 +112,7 @@ public class RadPostAuthConvert extends JSONConverter<RadPostAuth>
         }
     }
 
-    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadPostAuthExample example = new RadPostAuthExample();
         if (requestMap != null)
@@ -117,6 +121,7 @@ public class RadPostAuthConvert extends JSONConverter<RadPostAuth>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadPostAuth> list = dao.selectByExample(example);
         for (RadPostAuth radpostauth : list)
         {

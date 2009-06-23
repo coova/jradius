@@ -89,6 +89,18 @@ public class RadiusRandom
         return rslt;
     }
 
+    public static String getRandomPassword(int length, String allowedCharacters)
+    {
+        StringBuffer out = new StringBuffer(length);
+        byte[] in = getBytes(length);
+        for (int i=0; i < length; i++)
+        {
+            out.append(allowedCharacters.charAt(((char)in[i]) % allowedCharacters.length()));
+        }
+        String rslt = new String(out);
+        return rslt;
+    }
+
     public static String getRandomString(int length)
     {
         return RadiusUtils.byteArrayToHexString(getBytes(length));

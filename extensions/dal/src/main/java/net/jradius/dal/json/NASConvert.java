@@ -56,33 +56,35 @@ public class NASConvert extends JSONConverter<NAS>
     {
         jsonObject.put("name", beanField(nas, nameColumn, encodeId));
         jsonObject.put("value", nas.getId());
+        jsonObject.put("uid", nas.getId());
         return jsonObject;
     }
 
     public JSONObject toSuggestJSON(NAS nas, String nameColumn, boolean encodeId, JSONObject jsonObject) throws JSONException
     {
         jsonObject.put("suggest", beanField(nas, nameColumn, encodeId));
+        jsonObject.put("uid", nas.getId());
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void insertFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
-        dao.insert(fromJSON(new NAS(), jsonObject));
+        jsonObject.put("uid", dao.insert(fromJSON(new NAS(), jsonObject)));
     }
 
-    public void updateFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void updateFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         Long id = jsonObject.optLong("uid");
         NAS record = dao.selectByPrimaryKey(id);
         if (record != null) dao.updateByPrimaryKey(fromJSON(record, jsonObject));
     }
 
-    public void deleteFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void deleteFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         dao.deleteByPrimaryKey(jsonObject.getLong("uid"));
     }
 
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
+    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, Integer startRow, Integer rowCount, String orderByClause, String groupByClause) throws JSONException
     {
         NASExample example = new NASExample();
         if (requestMap != null)
@@ -97,6 +99,7 @@ public class NASConvert extends JSONConverter<NAS>
         example.setStartRow(startRow);
         example.setRowCount(rowCount);
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<NAS> list = dao.selectByExample(example);
         for (NAS nas : list)
         {
@@ -104,7 +107,7 @@ public class NASConvert extends JSONConverter<NAS>
         }
     }
 
-    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         NASExample example = new NASExample();
         if (requestMap != null)
@@ -113,6 +116,7 @@ public class NASConvert extends JSONConverter<NAS>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<NAS> list = dao.selectByExample(example);
         for (NAS nas : list)
         {
@@ -120,7 +124,7 @@ public class NASConvert extends JSONConverter<NAS>
         }
     }
 
-    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         NASExample example = new NASExample();
         if (requestMap != null)
@@ -129,6 +133,7 @@ public class NASConvert extends JSONConverter<NAS>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<NAS> list = dao.selectByExample(example);
         for (NAS nas : list)
         {

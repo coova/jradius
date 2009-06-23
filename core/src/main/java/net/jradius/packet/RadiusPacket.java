@@ -250,7 +250,7 @@ public abstract class RadiusPacket implements Serializable
             AttributeValue value = attribute.getValue();
             if (value != null)
             {
-                return value.getValueObject();
+            	return value.getValueObject();
             }
         }
         return null;

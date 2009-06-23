@@ -40,33 +40,35 @@ public class UIHelpConvert extends JSONConverter<UIHelp>
     {
         jsonObject.put("name", beanField(uihelp, nameColumn, encodeId));
         jsonObject.put("value", uihelp.getId());
+        jsonObject.put("uid", uihelp.getId());
         return jsonObject;
     }
 
     public JSONObject toSuggestJSON(UIHelp uihelp, String nameColumn, boolean encodeId, JSONObject jsonObject) throws JSONException
     {
         jsonObject.put("suggest", beanField(uihelp, nameColumn, encodeId));
+        jsonObject.put("uid", uihelp.getId());
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void insertFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
-        dao.insert(fromJSON(new UIHelp(), jsonObject));
+        jsonObject.put("uid", dao.insert(fromJSON(new UIHelp(), jsonObject)));
     }
 
-    public void updateFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void updateFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         Long id = jsonObject.optLong("uid");
         UIHelp record = dao.selectByPrimaryKey(id);
         if (record != null) dao.updateByPrimaryKey(fromJSON(record, jsonObject));
     }
 
-    public void deleteFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void deleteFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         dao.deleteByPrimaryKey(jsonObject.getLong("uid"));
     }
 
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
+    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, Integer startRow, Integer rowCount, String orderByClause, String groupByClause) throws JSONException
     {
         UIHelpExample example = new UIHelpExample();
         if (requestMap != null)
@@ -81,6 +83,7 @@ public class UIHelpConvert extends JSONConverter<UIHelp>
         example.setStartRow(startRow);
         example.setRowCount(rowCount);
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<UIHelp> list = dao.selectByExample(example);
         for (UIHelp uihelp : list)
         {
@@ -88,7 +91,7 @@ public class UIHelpConvert extends JSONConverter<UIHelp>
         }
     }
 
-    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         UIHelpExample example = new UIHelpExample();
         if (requestMap != null)
@@ -97,6 +100,7 @@ public class UIHelpConvert extends JSONConverter<UIHelp>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<UIHelp> list = dao.selectByExample(example);
         for (UIHelp uihelp : list)
         {
@@ -104,7 +108,7 @@ public class UIHelpConvert extends JSONConverter<UIHelp>
         }
     }
 
-    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         UIHelpExample example = new UIHelpExample();
         if (requestMap != null)
@@ -113,6 +117,7 @@ public class UIHelpConvert extends JSONConverter<UIHelp>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<UIHelp> list = dao.selectByExample(example);
         for (UIHelp uihelp : list)
         {

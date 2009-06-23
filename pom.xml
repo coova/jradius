@@ -122,6 +122,7 @@
     <module>example</module>
     <module>applet</module>
     <module>client</module>
+    <module>extensions</module>
     <module>server</module>
   </modules>
 

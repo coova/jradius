@@ -12,6 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.coova.ewt.server.EWTException;
 import com.coova.json.JSONConverter;
 
 public class SQLUserConvert extends JSONConverter<SQLUser>
@@ -61,21 +62,25 @@ public class SQLUserConvert extends JSONConverter<SQLUser>
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws JSONException
-    {
-    	//dao.insert(fromJSON(new SQLUser(), jsonObject));
-    }
+	@Override
+	public void deleteFromJSON(JSONObject jsonObject, Object sessionObject)
+			throws JSONException, EWTException {
+		// TODO Auto-generated method stub
+		
+	}
 
-    public void updateFromJSON(JSONObject jsonObject) throws JSONException
-    {
-    }
+	@Override
+	public void insertFromJSON(JSONObject jsonObject, Object sessionObject)
+			throws JSONException, EWTException {
+		// TODO Auto-generated method stub
+		
+	}
 
-    public void deleteFromJSON(JSONObject jsonObject) throws JSONException
-    {
-    }
-
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
-    {
+	@Override
+	public void listAsArray(JSONArray array, Map<String, String> requestMap,
+			JSONObject metaObject, Object sessionObject, Integer startRow,
+			Integer rowCount, String orderByClause, String groupByClause)
+			throws JSONException {
         RadCheckExample example = new RadCheckExample();
         Criteria criteria = example.createCriteria();
 
@@ -100,11 +105,43 @@ public class SQLUserConvert extends JSONConverter<SQLUser>
         {
         	array.put(array.length(), toJSON(radcheck, new JSONObject()));
         }
-    }
+	}
 
+	@Override
+	public void listAsRefArray(JSONArray array, Map<String, String> requestMap,
+			JSONObject metaObject, Object sessionObject, String nameColumn,
+			boolean encodeId, String orderByClause, String groupByClause)
+			throws JSONException {
+        RadCheckExample example = new RadCheckExample();
+        Criteria criteria = example.createCriteria();
+
+        if (requestMap != null)
+        {
+            criteriaBeanMapper(criteria, requestMap);
+        }
+        
+        example.createCriteria().andAttributeEqualTo(passwordAttribute);
+        
+        example.setOrderByClause(orderByClause);
+        
+        List<RadCheck> list = dao.selectByExample(example);
+        for (RadCheck radcheck : list)
+        {
+        	array.put(array.length(), toRefJSON(radcheck, nameColumn, new JSONObject()));
+        }
+	}
+
+	@Override
+	public void updateFromJSON(JSONObject jsonObject, Object sessionObject)
+			throws JSONException, EWTException {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	public void listAsSuggestArray(JSONArray array,
 			Map<String, String> requestMap, JSONObject metaObject,
-			String nameColumn, boolean encodeId, String orderByClause) throws JSONException {
+			Object sessionObject, String nameColumn, boolean encodeId,
+			String orderByClause, String groupByClause) throws JSONException {
         RadCheckExample example = new RadCheckExample();
         Criteria criteria = example.createCriteria();
 
@@ -124,24 +161,4 @@ public class SQLUserConvert extends JSONConverter<SQLUser>
         }
 	}
 
-	public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
-    {
-        RadCheckExample example = new RadCheckExample();
-        Criteria criteria = example.createCriteria();
-
-        if (requestMap != null)
-        {
-            criteriaBeanMapper(criteria, requestMap);
-        }
-        
-        example.createCriteria().andAttributeEqualTo(passwordAttribute);
-        
-        example.setOrderByClause(orderByClause);
-        
-        List<RadCheck> list = dao.selectByExample(example);
-        for (RadCheck radcheck : list)
-        {
-        	array.put(array.length(), toRefJSON(radcheck, nameColumn, new JSONObject()));
-        }
-    }
 }

@@ -156,6 +156,10 @@ public abstract class RadiusProcessor extends Processor
                     RadiusLog.error("Handler " + handler.getName() + " threw throwable: " + error);
                     result = JRadiusServer.RLM_MODULE_FAIL;
                     logReturnCode(result, handler);
+                    
+                    // XXX
+                    e.printStackTrace();
+                    
                     break;
                 }
             }

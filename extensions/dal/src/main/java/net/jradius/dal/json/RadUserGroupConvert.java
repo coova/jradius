@@ -42,33 +42,35 @@ public class RadUserGroupConvert extends JSONConverter<RadUserGroup>
     {
         jsonObject.put("name", beanField(radusergroup, nameColumn, encodeId));
         jsonObject.put("value", radusergroup.getId());
+        jsonObject.put("uid", radusergroup.getId());
         return jsonObject;
     }
 
     public JSONObject toSuggestJSON(RadUserGroup radusergroup, String nameColumn, boolean encodeId, JSONObject jsonObject) throws JSONException
     {
         jsonObject.put("suggest", beanField(radusergroup, nameColumn, encodeId));
+        jsonObject.put("uid", radusergroup.getId());
         return jsonObject;
     }
 
-    public void insertFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void insertFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
-        dao.insert(fromJSON(new RadUserGroup(), jsonObject));
+        jsonObject.put("uid", dao.insert(fromJSON(new RadUserGroup(), jsonObject)));
     }
 
-    public void updateFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void updateFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         Long id = jsonObject.optLong("uid");
         RadUserGroup record = dao.selectByPrimaryKey(id);
         if (record != null) dao.updateByPrimaryKey(fromJSON(record, jsonObject));
     }
 
-    public void deleteFromJSON(JSONObject jsonObject) throws EWTException, JSONException
+    public void deleteFromJSON(JSONObject jsonObject, Object sessionObject) throws EWTException, JSONException
     {
         dao.deleteByPrimaryKey(jsonObject.getLong("uid"));
     }
 
-    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Integer startRow, Integer rowCount, String orderByClause) throws JSONException
+    public void listAsArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, Integer startRow, Integer rowCount, String orderByClause, String groupByClause) throws JSONException
     {
         RadUserGroupExample example = new RadUserGroupExample();
         if (requestMap != null)
@@ -83,6 +85,7 @@ public class RadUserGroupConvert extends JSONConverter<RadUserGroup>
         example.setStartRow(startRow);
         example.setRowCount(rowCount);
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadUserGroup> list = dao.selectByExample(example);
         for (RadUserGroup radusergroup : list)
         {
@@ -90,7 +93,7 @@ public class RadUserGroupConvert extends JSONConverter<RadUserGroup>
         }
     }
 
-    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsRefArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadUserGroupExample example = new RadUserGroupExample();
         if (requestMap != null)
@@ -99,6 +102,7 @@ public class RadUserGroupConvert extends JSONConverter<RadUserGroup>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadUserGroup> list = dao.selectByExample(example);
         for (RadUserGroup radusergroup : list)
         {
@@ -106,7 +110,7 @@ public class RadUserGroupConvert extends JSONConverter<RadUserGroup>
         }
     }
 
-    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, String nameColumn, boolean encodeId, String orderByClause) throws JSONException
+    public void listAsSuggestArray(JSONArray array, Map<String, String> requestMap, JSONObject metaObject, Object sessionObject, String nameColumn, boolean encodeId, String orderByClause, String groupByClause) throws JSONException
     {
         RadUserGroupExample example = new RadUserGroupExample();
         if (requestMap != null)
@@ -115,6 +119,7 @@ public class RadUserGroupConvert extends JSONConverter<RadUserGroup>
             criteriaBeanMapper(criteria, requestMap);
         }
         example.setOrderByClause(orderByClause);
+        example.setGroupByClause(groupByClause);
         List<RadUserGroup> list = dao.selectByExample(example);
         for (RadUserGroup radusergroup : list)
         {

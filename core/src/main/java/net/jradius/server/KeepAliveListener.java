@@ -20,11 +20,10 @@
 
 package net.jradius.server;
 
-import net.jradius.log.RadiusLog;
-
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
-import java.io.IOException;
+
+import net.jradius.log.RadiusLog;
 
 /**
  * @author David Bird
