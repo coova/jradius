@@ -45,7 +45,7 @@ public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, D
     {
         String filename = this.getConfigFile();
 
-        if(filename == null || filename.trim().length() <= 0)
+        if (filename == null || filename.trim().length() <= 0)
         {
             String message = "JRadiusManager: Missing settings filename ['configFile' property not specified correctly].";
             RadiusLog.error(message);
@@ -54,7 +54,7 @@ public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, D
 
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(filename);
 
-        if(is == null)
+        if (is == null)
         {
             String message = "File '" + filename + "' not found.";
             RadiusLog.error(message);

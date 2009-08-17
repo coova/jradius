@@ -117,7 +117,11 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                 keyManagers = kmf.getKeyManagers();
             }
 
-            if (getCaFile() != null)
+            if (getTrustAll().booleanValue()) 
+            {
+                trustManagers = new TrustManager[]{ new NoopX509TrustManager() };
+            }
+            else if (getCaFile() != null)
             {
                 KeyStore caKeys = KeyStore.getInstance(getCaFileType());
                 caKeys.load(new FileInputStream(getCaFile()), getCaPassword().toCharArray());
@@ -125,13 +129,6 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                 tmf.init(caKeys);
                 
                 trustManagers = tmf.getTrustManagers();
-            }
-            else 
-            {
-                if (getTrustAll().booleanValue()) 
-                {
-                    trustManagers = new TrustManager[]{ new NoopX509TrustManager() };
-                }
             }
 
             /*
