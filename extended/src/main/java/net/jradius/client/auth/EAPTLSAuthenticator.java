@@ -43,6 +43,7 @@ import net.jradius.client.RadiusClient;
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeDictionary;
 
 
 /**
@@ -92,7 +93,9 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
      */
     public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException
     {
-        super.setupRequest(c, p);
+        client = c;
+        username = p.findAttribute(AttributeDictionary.USER_NAME);
+        password = p.findAttribute(AttributeDictionary.USER_PASSWORD);
         init();
     }
 

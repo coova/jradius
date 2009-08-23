@@ -22,7 +22,6 @@
 package net.jradius.server;
 
 import java.util.List;
-import java.util.ArrayList;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.exception.RadiusSecurityException;

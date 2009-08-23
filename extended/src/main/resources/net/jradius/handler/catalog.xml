@@ -34,6 +34,7 @@
   <define	name="session-expired"		className="net.jradius.handler.event.SessionExpiredHandler"/>
   <define	name="session-log"		className="net.jradius.handler.SessionLogHandler"/>
   <define	name="dhcp-pool"		className="net.jradius.handler.dhcp.DHCPPoolHandler"/>
+  <define	name="radsec-proxy"		className="net.jradius.radsec.RadSecProxyHandler"/>
 
   <define	name="otp-proxy-auth"	      className="net.jradius.webservice.handler.OTPProxyAuthHandler"/>
   <define	name="otp-proxy-post-auth"    className="net.jradius.webservice.handler.OTPProxyPostAuthHandler"/>

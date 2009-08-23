@@ -49,9 +49,15 @@ public class KeepAliveListener extends JRadiusThread
         {
             while (true)
             {
-                //connects to input stream, try to parse input and if succeeded create new TCPListenerRequest
+            	// connects to input stream, try to parse input and if succeeded create new TCPListenerRequest
                 ListenerRequest lr = new TCPListenerRequest(this.socket, this.listener, true);
 
+                if (lr == null)
+                {
+                    RadiusLog.debug("JRadius/KeepAliveListener.run(): shutting down tcp socket listener");
+                    break;
+                }
+                
                 //enqueue item to list so one of processors can start processing
                 while(true)
                 {
@@ -68,6 +74,7 @@ public class KeepAliveListener extends JRadiusThread
         }
         catch (Exception e)
         {
+        	e.printStackTrace();
             RadiusLog.debug("JRadius/KeepAliveListener.run(): shutting down tcp socket listener", e);
         }
         

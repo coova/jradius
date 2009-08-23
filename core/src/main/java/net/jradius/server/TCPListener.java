@@ -44,12 +44,14 @@ import javax.net.ServerSocketFactory;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
+import net.jradius.server.config.Configuration;
 import net.jradius.server.config.ListenerConfigurationItem;
 
 /**
@@ -60,17 +62,18 @@ import net.jradius.server.config.ListenerConfigurationItem;
  */
 public abstract class TCPListener extends JRadiusThread implements Listener
 {
-    private boolean active = false;
-    private ListenerConfigurationItem config;
-    private BlockingQueue<ListenerRequest> queue;
+	protected boolean active = false;
+    protected ListenerConfigurationItem config;
+    protected BlockingQueue<ListenerRequest> queue;
     
-    private int port = 1814;
-    private int backlog = 1024;
-    private boolean usingSSL = false;
-    private boolean keepAlive;
-    private ServerSocket serverSocket;
+    protected int port = 1814;
+    protected int backlog = 1024;
+    protected boolean requiresSSL = false;
+    protected boolean usingSSL = false;
+    protected boolean keepAlive;
+    protected ServerSocket serverSocket;
     
-    private final List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
+    protected final List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
 
     public abstract JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException;
 
@@ -79,6 +82,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     	try {
     		setConfiguration(cfg, false);
     	} catch (Exception e) {
+    		e.printStackTrace();
     		RadiusLog.error("Invalid JRadius configuration.", e);
     	}
     }
@@ -107,30 +111,56 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         String useSSL = (String) props.get("useSSL");
         String trustAll = (String) props.get("trustAll");
 
-        if ("true".equalsIgnoreCase(useSSL))
+        if (requiresSSL || "true".equalsIgnoreCase(useSSL))
         {
             Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+
             KeyManager[] keyManagers = null;
             TrustManager[] trustManagers = null;
             
-            String keystore         = (String) props.get("keyStore");
-            String keystoreType     = (String) props.get("keyStoreType");
-            String keystorePassword = (String) props.get("keyStorePassword");
-            String keyPassword      = (String) props.get("keyPassword");
+            String keyManager = (String) props.get("keyManager");
             
-            if (keystore != null)
+            if (keyManager != null && !keyManager.isEmpty())
             {
-                if (keystoreType == null) keystoreType = "pkcs12";
-
-                KeyStore ks = KeyStore.getInstance(keystoreType);
-                ks.load(new FileInputStream(keystore), keystorePassword == null ? null : keystorePassword.toCharArray());
-
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-                kmf.init(ks, keyPassword == null ? null : keyPassword.toCharArray());
-                keyManagers = kmf.getKeyManagers();
+    			try {
+    				KeyManager manager = (KeyManager) Configuration.getBean(keyManager);
+    	        	keyManagers = new KeyManager[] { manager };
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
             }
+            else
+            {
+	            String keystore         = (String) props.get("keyStore");
+	            String keystoreType     = (String) props.get("keyStoreType");
+	            String keystorePassword = (String) props.get("keyStorePassword");
+	            String keyPassword      = (String) props.get("keyPassword");
+	            
+	            if (keystore != null)
+	            {
+	                if (keystoreType == null) keystoreType = "pkcs12";
+	
+	                KeyStore ks = KeyStore.getInstance(keystoreType);
+	                ks.load(new FileInputStream(keystore), keystorePassword == null ? null : keystorePassword.toCharArray());
+	
+	                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+	                kmf.init(ks, keyPassword == null ? null : keyPassword.toCharArray());
+	                keyManagers = kmf.getKeyManagers();
+	            }
+            }
+            
+            String trustManager = (String) props.get("trustManager");
 
-            if ("true".equalsIgnoreCase(trustAll))
+            if (trustManager != null && !trustManager.isEmpty())
+            {
+    			try {
+    	        	TrustManager manager = (TrustManager) Configuration.getBean(trustManager);
+    	            trustManagers = new TrustManager[] { manager };
+    			} catch (Exception e) {
+    				e.printStackTrace();
+    			}
+            }
+            else if ("true".equalsIgnoreCase(trustAll))
             {
                 trustManagers = new TrustManager[]{ new X509TrustManager()
                 {
@@ -150,9 +180,9 @@ public abstract class TCPListener extends JRadiusThread implements Listener
             }
             else
             {
-                keystore         = (String) props.get("caStore");
-                keystoreType     = (String) props.get("caStoreType");
-                keystorePassword = (String) props.get("caStorePassword");
+            	String keystore         = (String) props.get("caStore");
+            	String keystoreType     = (String) props.get("caStoreType");
+            	String keystorePassword = (String) props.get("caStorePassword");
 
                 if (keystore != null)
                 {
@@ -284,7 +314,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
             }
             catch(SocketException e)
             {
-                if(getActive() == false)
+            	if (getActive() == false)
                 {
                     break;
                 }
@@ -293,8 +323,13 @@ public abstract class TCPListener extends JRadiusThread implements Listener
                     RadiusLog.error("Socket exception", e);
                 }
             }
-            catch(InterruptedException e)
+            catch (InterruptedException e)
             {
+            }
+            catch (SSLException e)
+            {
+                RadiusLog.error("Error occured in TCPListener.", e);
+                active = false;
             }
             catch (Throwable e)
             {

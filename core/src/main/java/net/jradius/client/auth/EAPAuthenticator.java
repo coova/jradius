@@ -275,7 +275,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         
         if (!peap || type == EAP_TLV)
         {
-            length = 1 + EAP_HEADERLEN + data.length;
+            length = 1 + EAP_HEADERLEN + (data == null ? 0 : data.length);
             response = new byte[length];
             response[0] = EAP_RESPONSE;
             response[1] = id;

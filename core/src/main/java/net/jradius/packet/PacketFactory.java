@@ -85,35 +85,7 @@ public class PacketFactory
 
         try
         {
-            int code = RadiusFormat.readUnsignedByte(input);
-            int identifier = RadiusFormat.readUnsignedByte(input);
-
-            Class c = (Class)codeMap.get(new Integer(code));
-         
-            if (c == null)
-            {
-                throw new RadiusException("bad radius code");
-            }
-
-            int length = RadiusFormat.readUnsignedShort(input);
-            byte[] bAuthenticator = new byte[16];
-            input.readFully(bAuthenticator);
-
-            byte[] bAttributes = new byte[length - RadiusPacket.RADIUS_HEADER_LENGTH];
-            input.readFully(bAttributes);
-          
-            try
-            {
-                rp = (RadiusPacket)c.newInstance();
-                //rp.setCode(code);
-                rp.setIdentifier(identifier);
-                rp.setAuthenticator(bAuthenticator);
-                RadiusFormat.setAttributeBytes(rp, bAttributes);
-            }
-            catch (Exception e)
-            {
-                RadiusLog.error(e.getMessage(), e);
-            }
+            rp = parseUDP(input);
         }
         catch (IOException e)
         {
@@ -122,7 +94,42 @@ public class PacketFactory
         return rp;
     }
 
-    private static RadiusPacket parsePacket(DataInputStream input) throws RadiusException, IOException
+    public static RadiusPacket parseUDP(DataInputStream input) throws RadiusException, IOException
+    {
+    	RadiusPacket rp = null;
+        int code = RadiusFormat.readUnsignedByte(input);
+        int identifier = RadiusFormat.readUnsignedByte(input);
+
+        Class c = (Class)codeMap.get(new Integer(code));
+     
+        if (c == null)
+        {
+            throw new RadiusException("bad radius code");
+        }
+
+        int length = RadiusFormat.readUnsignedShort(input);
+        byte[] bAuthenticator = new byte[16];
+        input.readFully(bAuthenticator);
+
+        byte[] bAttributes = new byte[length - RadiusPacket.RADIUS_HEADER_LENGTH];
+        input.readFully(bAttributes);
+      
+        try
+        {
+            rp = (RadiusPacket)c.newInstance();
+            //rp.setCode(code);
+            rp.setIdentifier(identifier);
+            rp.setAuthenticator(bAuthenticator);
+            RadiusFormat.setAttributeBytes(rp, bAttributes);
+        }
+        catch (Exception e)
+        {
+            RadiusLog.error(e.getMessage(), e);
+        }
+        return rp;
+    }
+
+    public static RadiusPacket parsePacket(DataInputStream input) throws RadiusException, IOException
     {
         RadiusPacket rp = null;
         int code = (int)RadiusFormat.readUnsignedInt(input);

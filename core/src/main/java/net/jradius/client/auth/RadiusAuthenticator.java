@@ -104,7 +104,7 @@ public abstract class RadiusAuthenticator
      */
     protected byte[] getUsername()
     {
-        return username.getValue().getBytes();
+        return username == null ? null : username.getValue().getBytes();
     }
 
     /**
