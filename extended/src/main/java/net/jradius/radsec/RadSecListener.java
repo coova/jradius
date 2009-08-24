@@ -24,17 +24,18 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import net.jradius.dictionary.Attr_SharedSecret;
 import net.jradius.exception.RadiusException;
-import net.jradius.packet.NullPacket;
+import net.jradius.packet.AccountingRequest;
+import net.jradius.packet.NullResponse;
 import net.jradius.packet.PacketFactory;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.RadiusRequest;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusEvent;
 import net.jradius.server.ListenerRequest;
 import net.jradius.server.TCPListener;
-import net.sf.ehcache.CacheManager;
-
-import com.coova.ewt.server.ThreadContextManager;
+import net.jradius.util.MessageAuthenticator;
 
 /**
  * RadSec Listener
@@ -43,30 +44,74 @@ import com.coova.ewt.server.ThreadContextManager;
  */
 public class RadSecListener extends TCPListener
 {
+	private String tunnelSharedSecret = "radsec";
+	
 	public RadSecListener()
 	{
-		this.usingSSL = true;
+		this.sslWantClientAuth = true;
+		this.sslNeedClientAuth = true;
 		this.keepAlive = true;
 		this.requiresSSL = true;
 		this.port = 2083;
 	}
 	
-    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException 
+	public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException 
     {
         RadSecRequest request = new RadSecRequest();
         DataInputStream in = new DataInputStream(inputStream);
 
-        RadiusPacket req = PacketFactory.parseUDP(in);
+        RadiusRequest req = (RadiusRequest) PacketFactory.parseUDP(in);
         
         if (req == null) 
         {
             throw new RadiusException("RadSec connection has been closed");
         }
         
+        if (req instanceof AccountingRequest)
+        {
+        	if (req.verifyAuthenticator(tunnelSharedSecret)) 
+        	{
+        		req.addAttribute(new Attr_SharedSecret(tunnelSharedSecret));
+        	}
+        	else
+        	{
+                throw new RadiusException("Bad RadSec tunnel shared secret, set to "+tunnelSharedSecret);
+        	}
+        }
+        else if (req instanceof RadiusRequest)
+        {
+        	try 
+        	{
+        		Boolean verified = MessageAuthenticator.verifyRequest(req, tunnelSharedSecret);
+        		if (verified == null)
+        		{
+        			throw new RadiusException("Message-Authenticator required");
+        		}
+        		if (Boolean.TRUE.equals(verified))
+        		{
+        			req.addAttribute(new Attr_SharedSecret(tunnelSharedSecret));
+        		}
+        		else
+        		{
+                    throw new RadiusException("Bad RadSec tunnel shared secret, set to "+tunnelSharedSecret);
+        		}
+        	} 
+        	catch (IOException e) 
+        	{
+        	}
+        }
+        
+        req.addAttribute(new Attr_SharedSecret(tunnelSharedSecret));
+        
         request.setSender("RadSec");
-        request.setPackets(new RadiusPacket[] { req, new NullPacket() });
+        request.setPackets(new RadiusPacket[] { req, new NullResponse() });
         request.setConfigItems(new AttributeList());
 
         return request;
     }
+
+	public void setTunnelSharedSecret(String tunnelSharedSecret) {
+		this.tunnelSharedSecret = tunnelSharedSecret;
+	}
+    
 }

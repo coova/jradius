@@ -23,13 +23,10 @@ package net.jradius.client;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -41,8 +38,6 @@ import net.jradius.client.auth.MSCHAPv2Authenticator;
 import net.jradius.client.auth.PAPAuthenticator;
 import net.jradius.client.auth.RadiusAuthenticator;
 import net.jradius.exception.RadiusException;
-import net.jradius.exception.RadiusSecurityException;
-import net.jradius.exception.TimeoutException;
 import net.jradius.exception.UnknownAttributeException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.AccessChallenge;
@@ -53,14 +48,9 @@ import net.jradius.packet.CoARequest;
 import net.jradius.packet.CoAResponse;
 import net.jradius.packet.DisconnectRequest;
 import net.jradius.packet.DisconnectResponse;
-import net.jradius.packet.PacketFactory;
-import net.jradius.packet.RadiusFormat;
-import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.RadiusRequest;
 import net.jradius.packet.RadiusResponse;
-import net.jradius.packet.attribute.AttributeDictionary;
 import net.jradius.session.JRadiusSession;
-import net.jradius.util.MessageAuthenticator;
 
 
 /**
@@ -70,25 +60,12 @@ import net.jradius.util.MessageAuthenticator;
  */
 public class RadiusClient
 {
-    public static final int defaultAuthPort = 1812;
-    public static final int defaultAcctPort = 1813;
-    public static final int defaultTimeout  = 60;
+	protected RadiusClientTransport transport;
 
-    protected InetAddress remoteInetAddress;
-    protected String sharedSecret;
-
-    protected int authPort = defaultAuthPort;
-    protected int acctPort = defaultAcctPort;
-    protected int socketTimeout = defaultTimeout * 1000;
-
-    protected DatagramSocket socket;
-
-    protected JRadiusSession session;
-
-    private static final RadiusFormat format = RadiusFormat.getInstance();
-        
     protected static final LinkedHashMap authenticators = new LinkedHashMap();
     
+    protected JRadiusSession session;
+
     static
     {
         // Supported Authentication Protocols
@@ -121,12 +98,19 @@ public class RadiusClient
      */
     public RadiusClient() throws SocketException 
     { 
-    	socket = new DatagramSocket();
+    	this(new DatagramSocket());
     }
 
     public RadiusClient(DatagramSocket socket) 
     { 
-    	this.socket = socket;
+    	this.transport = new UDPClientTransport(socket);
+    	this.transport.setRadiusClient(this);
+    }
+
+    public RadiusClient(RadiusClientTransport transport) 
+    { 
+    	this.transport = transport;
+    	this.transport.setRadiusClient(this);
     }
 
     /**
@@ -175,7 +159,7 @@ public class RadiusClient
 
     public void close()
     {
-        this.socket.close();
+        transport.close();
     }
     
     /**
@@ -310,7 +294,12 @@ public class RadiusClient
         }
         return auth;
     }
-    
+
+    public RadiusResponse sendReceive(RadiusRequest p, int retries) throws RadiusException
+    {
+    	return transport.sendReceive(p, retries);
+	}
+
     /**
      * Authenicates using the specified method. For all methods, it is assumed
      * that the user's password can be found in the User-Password attribute. All
@@ -332,7 +321,7 @@ public class RadiusClient
         
         while (true)
         {
-            RadiusResponse reply = sendReceive(p, remoteInetAddress, authPort, retries);
+            RadiusResponse reply = transport.sendReceive(p, retries);
 
             if (reply instanceof AccessChallenge)
             {
@@ -346,48 +335,6 @@ public class RadiusClient
     }
 
     /**
-     * Add the Message-Authentivator attribute to the given RadiusPacket
-     * @param request The RadiusPacket
-     */
-    protected void generateMessageAuthenticator(RadiusPacket request) throws IOException
-    {
-    	MessageAuthenticator.generateRequestMessageAuthenticator(request, sharedSecret);
-    }
-    
-    /**
-     * Verify the Message-Authenticator based on RFC 2869
-     * @param request The RADIUS request send
-     * @param reply The RADIUS reply received
-     * @param required Whether or not the Message-Authenticator is required (as for EAP)
-     * @return Returns true if there is no Message-Authenticator or if it present and correct
-     */
-    private boolean verifyMessageAuthenticator(RadiusRequest request, RadiusResponse reply, boolean required)
-    {
-		try
-		{
-			Boolean verified = MessageAuthenticator.verifyReply(request, reply, sharedSecret);
-			if (verified == null && required) return false;
-			if (verified == null) return true;
-			return verified.booleanValue();
-		}
-		catch(IOException e)
-		{
-			return false;
-		}
-	}
-    
-    /**
-     * Verify the RADIUS Authenticator
-     * @param request The RADIUS request send
-     * @param reply The RADIUS reply received
-     * @return Returns true if there is no Authenticator is correct
-     */
-    private boolean verifyAuthenticator(RadiusRequest request, RadiusResponse reply)
-    {
-    	return reply.verifyAuthenticator(request.getAuthenticator(), getSharedSecret());
-    }
-    
-    /**
      * Send an accounting request
      * @param p The RadiusPacket to be sent (should be AccountingRequest)
      * @param retries Number of times to retry (without a response)
@@ -398,7 +345,7 @@ public class RadiusClient
     public AccountingResponse accounting(AccountingRequest p, int retries)
 	throws RadiusException
 	{
-        RadiusResponse response = sendReceive(p, remoteInetAddress, acctPort, retries);
+        RadiusResponse response = transport.sendReceive(p, retries);
         if (!(response instanceof AccountingResponse))
             throw new RadiusException("Received something other than AccountingResponse to a AccountingRequest");
         return (AccountingResponse)response;
@@ -407,7 +354,7 @@ public class RadiusClient
     public DisconnectResponse disconnect(DisconnectRequest p, int retries)
     throws RadiusException
     {
-        RadiusResponse response = sendReceive(p, remoteInetAddress, authPort, retries);
+        RadiusResponse response = transport.sendReceive(p, retries);
         if (!(response instanceof DisconnectResponse))
             throw new RadiusException("Received something other than DisconnectResponse to a DisconnectRequest");
         return (DisconnectResponse)response;
@@ -416,106 +363,10 @@ public class RadiusClient
     public CoAResponse changeOfAuth(CoARequest p, int retries)
     throws RadiusException
     {
-        RadiusResponse response = sendReceive(p, remoteInetAddress, authPort, retries);
+        RadiusResponse response = transport.sendReceive(p, retries);
         if (!(response instanceof CoAResponse))
             throw new RadiusException("Received something other than CoAResponse to a CoARequest");
         return (CoAResponse)response;
-    }
-
-    /**
-     * Send and receive RadiusPackets
-     * @param p The RadiusPacket being sent
-     * @param a The Internet Address sending to
-     * @param port The port sending to
-     * @param retries Number of times to retry (without response)
-     * @return Returns the returned RadiusPacket
-     */
-    public RadiusResponse sendReceive(RadiusRequest p, InetAddress a, int port, int retries)
-    throws RadiusException
-    {
-        RadiusResponse r = null;
-        int tries = 0;
-        
-        if (p instanceof AccessRequest)
-        {
-            try
-            {
-	        	generateMessageAuthenticator(p);
-            }
-            catch(IOException e)
-            {
-                throw new RadiusException(e);
-            }
-        }
-
-        if (retries < 0) retries = 0; retries++; // do at least one
-        
-        while (tries < retries)
-        {
-            try
-            {
-                if (socketTimeout > 0) 
-                {
-                    socket.setSoTimeout(socketTimeout);
-                }
-                send(p, a, port, tries);
-                r = receive();
-                break;
-            }
-            catch (SocketTimeoutException e)
-            {
-            }
-            catch (IOException e) 
-            { 
-                RadiusLog.warn("Unable to send or receive radius packet", e);
-            }
-            tries++;
-        }
-        
-        if (tries == retries)
-        {                        
-            throw new TimeoutException("Timeout: No Response from RADIUS Server");
-        }
-            
-        if (!verifyAuthenticator(p, r))
-        {
-            throw new RadiusSecurityException("Invalid RADIUS Authenticator");
-        }
-
-        if (!verifyMessageAuthenticator(p, r, (r.findAttribute(AttributeDictionary.EAP_MESSAGE) != null)))
-        {
-            throw new RadiusSecurityException("Invalid RADIUS Message-Authenticator");
-        }
-        
-        return r;
-    }
-    
-    protected void send(RadiusPacket p, InetAddress a, int port, int attempt) throws IOException
-    {
-        if (attempt > 1)
-        {
-            RadiusLog.warn("RadiusClient retrying request (attempt " + attempt + ")...");
-        }
-        byte[] b = format.packPacket(p, sharedSecret, true);
-        DatagramPacket request = new DatagramPacket(b, b.length, a, port);
-        socket.send(request);
-    }
-    
-    protected RadiusResponse receive() throws IOException, RadiusException
-    {
-        byte replyBytes[] = new byte[RadiusPacket.MAX_PACKET_LENGTH];
-        DatagramPacket reply = new DatagramPacket(replyBytes, replyBytes.length);
-        
-        socket.receive(reply);
-        
-        RadiusPacket replyPacket = PacketFactory.parse(reply);
-        
-        if (!(replyPacket instanceof RadiusResponse))
-        {
-            throw new RadiusException("Received something other than a RADIUS Response to a Request");
-        }
-
-        return (RadiusResponse)replyPacket;
     }
 
     /**
@@ -523,7 +374,7 @@ public class RadiusClient
      */
     public int getAcctPort()
     {
-        return acctPort;
+        return transport.getAcctPort();
     }
 
     /**
@@ -531,7 +382,7 @@ public class RadiusClient
      */
     public void setAcctPort(int acctPort)
     {
-        this.acctPort = acctPort;
+    	transport.setAcctPort(acctPort);
     }
     
     /**
@@ -539,7 +390,7 @@ public class RadiusClient
      */
     public int getAuthPort()
     {
-        return authPort;
+    	return transport.getAuthPort();
     }
     
     /**
@@ -547,7 +398,7 @@ public class RadiusClient
      */
     public void setAuthPort(int authPort)
     {
-        this.authPort = authPort;
+        transport.setAuthPort(authPort);
     }
     
     /**
@@ -555,7 +406,7 @@ public class RadiusClient
      */
     public int getSocketTimeout()
     {
-        return socketTimeout / 1000;
+        return transport.getSocketTimeout();
     }
     
     /**
@@ -563,7 +414,7 @@ public class RadiusClient
      */
     public void setSocketTimeout(int socketTimeout)
     {
-        this.socketTimeout = socketTimeout * 1000;
+        transport.setSocketTimeout(socketTimeout);
     }
     
     /**
@@ -571,7 +422,7 @@ public class RadiusClient
      */
     public InetAddress getRemoteInetAddress()
     {
-        return remoteInetAddress;
+        return transport.getRemoteInetAddress();
     }
     
     /**
@@ -579,7 +430,7 @@ public class RadiusClient
      */
     public void setRemoteInetAddress(InetAddress remoteInetAddress)
     {
-        this.remoteInetAddress = remoteInetAddress;
+    	transport.setRemoteInetAddress(remoteInetAddress);
     }
     
     /**
@@ -587,7 +438,7 @@ public class RadiusClient
      */
     public InetAddress getLocalInetAddress()
     {
-        return socket.getLocalAddress();
+        return transport.getLocalInetAddress();
     }
     
     /**
@@ -603,7 +454,7 @@ public class RadiusClient
      */
     public String getSharedSecret()
     {
-        return this.sharedSecret;
+    	return transport.getSharedSecret();
     }
     
     /**
@@ -611,6 +462,6 @@ public class RadiusClient
      */
     public void setSharedSecret(String sharedSecret)
     {
-        this.sharedSecret = sharedSecret;
+    	transport.setSharedSecret(sharedSecret);
     }
 }

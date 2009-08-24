@@ -30,6 +30,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,6 +49,8 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
 import javax.swing.AbstractButton;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
@@ -78,6 +81,9 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
 
 import net.jradius.client.RadiusClient;
+import net.jradius.client.RadiusClientTransport;
+import net.jradius.client.TransportStatusListener;
+import net.jradius.client.UDPClientTransport;
 import net.jradius.client.auth.EAPAKAAuthenticator;
 import net.jradius.client.auth.RadiusAuthenticator;
 import net.jradius.client.auth.TunnelAuthenticator;
@@ -87,8 +93,8 @@ import net.jradius.dictionary.Attr_Class;
 import net.jradius.dictionary.Attr_EAPAkaCK;
 import net.jradius.dictionary.Attr_EAPAkaIK;
 import net.jradius.dictionary.Attr_ReplyMessage;
-import net.jradius.exception.RadiusException;
 import net.jradius.exception.StandardViolatedException;
+import net.jradius.exception.TimeoutException;
 import net.jradius.packet.AccessReject;
 import net.jradius.packet.AccessRequest;
 import net.jradius.packet.AccountingRequest;
@@ -96,7 +102,6 @@ import net.jradius.packet.CoARequest;
 import net.jradius.packet.DisconnectRequest;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.RadiusRequest;
-import net.jradius.packet.RadiusResponse;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
@@ -105,10 +110,12 @@ import net.jradius.packet.attribute.AttributeFactory.VendorValue;
 import net.jradius.packet.attribute.value.IntegerValue;
 import net.jradius.packet.attribute.value.NamedValue;
 import net.jradius.packet.attribute.value.NamedValue.NamedValueMap;
+import net.jradius.radsec.RadSecClientTransport;
 import net.jradius.standard.IRAPStandard;
 import net.jradius.standard.RadiusStandard;
 import net.jradius.standard.WISPrStandard;
 import net.jradius.util.Base64;
+import net.jradius.util.KeyStoreUtil;
 import net.jradius.util.RadiusRandom;
 
 /**
@@ -121,7 +128,8 @@ public class JRadiusSimulator extends JFrame
     public  static final String logSepLine = "----------------------------------------------------------";
     private static String configFileUrl = "file:///" + System.getProperty("user.home") + "/.jRadiusSimulator";
     private String[] authTypeNames = { "PAP", "CHAP", "MSCHAPv1", "MSCHAPv2", "EAP-MD5", "EAP-MSCHAPv2", "EAP-TLS", "PEAP", "EAP-TTLS/PAP" };
-    private String[] keystoreTypes = { "PKCS12", "JKS" };
+    private String[] keystoreTypes = { "PEM", "PKCS12", "JKS" };
+    private String[] transportTypes = { "UDP", "RadSec" };
     private Properties properties;
     private Thread[] simulationThreads = null;
     boolean interactiveSession = false;
@@ -205,6 +213,7 @@ public class JRadiusSimulator extends JFrame
     private JLabel openUrlStatusLabel = null;
     private JButton cancelUrlButton = null;
     private JLabel statusLabel = null;
+    private JComboBox transportTypeComboBox = null;
     private boolean isJava14 = false;
     
     /**
@@ -468,11 +477,11 @@ public class JRadiusSimulator extends JFrame
             aboutMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     JOptionPane.showMessageDialog(JRadiusSimulator.this, 
-                            "Version 1.1.0\n\n" +
-                            "For help, go to http://jradius.net/\n" +
+                            "Version 1.2.0\n\n" +
+                            "For help, go to http://www.coova.com/JRadius\n" +
                             "Licensed under the GNU Public License (GPL).\n" + 
+                            "Copyright (c) 2007-2009 Coova Technologies, LLC\n",
                             "Copyright (c) 2006 PicoPoint B.V.\n" +
-                            "Copyright (c) 2007-2008 David Bird\n",
                             "About JRadiusSimulator", JOptionPane.INFORMATION_MESSAGE, null);
                 }
             });
@@ -759,6 +768,7 @@ public class JRadiusSimulator extends JFrame
             	}
             });
         }
+        
         return saveLogButton;
     }
 
@@ -1062,6 +1072,8 @@ public class JRadiusSimulator extends JFrame
 
             sendOptionsPanel = new JPanel();
             sendOptionsPanel.setLayout(gridBagLayout);
+            sendOptionsPanel.add(new JLabel("Transport"), gridBagConstraints);
+            sendOptionsPanel.add(getTransportTypeComboBox(), gridBagConstraints1);
             sendOptionsPanel.add(radiusServerLabel, gridBagConstraints);
             sendOptionsPanel.add(getRadiusServerTextField(), gridBagConstraints1);
             sendOptionsPanel.add(sharedSecretLabel, gridBagConstraints2);
@@ -1358,6 +1370,13 @@ public class JRadiusSimulator extends JFrame
             tlsKeyFileTypeComboBox = new JComboBox(keystoreTypes);
         }
         return tlsKeyFileTypeComboBox;
+    }
+
+    private JComboBox getTransportTypeComboBox() {
+        if (transportTypeComboBox == null) {
+        	transportTypeComboBox = new JComboBox(transportTypes);
+        }
+        return transportTypeComboBox;
     }
 
     /**
@@ -2215,47 +2234,80 @@ public class JRadiusSimulator extends JFrame
 	                    if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(attribute,false);
 	                }
 	                
-	                RadiusClient radiusClient = new RadiusClient(InetAddress.getByName(radiusServer), sharedSecret, 
-	                        authPort.intValue(), acctPort.intValue(), timeout.intValue())
+	                RadiusClientTransport transport;
+	                
+	                if ("RadSec".equals(transportTypeComboBox.getSelectedItem()))
 	                {
-	                    /* (non-Javadoc)
-	                     * @see net.jradius.client.RadiusClient#receive()
-	                     */
-	                    protected RadiusResponse receive() throws IOException, RadiusException
+                        KeyManager keyManagers[] = KeyStoreUtil.loadKeyManager(
+                        		tlsKeyFileTypeComboBox.getSelectedItem().toString(), 
+                        		new FileInputStream(tlsKeyFileTextField.getText()),
+                        		tlsKeyPasswordTextField.getText());
+
+                        TrustManager trustManagers[];
+                        
+	                    if (tlsTrustAll.isSelected()) 
 	                    {
-	                        statusLabel.setText("Waiting for response...");
-	                        RadiusResponse res = super.receive();
-	                        statusLabel.setText("Received RADIUS Packet " + res.getClass().getName());
-	    
+	                        trustManagers = KeyStoreUtil.trustAllManager();
+	                    }
+	                    else
+	                    {
+	                        trustManagers = KeyStoreUtil.loadTrustManager(
+	                        		tlsCAFileTypeComboBox.getSelectedItem().toString(), 
+	                        		new FileInputStream(tlsCAFileTextField.getText()), 
+	                        		tlsCAPasswordTextField.getText());
+	                    }
+
+	                    transport = new RadSecClientTransport(keyManagers, trustManagers);
+	                }
+	                else
+	                {
+	                	transport = new UDPClientTransport();
+	                }
+
+	                transport.setRemoteInetAddress(InetAddress.getByName(radiusServer));
+	                transport.setSharedSecret(sharedSecret);
+	                transport.setAuthPort(authPort);
+	                transport.setAcctPort(acctPort);
+	                transport.setSocketTimeout(timeout);
+	                
+	                transport.setStatusListener(new TransportStatusListener() 
+	                {
+						public void onAfterReceive(RadiusClientTransport transport, RadiusPacket packet)
+						{
+	                        statusLabel.setText("Received RADIUS Packet " + packet.getClass().getName());
+	                	    
 	                        logRecv.println("Received RADIUS Packet:");
 	                        logRecv.println(logSepLine);
-	                        logRecv.println(res.toString());
+	                        logRecv.println(packet.toString());
 	                        logRecv.flush();
 	    
-	                        checkStandard(getRadiusStandard(), res);
+	                        checkStandard(getRadiusStandard(), packet);
 	                        recd++;
-	    
-	                        return res;
-	                    }
-	    
-	                    /* (non-Javadoc)
-	                     * @see net.jradius.client.RadiusClient#send(net.jradius.packet.RadiusPacket, java.net.InetAddress, int, int)
-	                     */
-	                    protected void send(RadiusPacket p, InetAddress a, int port, int attempt) throws IOException
-	                    {
+						}
+
+						public void onAfterSend(RadiusClientTransport transport) {
+						}
+
+						public void onBeforeReceive(RadiusClientTransport transport) {
+	                        statusLabel.setText("Waiting for response...");
+						}
+
+						public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) {
 	                        logSent.println("Sending RADIUS Packet:");
 	                        logSent.println(logSepLine);
-	                        logSent.println(p.toString());
+	                        logSent.println(packet.toString());
 	                        logSent.flush();
 	    
-	                        checkStandard(getRadiusStandard(), p);
+	                        checkStandard(getRadiusStandard(), packet);
 	                        
 	                        sent++;
-	                        statusLabel.setText("Sending RADIUS Packet " + p.getClass().getName());
-	                        super.send(p, a, port, attempt);
-	                    }
-	                };
-	         
+	                        statusLabel.setText("Sending RADIUS Packet " + packet.getClass().getName());
+						}
+	                	
+	                });
+	                
+	                RadiusClient radiusClient = new RadiusClient(transport);
+
 	                for (int i = 0; i < sendPackets.length; i++)
 	                {
 	                    if (!sendPackets[i]) continue;
@@ -2314,6 +2366,10 @@ public class JRadiusSimulator extends JFrame
 	                            	request.addAttribute(new Attr_EAPAkaCK(ck));
 	                            }
 	                            reply = radiusClient.authenticate((AccessRequest)request, auth, retries.intValue());
+	                            if (reply == null)
+	                            {
+	                            	throw new TimeoutException("timeout waiting for reply");
+	                            }
 	                            if (!notStopOnRejectCheckBox.isSelected())
 	                            {
 	                                if (reply instanceof AccessReject)

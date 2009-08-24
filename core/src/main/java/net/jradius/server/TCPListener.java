@@ -45,6 +45,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -74,6 +75,11 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     protected ServerSocket serverSocket;
     
     protected final List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
+
+    protected boolean sslWantClientAuth;
+    protected boolean sslNeedClientAuth;
+    protected String[] sslEnabledProtocols;
+    protected String[] sslEnabledCiphers;
 
     public abstract JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException;
 
@@ -200,7 +206,21 @@ public abstract class TCPListener extends JRadiusThread implements Listener
             sslContext.init(keyManagers, trustManagers, null);
             
             ServerSocketFactory socketFactory = sslContext.getServerSocketFactory();
-            serverSocket = socketFactory.createServerSocket(port, backlog);
+            SSLServerSocket sslServerSocket = (SSLServerSocket) socketFactory.createServerSocket(port, backlog);
+            serverSocket = sslServerSocket;
+
+            if (sslWantClientAuth)
+            	sslServerSocket.setWantClientAuth(true);
+            
+            if (sslNeedClientAuth)
+            	sslServerSocket.setNeedClientAuth(true);
+            
+            if (sslEnabledProtocols != null)
+            	sslServerSocket.setEnabledProtocols(sslEnabledProtocols);
+            
+            if (sslEnabledCiphers != null)
+	            sslServerSocket.setEnabledCipherSuites(sslEnabledCiphers);
+
             usingSSL = true;
         }
         else

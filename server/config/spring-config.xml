@@ -30,9 +30,38 @@
   <bean id="sessionManager" class="net.jradius.session.JRadiusSessionManager">
     <property name="cacheManager"><ref bean="cacheManager"/></property>
   </bean>
+
+<!-- -->
+<bean id="radSecProcessor" class="net.jradius.radsec.RadSecProcessor" singleton="false">
+</bean>
+
+<bean id="radSecListener" class="net.jradius.radsec.RadSecListener">
+</bean>
+
+<bean id="radSecKeyManager" class="net.jradius.radsec.SimpleKeyManager">
+  <property name="keyFile" value="/tmp/server.pem"/>
+  <property name="keyFileType" value="PEM"/>
+  <property name="keyFilePassword" value="test"/>
+</bean>
+
+<bean id="radSecTrustManager" class="net.jradius.radsec.SimpleTrustManager">
+  <!--property name="trustAll" value="true"/-->
+  <property name="certFile" value="/tmp/ca.pem"/>
+  <property name="certFileType" value="PEM"/>
+  <property name="certFilePassword" value=""/>
+</bean>
+
+<bean id="radSecProxyHandler" class="net.jradius.radsec.SimpleProxyHandler">
+  <property name="radiusServer" value="localhost"/>
+  <property name="sharedSecret" value="testing123"/>
+  <property name="authPort" value="1645"/>
+  <property name="acctPort" value="1646"/>
+</bean>
+<!-- -->
   
   <bean id="jRadiusManager" class="net.jradius.impl.JRadiusManagerImpl" destroy-method="destroy">
     <property name="configFile"><value>jradius-config.xml</value></property>
+    <property name="startOnLoad"><value>true</value></property>
   </bean>
   
 </beans>

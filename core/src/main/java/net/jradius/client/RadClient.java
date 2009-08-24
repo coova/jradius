@@ -31,6 +31,7 @@ import java.util.Locale;
 import net.jradius.client.auth.RadiusAuthenticator;
 import net.jradius.client.auth.TunnelAuthenticator;
 import net.jradius.exception.StandardViolatedException;
+import net.jradius.log.RadiusLog;
 import net.jradius.packet.AccessRequest;
 import net.jradius.packet.AccountingRequest;
 import net.jradius.packet.RadiusRequest;
@@ -41,7 +42,6 @@ import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.standard.RadiusStandard;
 import net.jradius.util.RadiusRandom;
-import net.jradius.log.RadiusLog;
 
 
 /**

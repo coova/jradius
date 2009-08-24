@@ -25,18 +25,20 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import net.jradius.dictionary.Attr_SharedSecret;
 import net.jradius.exception.RadiusException;
 import net.jradius.handler.chain.JRCommand;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.RadiusRequest;
+import net.jradius.packet.RadiusResponse;
 import net.jradius.server.JRadiusRequest;
 import net.jradius.server.JRadiusServer;
 import net.jradius.server.ListenerRequest;
 import net.jradius.server.RadiusProcessor;
 import net.jradius.server.config.Configuration;
-
-import com.coova.ewt.server.ThreadContextManager;
+import net.jradius.util.MessageAuthenticator;
 
 
 /**
@@ -49,6 +51,7 @@ public class RadSecProcessor extends RadiusProcessor
     protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
     {
         RadSecRequest request = (RadSecRequest) listenerRequest.getRequestEvent();
+        
         try
         {
             request.setApplicationContext(getApplicationContext());
@@ -82,10 +85,18 @@ public class RadSecProcessor extends RadiusProcessor
             request.printDebugInfo();
 
         RadiusPacket[] rp = request.getPackets();
+
+        RadiusRequest req = (RadiusRequest) rp[0];
+        RadiusResponse res = (RadiusResponse) rp[1];
+        
+        String sharedSecret = (String) req.getAttributeValue(Attr_SharedSecret.TYPE);
         
         RadiusFormat format = RadiusFormat.getInstance();
 
-        out.write(format.packPacket(rp[1], "radsec"));
+		MessageAuthenticator.generateResponseMessageAuthenticator(req, res, sharedSecret);
+		res.generateAuthenticator(req.getAuthenticator(), sharedSecret);
+
+        out.write(format.packPacket(res, sharedSecret, true));
         
         out.close();
         outputStream.write(outBytes.toByteArray());

@@ -244,14 +244,21 @@ public class ListenerConfigurationItem extends ConfigurationItem
                     continue;
                 }
             }
-            
-            if (preCfg != null) command.setConfig(preCfg);
-            command.setConfig(cfg);
-            
-            if (eventHandlers == null)
-                eventHandlers = new LinkedList();
 
-            eventHandlers.add(command);
+            if (command == null)
+            {
+                RadiusLog.error("No command found for "+cfg.getClassName());
+            }
+            else
+            {
+                if (preCfg != null) command.setConfig(preCfg);
+                command.setConfig(cfg);
+                
+                if (eventHandlers == null)
+                    eventHandlers = new LinkedList();
+
+                eventHandlers.add(command);
+            }
         }
     }
     

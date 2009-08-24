@@ -22,7 +22,7 @@ package net.jradius.radsec;
 
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeList;
-import net.jradius.server.JRadiusRequest;
+import net.jradius.server.JRadiusNativeRequest;
 import net.jradius.server.JRadiusServer;
 
 
@@ -31,9 +31,8 @@ import net.jradius.server.JRadiusServer;
  *
  * @author David Bird
  */
-public class RadSecRequest extends JRadiusRequest
+public class RadSecRequest extends JRadiusNativeRequest
 {
-    private int type;
     private RadiusPacket packets[];
     private AttributeList configItems;
     private int returnValue = JRadiusServer.RLM_MODULE_UPDATED;
@@ -52,14 +51,6 @@ public class RadSecRequest extends JRadiusRequest
     public RadiusPacket[] getPackets()
     {
         return packets;
-    }
-    
-    /**
-     * @return the request type
-     */
-    public int getType()
-    {
-        return type;
     }
     
     /**
@@ -90,35 +81,10 @@ public class RadSecRequest extends JRadiusRequest
     }
 
     /**
-     * Set the type of the request
-     * @param type
-     */
-    public void setType(int type)
-    {
-        this.type = type;
-    }
-        
-    /**
      * @param returnValue The returnValue to set.
      */
     public void setReturnValue(int returnValue)
     {
         this.returnValue = returnValue;
-    }
-    
-    public String getTypeString()
-    {
-        switch(getType())
-        {
-            case JRadiusServer.JRADIUS_authenticate: return "authenticate";
-            case JRadiusServer.JRADIUS_authorize:    return "authorize";
-            case JRadiusServer.JRADIUS_preacct:      return "preacct";
-            case JRadiusServer.JRADIUS_accounting:   return "accounting";
-            case JRadiusServer.JRADIUS_checksimul:   return "checksimul";
-            case JRadiusServer.JRADIUS_pre_proxy:    return "pre_proxy";
-            case JRadiusServer.JRADIUS_post_proxy:   return "post_proxy";
-            case JRadiusServer.JRADIUS_post_auth:    return "post_auth";
-            default:                                 return "UNKNOWN";
-        }
     }
 }

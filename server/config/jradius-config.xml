@@ -118,6 +118,23 @@
 	<class>net.jradius.webservice.SSOProxyService</class>
       </packet-handler>
     </listener>
+
+<!-- -->
+<listener name="RadSecServices">
+  <description>RadSec Listener</description>
+  <class>bean:radSecListener</class>
+  <processor-class>bean:radSecProcessor</processor-class>
+  <processor-threads>6</processor-threads>
+  <property name="backlog" value="1024"/>
+  <property name="trustAll" value="true"/>
+  <property name="keyManager" value="bean:radSecKeyManager"/>
+  <property name="trustManager" value="bean:radSecTrustManager"/>
+  <packet-handler name="RadSec Proxy">
+    <description>RadSec Proxy</description>
+    <class>bean:radSecProxyHandler</class>
+  </packet-handler>
+</listener>
+<!-- -->
     
   </listeners>
 

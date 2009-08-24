@@ -491,6 +491,7 @@ public class Configuration
     public static Object getBean(String name) throws IllegalAccessException, ClassNotFoundException, InstantiationException
     {
         Object o = null;
+        if (name == null) return null;
         if (name.startsWith("bean:")) 
         {
             String s[] = name.split(":");
@@ -499,6 +500,7 @@ public class Configuration
         else
         {
             Class clazz = Class.forName(name);
+            if (clazz == null) return null;
             o = clazz.newInstance();
             if (o instanceof BeanFactoryAware)
             {

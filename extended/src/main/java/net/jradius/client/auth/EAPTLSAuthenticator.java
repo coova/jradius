@@ -44,6 +44,7 @@ import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeDictionary;
+import net.jradius.util.KeyStoreUtil;
 
 
 /**
@@ -112,35 +113,17 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
             
             if (getKeyFile() != null)
             {
-                KeyStore ksKeys = KeyStore.getInstance(getKeyFileType());
-                ksKeys.load(new FileInputStream(getKeyFile()), getKeyPassword().toCharArray());
-                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-                kmf.init(ksKeys, getKeyPassword().toCharArray());
-                
-                keyManagers = kmf.getKeyManagers();
+            	keyManagers = KeyStoreUtil.loadKeyManager(getKeyFileType(), new FileInputStream(getKeyFile()), getKeyPassword());
             }
 
             if (getTrustAll().booleanValue()) 
             {
-                trustManagers = new TrustManager[]{ new NoopX509TrustManager() };
+            	trustManagers = KeyStoreUtil.trustAllManager();
             }
             else if (getCaFile() != null)
             {
-                KeyStore caKeys = KeyStore.getInstance(getCaFileType());
-                caKeys.load(new FileInputStream(getCaFile()), getCaPassword().toCharArray());
-                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
-                tmf.init(caKeys);
-                
-                trustManagers = tmf.getTrustManagers();
+            	trustManagers = KeyStoreUtil.loadTrustManager(getCaFileType(), new FileInputStream(getCaFile()), getCaPassword());
             }
-
-            /*
-            for (Enumeration e = ksKeys.aliases() ; e.hasMoreElements() ;) {
-                String alias = e.nextElement().toString();
-                System.out.println("CERTIFICATE: " + alias);
-                System.out.println(ksKeys.getCertificate(alias));
-            }
-            */
             
             sslContext = SSLContext.getInstance("TLS");
             sslContext.init(keyManagers, trustManagers, null);
@@ -611,10 +594,4 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         this.trustAll = trustAll;
     }
 
-    private class NoopX509TrustManager implements X509TrustManager
-    {
-        public void checkClientTrusted(X509Certificate[] chain, String authType) { }
-        public void checkServerTrusted(X509Certificate[] chain, String authType) { }
-        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
-    }
 }
