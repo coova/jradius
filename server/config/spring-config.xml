@@ -31,7 +31,7 @@
     <property name="cacheManager"><ref bean="cacheManager"/></property>
   </bean>
 
-<!-- -->
+<!--
 <bean id="radSecProcessor" class="net.jradius.radsec.RadSecProcessor" singleton="false">
 </bean>
 
@@ -45,7 +45,7 @@
 </bean>
 
 <bean id="radSecTrustManager" class="net.jradius.radsec.SimpleTrustManager">
-  <!--property name="trustAll" value="true"/-->
+  <!- -property name="trustAll" value="true"/- fix or remote comment ->
   <property name="certFile" value="/tmp/ca.pem"/>
   <property name="certFileType" value="PEM"/>
   <property name="certFilePassword" value=""/>
@@ -57,7 +57,7 @@
   <property name="authPort" value="1645"/>
   <property name="acctPort" value="1646"/>
 </bean>
-<!-- -->
+-->
   
   <bean id="jRadiusManager" class="net.jradius.impl.JRadiusManagerImpl" destroy-method="destroy">
     <property name="configFile"><value>jradius-config.xml</value></property>

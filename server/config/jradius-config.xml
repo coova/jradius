@@ -119,7 +119,7 @@
       </packet-handler>
     </listener>
 
-<!-- -->
+<!-- 
 <listener name="RadSecServices">
   <description>RadSec Listener</description>
   <class>bean:radSecListener</class>
@@ -134,14 +134,16 @@
     <class>bean:radSecProxyHandler</class>
   </packet-handler>
 </listener>
-<!-- -->
+-->
     
   </listeners>
 
+<!--
   <realm-manager realm-factory="net.jradius.realm.StaticRealms">
     <realm name="coova.org" server="localhost" sharedSecret="coova-anonymous" 
 	   authPort="1812" acctPort="1813"/>
   </realm-manager>
+-->
   
   <!-- 
        Configuring the JRadiusSession Management Classes

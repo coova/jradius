@@ -1,25 +1,37 @@
+/**
+ * JRadius - A RADIUS Server Java Adapter
+ * Copyright (c) 2009 Coova Technologies, LLC <support@coova.com>
+ *
+ * This library is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or (at
+ * your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
+ * License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this library; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ *
+ */
+
 package net.jradius.client;
 
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
 import java.net.SocketException;
-import java.net.SocketTimeoutException;
 
 import net.jradius.exception.RadiusException;
-import net.jradius.exception.RadiusSecurityException;
-import net.jradius.exception.TimeoutException;
 import net.jradius.log.RadiusLog;
-import net.jradius.packet.AccessRequest;
 import net.jradius.packet.AccountingRequest;
 import net.jradius.packet.PacketFactory;
 import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.RadiusRequest;
 import net.jradius.packet.RadiusResponse;
-import net.jradius.packet.attribute.AttributeDictionary;
-import net.jradius.util.MessageAuthenticator;
 
 public class UDPClientTransport extends RadiusClientTransport
 {

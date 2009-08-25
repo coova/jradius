@@ -1,7 +1,7 @@
 /**
  * JRadius - A RADIUS Server Java Adapter
+ * Copyright (c) 2006-2009 Coova Technologies, LLC <support@coova.com>
  * Copyright (C) 2004-2005 PicoPoint, B.V.
- * Copyright (c) 2006 David Bird <david@coova.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by

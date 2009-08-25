@@ -1,7 +1,7 @@
 /**
  * JRadius - A RADIUS Server Java Adapter
+ * Copyright (c) 2006-2009 Coova Technologies, LLC <support@coova.com>
  * Copyright (C) 2004-2005 PicoPoint, B.V.
- * Copyright (c) 2006-2007 David Bird <david@coova.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -25,19 +25,14 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.KeyStore;
-import java.security.cert.X509Certificate;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
 
 import net.jradius.client.RadiusClient;
 import net.jradius.exception.RadiusException;
@@ -87,6 +82,9 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         keyPassword = "";
         caFileType = "pkcs12";
         caPassword = "";
+        
+        if (java.security.Security.getProvider("BC") == null)
+        	java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
     
     /* (non-Javadoc)
