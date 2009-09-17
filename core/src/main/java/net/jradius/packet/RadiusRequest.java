@@ -25,7 +25,6 @@ import net.jradius.client.RadiusClient;
 import net.jradius.packet.attribute.AttributeList;
 
 
-
 /**
  * A Radius Request (either Access Request or Accounting Request)
  * 

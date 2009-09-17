@@ -20,6 +20,8 @@
 
 package net.jradius.packet;
 
+import java.util.Arrays;
+
 import net.jradius.client.RadiusClient;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.util.RadiusUtils;

@@ -24,6 +24,7 @@ package net.jradius.webservice;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Iterator;
@@ -52,19 +53,29 @@ import org.springframework.beans.factory.InitializingBean;
  */
 public class WebServiceListener extends TCPListener implements InitializingBean, CacheEventListener
 {
-    private String cacheName = "ws-requests";
-    private Map requestMap;
-    private CacheManager cacheManager;
-    private Ehcache requestCache;
-    private Integer timeToLive;
-    private Integer idleTime;
+    protected String cacheName = "ws-requests";
+    protected Map requestMap;
+    protected CacheManager cacheManager;
+    protected Ehcache requestCache;
+    protected Integer timeToLive;
+    protected Integer idleTime;
     
     public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, WebServiceException
     {
         DataInputStream reader = new DataInputStream(inputStream);
         WebServiceRequest request = new WebServiceRequest();
         
-        String line = reader.readLine();
+        String line = null;
+        
+        try
+        {
+	        line = reader.readLine();
+        }
+        catch (SocketException e)
+        {
+        	return null;
+        }
+        
         if (line == null) throw new WebServiceException("Invalid relay request");
         
         StringTokenizer tokens = new StringTokenizer(line);

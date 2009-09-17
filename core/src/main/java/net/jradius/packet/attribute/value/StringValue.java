@@ -55,7 +55,7 @@ public class StringValue extends OctetsValue
 
     public Serializable getValueObject()
     {
-        if (byteValue == null) return byteValue;
+        if (byteValue == null) return null;
         return new String(byteValue);
     }
 

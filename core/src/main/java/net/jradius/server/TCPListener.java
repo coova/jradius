@@ -31,7 +31,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -50,6 +49,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.server.config.Configuration;
@@ -63,6 +65,8 @@ import net.jradius.server.config.ListenerConfigurationItem;
  */
 public abstract class TCPListener extends JRadiusThread implements Listener
 {
+	protected Log log = LogFactory.getLog(getClass());
+
 	protected boolean active = false;
     protected ListenerConfigurationItem config;
     protected BlockingQueue<ListenerRequest> queue;
@@ -119,8 +123,6 @@ public abstract class TCPListener extends JRadiusThread implements Listener
 
         if (requiresSSL || "true".equalsIgnoreCase(useSSL))
         {
-            Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-
             KeyManager[] keyManagers = null;
             TrustManager[] trustManagers = null;
             
@@ -225,7 +227,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         }
         else
         {
-            serverSocket = new ServerSocket(port, backlog);
+        	serverSocket = new ServerSocket(port, backlog);
         }
         
         serverSocket.setReuseAddress(true);

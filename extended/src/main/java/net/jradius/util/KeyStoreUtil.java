@@ -37,13 +37,22 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.PEMReader;
 import org.bouncycastle.openssl.PasswordFinder;
 
 public class KeyStoreUtil 
 {
+	public static void loadBC()
+	{
+        if (java.security.Security.getProvider("BC") == null)
+        	java.security.Security.addProvider(new BouncyCastleProvider());
+	}
+	
 	public static KeyManager[] loadKeyManager(String type, InputStream in, String password) throws Exception
 	{
+		loadBC();
+		
 		final char[] pwd = (password == null || password.isEmpty()) ? null : password.toCharArray();
 
 		if (type.equalsIgnoreCase("pem"))
@@ -115,31 +124,43 @@ public class KeyStoreUtil
         return kmf.getKeyManagers();
 	}
 
+	public static X509Certificate loadCertificateFromPEM(InputStream in, final char[] pwd) throws Exception
+	{
+		loadBC();
+
+        PEMReader pemReader = new PEMReader(new InputStreamReader(in), new PasswordFinder() {
+			public char[] getPassword() {
+				return pwd;
+			}
+		});
+
+		Object obj;
+		while ((obj = pemReader.readObject()) != null)
+		{
+			if (obj instanceof X509Certificate)
+			{
+				return (X509Certificate) obj;
+			}
+		}
+		
+		return null;
+	}
+	
 	public static TrustManager[] loadTrustManager(String type, InputStream in, String password) throws Exception
 	{
-		final char[] pwd = (password == null || password.isEmpty()) ? null : password.toCharArray();
+		loadBC();
+
+		char[] pwd = (password == null || password.isEmpty()) ? null : password.toCharArray();
 
 		if (type.equalsIgnoreCase("pem"))
 		{
-			PEMReader pemReader = new PEMReader(new InputStreamReader(in), new PasswordFinder() {
-				public char[] getPassword() {
-					return pwd;
-				}
-			});
-			Object obj;
-			while ((obj = pemReader.readObject()) != null)
-			{
-				if (obj instanceof X509Certificate)
-				{
-					final X509Certificate cert = (X509Certificate) obj;
-					return new TrustManager[] { new X509TrustManager()
-				    {
-				        public void checkClientTrusted(X509Certificate[] chain, String authType) { }
-				        public void checkServerTrusted(X509Certificate[] chain, String authType) { }
-				        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[] { cert }; }
-				    }};
-				}
-			}
+			final X509Certificate cert = loadCertificateFromPEM(in, pwd);
+			return new TrustManager[] { new X509TrustManager()
+		    {
+		        public void checkClientTrusted(X509Certificate[] chain, String authType) { }
+		        public void checkServerTrusted(X509Certificate[] chain, String authType) { }
+		        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[] { cert }; }
+		    }};
 		}
 
 		KeyStore caKeys = KeyStore.getInstance(type);
@@ -159,6 +180,8 @@ public class KeyStoreUtil
 	
 	public static TrustManager[] trustAllManager()
 	{
+		loadBC();
+
 		return new TrustManager[] { new X509TrustManager()
 	    {
 	        public void checkClientTrusted(X509Certificate[] chain, String authType) { }

@@ -49,21 +49,20 @@ import net.jradius.server.TCPListenerRequest;
  */
 public class WebServiceProcessor extends Processor
 {
-    protected static final byte[] newline = toHTTPBytes("\r\n");
-    protected static final byte[] ctype = toHTTPBytes("Content-Type: text/xml\r\n");
-    protected static final byte[] clength = toHTTPBytes("Content-Length: ");
-    protected static final byte[] server = toHTTPBytes("Server: JRadius\r\n");  
-    protected static final byte[] conclose = toHTTPBytes("Connection: close\r\n");
-    protected static final byte[] ok = toHTTPBytes(" 200 OK\r\n");
-    protected static final byte[] found = toHTTPBytes(" 302 Found\r\n");
-    protected static final byte[] unauthorized = toHTTPBytes(" 401 Unauthorized\r\n");
+	protected static final byte[] newline = toHTTPBytes("\r\n");
+	protected static final byte[] ctype = toHTTPBytes("Content-Type: text/xml\r\n");
+	protected static final byte[] clength = toHTTPBytes("Content-Length: ");
+	protected static final byte[] server = toHTTPBytes("Server: JRadius\r\n");  
+	protected static final byte[] conclose = toHTTPBytes("Connection: close\r\n");
+	protected static final byte[] ok = toHTTPBytes(" 200 OK\r\n");
+	protected static final byte[] found = toHTTPBytes(" 302 Found\r\n");
+	protected static final byte[] unauthorized = toHTTPBytes(" 401 Unauthorized\r\n");
+	private boolean wantClientCertificates = true;
     
-    private boolean wantClientCertificates = true;
-    
-    protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
-    {
-        Socket socket = ((TCPListenerRequest)listenerRequest).getSocket();
-        socket.setSoTimeout(15000); // 15 second read timeout
+	protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
+	{
+		Socket socket = ((TCPListenerRequest)listenerRequest).getSocket();
+		socket.setSoTimeout(15000); // 15 second read timeout
         
 		X509Certificate x509 = null;
         
