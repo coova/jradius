@@ -178,9 +178,9 @@ public final class AttributeFactory
                 {
                     ByteArrayInputStream bais = new ByteArrayInputStream(value);
                     DataInputStream input = new DataInputStream(bais);
-                    vendor = (int)RadiusFormat.readUnsignedInt(input);
-                    type = (int)RadiusFormat.readUnsignedByte(input);
-                    int vsaLength = (int)RadiusFormat.readUnsignedByte(input);
+                    vendor = RadiusFormat.readUnsignedInt(input);
+                    type = RadiusFormat.readUnsignedByte(input);
+                    int vsaLength = RadiusFormat.readUnsignedByte(input);
                     byte[] newValue = new byte[vsaLength - 2];
                     input.readFully(newValue);
                     input.close();
