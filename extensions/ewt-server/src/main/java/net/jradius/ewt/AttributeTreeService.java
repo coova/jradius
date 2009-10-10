@@ -25,7 +25,7 @@ public class AttributeTreeService implements EWTService
 		return "attributes";
 	}
 
-	public Object handle(Map<String, String> parameterMap, JSONObject jsonObject, Object sessionObject) throws Exception
+	public Object handle(Map<String, String> headerMap, Map<String, String> parameterMap, JSONObject jsonObject, Object sessionObject) throws Exception
     {
         JSONArray newarray = new JSONArray();
 

@@ -66,7 +66,7 @@ public class EWTServerSupport extends com.coova.ewt.server.EWTServerSupport impl
 				return "radiusd-config";
 			}
 
-			public Object handle(Map<String, String> parameterMap, JSONObject jsonObject, Object sessionObject) throws Exception
+			public Object handle(Map<String, String> headerMap, Map<String, String> parameterMap, JSONObject jsonObject, Object sessionObject) throws Exception
             {
                 parameterMap.put("responseType", EWTResponse.txtType);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();

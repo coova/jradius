@@ -46,6 +46,8 @@ public abstract class CoreHandler extends EventHandlerBase implements Initializi
 	public void afterPropertiesSet() throws Exception
 	{
 		if (ewtServerSupport == null) 
+		{
 			throw new RuntimeException("ewtServerSupport is null");
+		}
 	}
 }

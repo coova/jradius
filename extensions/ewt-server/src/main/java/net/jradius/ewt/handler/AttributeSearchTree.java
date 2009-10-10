@@ -205,7 +205,8 @@ public class AttributeSearchTree implements Map<String, Class>, InitializingBean
         inOrderTraversal(node.getLarger(), results, limit);
     }
 
-    private static final class Node {
+    private static final class Node
+    {
         private final char _c;
         private Node _smaller;
         private Node _larger;

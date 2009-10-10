@@ -53,7 +53,7 @@ public class JSONHandler extends CoreHandler
 
     protected EWTResponse handleEWT(Map map, WebServiceRequest request) throws Exception
     {
-    	return ewtServerSupport.handle(map, request.getContentAsString());
+    	return ewtServerSupport.handle(request.getHeaderMap(), map, request.getContentAsString());
     }
     
     public boolean handle(JRadiusEvent event) throws Exception
