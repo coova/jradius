@@ -84,14 +84,11 @@ import net.jradius.client.RadiusClient;
 import net.jradius.client.RadiusClientTransport;
 import net.jradius.client.TransportStatusListener;
 import net.jradius.client.UDPClientTransport;
-import net.jradius.client.auth.EAPAKAAuthenticator;
 import net.jradius.client.auth.RadiusAuthenticator;
 import net.jradius.client.auth.TunnelAuthenticator;
 import net.jradius.dictionary.Attr_AcctSessionId;
 import net.jradius.dictionary.Attr_AcctStatusType;
 import net.jradius.dictionary.Attr_Class;
-import net.jradius.dictionary.Attr_EAPAkaCK;
-import net.jradius.dictionary.Attr_EAPAkaIK;
 import net.jradius.dictionary.Attr_ReplyMessage;
 import net.jradius.exception.StandardViolatedException;
 import net.jradius.exception.TimeoutException;
@@ -178,8 +175,6 @@ public class JRadiusSimulator extends JFrame
     private JTextField tlsKeyPasswordTextField = null;
     private JTextField tlsCAFileTextField = null;
     private JTextField tlsCAPasswordTextField = null;
-    private JTextField akaIKTextField = null;
-    private JTextField akaCKTextField = null;
     private JFormattedTextField requestersTextField = null;
     private JFormattedTextField requestsTextField = null;
     private JComboBox tlsKeyFileTypeComboBox = null;
@@ -328,12 +323,6 @@ public class JRadiusSimulator extends JFrame
         s = this.properties.getProperty("SendClassAttr");
         if (s != null) try { notSendClassAttribute.setSelected(new Boolean(s).booleanValue()); } catch (Exception e) { }
 
-        s = this.properties.getProperty("AKAIK");
-        if (s != null) akaIKTextField.setText(s);
-
-        s = this.properties.getProperty("AKACK");
-        if (s != null) akaCKTextField.setText(s);
-
         s = this.properties.getProperty("TLSKeyFile");
         if (s != null) tlsKeyFileTextField.setText(s);
 
@@ -379,8 +368,6 @@ public class JRadiusSimulator extends JFrame
             this.properties.setProperty("GenerateAcctSessionId", Boolean.toString(generateAcctSessionIdCheckBox.isSelected()));
             this.properties.setProperty("StopOnReject", Boolean.toString(notStopOnRejectCheckBox.isSelected()));
             this.properties.setProperty("SendClassAttr", Boolean.toString(notSendClassAttribute.isSelected()));
-            this.properties.setProperty("AKAIK", akaIKTextField.getText());
-            this.properties.setProperty("AKACK", akaCKTextField.getText());
             this.properties.setProperty("TLSKeyFile", tlsKeyFileTextField.getText());
             this.properties.setProperty("TLSKeyPassword", tlsKeyPasswordTextField.getText());
             this.properties.setProperty("TLSCAFile", tlsCAFileTextField.getText());
@@ -1188,27 +1175,27 @@ public class JRadiusSimulator extends JFrame
     {
         DefaultMutableTreeNode standardTree = new DefaultMutableTreeNode("Standard Attributes");
         DefaultMutableTreeNode vsaTree = new DefaultMutableTreeNode("Vendor Specific Attributes");
-        addAttributesToTable(standardTree, AttributeFactory.getAttributeMap());
+        addAttributesToTable(standardTree, AttributeFactory.getAttributeNameMap());
         top.add(standardTree);
       
-        Map vendors = AttributeFactory.getVendorMap();
-        LinkedHashMap dictList = new LinkedHashMap();
-        for (Iterator i = vendors.values().iterator(); i.hasNext();)
+        Map<Long, VendorValue> vendors = AttributeFactory.getVendorValueMap();
+        LinkedHashMap<String, Map<?, ?>> dictList = new LinkedHashMap<String, Map<?, ?>>();
+        for (Iterator<VendorValue> i = vendors.values().iterator(); i.hasNext();)
         {
-            VendorValue vendor = (VendorValue)i.next();
+            VendorValue vendor = i.next();
             try
             {
                 VSADictionary dict = (VSADictionary)vendor.getDictClass().newInstance();
                 String vendorName = dict.getVendorName();
-                dictList.put(vendorName, vendor.getAttributeMap());
+                dictList.put(vendorName, vendor.getAttributeNameMap());
             }
             catch(Exception e) { e.printStackTrace(); }
         }
-        LinkedList list = new LinkedList(dictList.keySet());
+        LinkedList<String> list = new LinkedList<String>(dictList.keySet());
         Collections.sort(list);
-        for (Iterator i = list.iterator(); i.hasNext();)
+        for (Iterator<String> i = list.iterator(); i.hasNext();)
         {
-            String vendorName = (String)i.next();
+            String vendorName = i.next();
             DefaultMutableTreeNode vsaNode = new DefaultMutableTreeNode(vendorName);
             addAttributesToTable(vsaNode, (Map)dictList.get(vendorName));
             vsaTree.add(vsaNode);
@@ -1216,30 +1203,30 @@ public class JRadiusSimulator extends JFrame
         top.add(vsaTree);
     }
     
-    private void addAttributesToTable(DefaultMutableTreeNode node, Map attributes)
+    private void addAttributesToTable(DefaultMutableTreeNode node, Map<String, Class<?>> attributes)
     {
-        LinkedHashMap attributeList = new LinkedHashMap();
-        for (Iterator i = attributes.entrySet().iterator(); i.hasNext();)
+        LinkedHashMap<String, String> attributeList = new LinkedHashMap<String, String>();
+        for (Iterator<Map.Entry<String, Class<?>>> i = attributes.entrySet().iterator(); i.hasNext();)
         {
-            Map.Entry entry = (Map.Entry)i.next();
-            Long type = (Long)entry.getKey();
-            Class clazz = (Class)entry.getValue();
-            if (type.intValue() <= 255)
+        	Map.Entry<String, Class<?>> entry = i.next();
+            String type = entry.getKey();
+            Class<?> clazz = entry.getValue();
+            try
             {
-                try
+                RadiusAttribute attribute = (RadiusAttribute)clazz.newInstance();
+                if (attribute.getType() <= 255)
                 {
-                    RadiusAttribute attribute = (RadiusAttribute)clazz.newInstance();
                     String attributeName = attribute.getAttributeName();
                     if (attributeName.equals("Vendor-Specific")) continue;
                     if (attributeName.startsWith("X-Ascend-")) continue;
                     attributeList.put(type, attributeName);
                 }
-                catch(Exception e) { e.printStackTrace(); }
             }
+            catch(Exception e) { e.printStackTrace(); }
         }
-        LinkedList list = new LinkedList(attributeList.keySet());
+        LinkedList<String> list = new LinkedList<String>(attributeList.keySet());
         Collections.sort(list);
-        for (Iterator i = list.iterator(); i.hasNext();)
+        for (Iterator<String> i = list.iterator(); i.hasNext();)
         {
             node.add(new DefaultMutableTreeNode(attributeList.get(i.next())));
         }
@@ -1470,37 +1457,8 @@ public class JRadiusSimulator extends JFrame
             keysOptionsPanel.add(getOptionsLabel(), gridBagConstraints);
             //tlsOptionsPanel.add(getUseJavaRootCAChainCheckBox(), gridBagConstraints2);
             keysOptionsPanel.add(getTLSTrustAllCheckBox(), gridBagConstraints2);
-            keysOptionsPanel.add(new JLabel("AKA Authentication (to be implemented)"), gridBagConstraintsH);
-            keysOptionsPanel.add(new JLabel("IK"), gridBagConstraints);
-            keysOptionsPanel.add(getAKAIKTextField(), gridBagConstraints0);
-            keysOptionsPanel.add(new JLabel("CK"), gridBagConstraints);
-            keysOptionsPanel.add(getAKACKTextField(), gridBagConstraints0);
         }
         return keysOptionsPanel;
-    }
-
-    /**
-     * This method initializes akaIKTextField
-     * 
-     * @return javax.swing.JTextField
-     */
-    private JTextField getAKAIKTextField() {
-        if (akaIKTextField == null) {
-        	akaIKTextField = new JTextField(40);
-        }
-        return akaIKTextField;
-    }
-
-    /**
-     * This method initializes akaIKTextField
-     * 
-     * @return javax.swing.JTextField
-     */
-    private JTextField getAKACKTextField() {
-        if (akaCKTextField == null) {
-        	akaCKTextField = new JTextField(40);
-        }
-        return akaCKTextField;
     }
 
     /**
@@ -2361,13 +2319,6 @@ public class JRadiusSimulator extends JFrame
 	                            if (auth instanceof TunnelAuthenticator)
 	                            {
 	                                ((TunnelAuthenticator)auth).setTunneledAttributes(authAttributes[1]);
-	                            }
-	                            if (auth instanceof EAPAKAAuthenticator)
-	                            {
-	                            	byte[] ik=toBinArray(akaIKTextField.getText());
-	                            	byte[] ck=toBinArray(akaCKTextField.getText());
-	                            	request.addAttribute(new Attr_EAPAkaIK(ik));
-	                            	request.addAttribute(new Attr_EAPAkaCK(ck));
 	                            }
 	                            reply = radiusClient.authenticate((AccessRequest)request, auth, retries.intValue());
 	                            if (reply == null)

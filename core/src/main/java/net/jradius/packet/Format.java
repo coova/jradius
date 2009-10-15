@@ -56,10 +56,10 @@ public abstract class Format
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         
-        Iterator iterator = attrs.getAttributeList().iterator();
+        Iterator<RadiusAttribute> iterator = attrs.getAttributeList().iterator();
         while (iterator.hasNext())
         {
-                RadiusAttribute attr = (RadiusAttribute)iterator.next();
+                RadiusAttribute attr = iterator.next();
                 if (onWire && attr.getType() > 1024) continue;
                 try
                 {
@@ -82,8 +82,6 @@ public abstract class Format
         return out.toByteArray();
     }
 
-
-
     protected class AttributeParseContext
     {
         public int attributeType = 0;
@@ -103,13 +101,13 @@ public abstract class Format
      */
     public void unpackAttributes(AttributeList attrs, byte[] bytes, int bOffset, int bLength) 
     {
-        InputStream attributeInput = new ByteArrayInputStream(bytes, bOffset, bLength);
+    	InputStream attributeInput = new ByteArrayInputStream(bytes, bOffset, bLength);
 
         try
         {
-            for (int pos = 0; pos < bLength; )
-            {
-                AttributeParseContext ctx = new AttributeParseContext();
+        	for (int pos = 0; pos < bLength; )
+        	{
+            	AttributeParseContext ctx = new AttributeParseContext();
 
                 pos += unpackAttributeHeader(attributeInput, ctx);
                 
@@ -117,9 +115,10 @@ public abstract class Format
                 ctx.attributeValue = new byte[(int)(ctx.attributeLength - ctx.headerLength)];
                 attributeInput.read(ctx.attributeValue, 0, ctx.attributeLength - ctx.headerLength);
                 attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeValue, ctx.attributeOp);
+
                 if (attribute == null)
                 {
-                    RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
+                	RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
                 }
                 else
                 {

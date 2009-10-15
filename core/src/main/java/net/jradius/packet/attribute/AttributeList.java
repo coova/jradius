@@ -40,16 +40,16 @@ import net.jradius.exception.UnknownAttributeException;
 public class AttributeList implements Serializable
 {
     private static final long serialVersionUID = 0L;
-    private LinkedList attributeOrderList;
-    private Map attributeMap;
+    private LinkedList<RadiusAttribute> attributeOrderList;
+    private Map<Long, Object> attributeMap;
 
     /**
      * Default constructor
      */
     public AttributeList()
     {
-        attributeMap = new LinkedHashMap();
-        attributeOrderList = new LinkedList();
+        attributeMap = new LinkedHashMap<Long, Object>();
+        attributeOrderList = new LinkedList<RadiusAttribute>();
     }
     
     /**
@@ -76,14 +76,8 @@ public class AttributeList implements Serializable
         add(a, true); 
     }
     
-    /**
-     * Add an attribute with option to overwrite. If overwrite is false,
-     * multiple of the same attribute can be added (building a list)
-     * 
-     * @param a
-     * @param overwrite
-     */
-    public void add(RadiusAttribute a, boolean overwrite)
+    @SuppressWarnings("unchecked")
+    private void _add(RadiusAttribute a, boolean overwrite)
     {
         Long key = new Long(a.getFormattedType());
         Object o = attributeMap.get(key);
@@ -109,6 +103,42 @@ public class AttributeList implements Serializable
             }
         }
     }
+    
+    /**
+     * Add an attribute with option to overwrite. If overwrite is false,
+     * multiple of the same attribute can be added (building a list)
+     * 
+     * @param a
+     * @param overwrite
+     */
+	public void add(RadiusAttribute a, boolean overwrite)
+    {
+    	if (a instanceof SubAttribute)
+    	{
+    		SubAttribute subAttribute = (SubAttribute) a;
+    		try 
+    		{
+    			RadiusAttribute _pAttribute = (RadiusAttribute) subAttribute.getParentClass().newInstance();
+    			RadiusAttribute pAttribute = (RadiusAttribute) get(_pAttribute.getType(), true);
+
+    			if (pAttribute == null)
+    			{
+    				pAttribute = _pAttribute;
+    				add(pAttribute);
+    			}
+
+    			((VSAWithSubAttributes)pAttribute).getSubAttributes()._add(a, false);
+			}
+    		catch (Exception e) 
+    		{
+				e.printStackTrace();
+			}
+    	}
+    	else
+    	{
+    		_add(a, overwrite);
+    	}
+    }
 
     /**
      * Removes attribute(s) by type
@@ -130,7 +160,9 @@ public class AttributeList implements Serializable
         if (o instanceof LinkedList)
         {
         		for (Iterator i = ((LinkedList)o).iterator(); i.hasNext(); )
+        		{
         			removeFromList(i.next());
+        		}
         }
         else removeFromList(o);
     }
@@ -167,11 +199,13 @@ public class AttributeList implements Serializable
      */
     public void removeUnknown()
     {
-        List list = getAttributeList();
-        for (Iterator i = list.iterator(); i.hasNext();)
+        List<RadiusAttribute> list = getAttributeList();
+        for (RadiusAttribute a : list)
         {
-            RadiusAttribute a = (RadiusAttribute)i.next();
-            if (a instanceof UnknownAttribute) remove(a);
+            if (a instanceof UnknownAttribute)
+            {
+            	remove(a);
+            }
         }
     }
     
@@ -181,7 +215,8 @@ public class AttributeList implements Serializable
      * false if a List of attributes is also ok
      * @return Returns either s single attribute, a list of attributes, or null
      */
-    public Object get(long type, boolean single) 
+    @SuppressWarnings("unchecked")
+	public Object get(long type, boolean single) 
     {
         Long key = new Long(type);
         Object o = attributeMap.get(key);
@@ -189,7 +224,7 @@ public class AttributeList implements Serializable
         {
             return o;
         }
-        LinkedList l = (LinkedList)o;
+        LinkedList<Object> l = (LinkedList<Object>)o;
         return (single ? l.get(0) : o);
     }
     
@@ -219,7 +254,7 @@ public class AttributeList implements Serializable
     public String toString(boolean nonStandardAttrs, boolean unknownAttrs)
     {
         StringBuffer sb = new StringBuffer();
-        Iterator i = attributeOrderList.iterator();
+        Iterator<RadiusAttribute> i = attributeOrderList.iterator();
         while (i.hasNext())
         {
         		RadiusAttribute attr = (RadiusAttribute)i.next();
@@ -239,7 +274,7 @@ public class AttributeList implements Serializable
      * Returns the attribute hash as a list
      * @return Returns a List of all attributes
      */
-    public List getAttributeList()
+    public List<RadiusAttribute> getAttributeList()
     {
         return attributeOrderList;
     }
@@ -247,7 +282,7 @@ public class AttributeList implements Serializable
     /**
      * @return Returns the attribute map
      */
-    public Map getMap()
+    public Map<Long, Object> getMap()
     {
         return attributeMap;
     }
@@ -265,7 +300,7 @@ public class AttributeList implements Serializable
 
         if (o instanceof LinkedList)
         {
-            ol = ((LinkedList)o).toArray();
+            ol = ((LinkedList<?>)o).toArray();
         }
         else
         {

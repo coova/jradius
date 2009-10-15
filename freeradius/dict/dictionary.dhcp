@@ -46,6 +46,8 @@ ATTRIBUTE	DHCP-Client-Hardware-Address		267	ether	  # 16 octets
 ATTRIBUTE	DHCP-Server-Host-Name			268	string	  # 64 octets
 ATTRIBUTE	DHCP-Boot-Filename			269	string	  # 128 octets
 
+ATTRIBUTE	DHCP-Relay-To-IP-Address		270	ipaddr
+
 VALUE	DHCP-Flags			Broadcast		0x8000
 
 
@@ -274,7 +276,7 @@ ATTRIBUTE	DHCP-Diffserv-Code-Point		134	octets
 
 ATTRIBUTE	DHCP-HTTP-Proxy				135	octets
 
-ATTRIBUTE	DHCP-EAP-Message			254	octets
+ATTRIBUTE	DHCP-Cisco-TFTP-Server-IP-Addresses	150	ipaddr array
 
 ATTRIBUTE	DHCP-End-Of-Options			255	byte
 
@@ -290,7 +292,6 @@ VALUE	DHCP-Message-Type		DHCP-NAK		6
 VALUE	DHCP-Message-Type		DHCP-Release		7
 VALUE	DHCP-Message-Type		DHCP-Inform		8
 VALUE	DHCP-Message-Type		DHCP-Force-Renew	9
-VALUE	DHCP-Message-Type		DHCP-EAP		254
 
 VALUE	DHCP-Parameter-Request-List	DHCP-Subnet-Mask	1
 VALUE	DHCP-Parameter-Request-List	DHCP-Time-Offset	2

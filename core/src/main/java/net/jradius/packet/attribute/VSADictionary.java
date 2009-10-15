@@ -31,6 +31,6 @@ import java.util.Map;
 public abstract interface VSADictionary
 {
     public String getVendorName();
-    public void loadAttributes(Map map);
-    public void loadAttributesNames(Map map);
+    public void loadAttributes(Map<Long, Class<?>> map);
+    public void loadAttributesNames(Map<String, Class<?>> map);
 }

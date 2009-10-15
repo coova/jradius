@@ -11,7 +11,7 @@ import net.jradius.packet.attribute.VSADictionary;
 
 import org.springframework.beans.factory.InitializingBean;
 
-public class AttributeSearchTree implements Map<String, Class>, InitializingBean
+public class AttributeSearchTree implements Map<String, Class<?>>, InitializingBean
 {
     private AttributeDictionary attributeDictionary;
     private Node _root;
@@ -24,12 +24,12 @@ public class AttributeSearchTree implements Map<String, Class>, InitializingBean
     {
         attributeDictionary.loadAttributesNames(this);
         
-        LinkedHashMap<Long, Class> vendorMap = new LinkedHashMap<Long, Class>();
+        LinkedHashMap<Long, Class<?>> vendorMap = new LinkedHashMap<Long, Class<?>>();
         attributeDictionary.loadVendorCodes(vendorMap);
 
         for (Long id : vendorMap.keySet())
         {
-            Class c = vendorMap.get(id);
+            Class<?> c = vendorMap.get(id);
             try
             {
                 VSADictionary vsadict = (VSADictionary)c.newInstance();
@@ -57,7 +57,7 @@ public class AttributeSearchTree implements Map<String, Class>, InitializingBean
         return false;
     }
 
-    public Set<Entry<String, Class>> entrySet()
+    public Set<Entry<String, Class<?>>> entrySet()
     {
         return null;
     }
@@ -83,7 +83,7 @@ public class AttributeSearchTree implements Map<String, Class>, InitializingBean
         return null;
     }
 
-    public void putAll(Map<? extends String, ? extends Class> m)
+    public void putAll(Map<? extends String, ? extends Class<?>> m)
     {
     }
 
@@ -97,7 +97,7 @@ public class AttributeSearchTree implements Map<String, Class>, InitializingBean
         return 0;
     }
 
-    public Collection<Class> values()
+    public Collection<Class<?>> values()
     {
         return null;
     }

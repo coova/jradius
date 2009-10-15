@@ -42,7 +42,7 @@ public abstract interface AttributeDictionary
     public static final int EAP_MESSAGE				= 79;	// EAP-Message
     public static final int MESSAGE_AUTHENTICATOR	= 80;	// Message-Authenticator
     
-    public void loadVendorCodes(Map map);
-    public void loadAttributes(Map map);
-    public void loadAttributesNames(Map map);
+    public void loadVendorCodes(Map<Long, Class<?>> map);
+    public void loadAttributes(Map<Long, Class<?>> map);
+    public void loadAttributesNames(Map<String, Class<?>> map);
 }

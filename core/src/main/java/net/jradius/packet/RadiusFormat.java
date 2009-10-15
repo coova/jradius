@@ -159,11 +159,12 @@ public class RadiusFormat extends Format
     public void packHeader(OutputStream out, VSAttribute a) throws IOException
     {
         AttributeValue attributeValue = a.getValue();
+        int len = attributeValue.getLength();
         writeUnsignedByte(out, (int)a.getType());
-        writeUnsignedByte(out, attributeValue.getLength() + VSA_HEADER_LENGTH);
+        writeUnsignedByte(out, len + VSA_HEADER_LENGTH);
         writeUnsignedInt(out, a.getVendorId());
         writeUnsignedByte(out, (int)a.getVsaAttributeType());
-        writeUnsignedByte(out, attributeValue.getLength() + 2);
+        writeUnsignedByte(out, len + 2);
     }
     
  

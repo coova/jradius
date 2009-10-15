@@ -51,6 +51,11 @@ import net.jradius.security.auth.JRadiusCallback;
 
 public class JAASAuthenticationTest 
 {
+	public void testSomething()
+	{
+		
+	}
+	
     public static void main(String[] args) 
     {
         AttributeFactory.loadAttributeDictionary("net.jradius.dictionary.AttributeDictionaryImpl");

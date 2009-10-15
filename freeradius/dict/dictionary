@@ -55,8 +55,6 @@
 #	old names in the logfiles, INSTEAD OF the new names.
 #
 $INCLUDE dictionary.compat
-$INCLUDE dictionary.coova
-$INCLUDE dictionary.chillispot
 
 #
 #	Include the RFC dictionaries next.
@@ -77,7 +75,10 @@ $INCLUDE dictionary.rfc4072
 $INCLUDE dictionary.rfc4372
 $INCLUDE dictionary.rfc4675
 $INCLUDE dictionary.rfc4679
+$INCLUDE dictionary.rfc4818
+$INCLUDE dictionary.rfc4849
 $INCLUDE dictionary.rfc5176
+$INCLUDE dictionary.rfc5580
 
 #
 #	Include vendor dictionaries after the standard ones.
@@ -98,6 +99,8 @@ $INCLUDE dictionary.bay
 $INCLUDE dictionary.bintec
 $INCLUDE dictionary.cablelabs
 $INCLUDE dictionary.cabletron
+$INCLUDE dictionary.coova
+$INCLUDE dictionary.chillispot
 $INCLUDE dictionary.cisco
 #
 #	 The Cisco VPN300 dictionary is the same as the altiga one.
@@ -116,6 +119,7 @@ $INCLUDE dictionary.erx
 $INCLUDE dictionary.ericsson
 $INCLUDE dictionary.extreme
 $INCLUDE dictionary.freeradius
+$INCLUDE dictionary.freeswitch
 $INCLUDE dictionary.fortinet
 $INCLUDE dictionary.foundry
 $INCLUDE dictionary.gandalf
@@ -123,12 +127,15 @@ $INCLUDE dictionary.gemtek
 $INCLUDE dictionary.h3c
 $INCLUDE dictionary.hp
 $INCLUDE dictionary.huawei
+$INCLUDE dictionary.iea
+$INCLUDE dictionary.infonet
 $INCLUDE dictionary.issanni
 $INCLUDE dictionary.itk
 $INCLUDE dictionary.ipunplugged
 $INCLUDE dictionary.juniper
 $INCLUDE dictionary.jradius
 $INCLUDE dictionary.karlnet
+$INCLUDE dictionary.lancom
 $INCLUDE dictionary.livingston
 $INCLUDE dictionary.localweb
 $INCLUDE dictionary.lucent
@@ -138,6 +145,7 @@ $INCLUDE dictionary.microsoft
 $INCLUDE dictionary.mikrotik
 $INCLUDE dictionary.navini
 $INCLUDE dictionary.netscreen
+$INCLUDE dictionary.networkphysics
 $INCLUDE dictionary.nexans
 $INCLUDE dictionary.ntua
 $INCLUDE dictionary.nokia
@@ -172,11 +180,13 @@ $INCLUDE dictionary.trapeze
 $INCLUDE dictionary.tropos
 $INCLUDE dictionary.t_systems_nova
 $INCLUDE dictionary.usr
+$INCLUDE dictionary.utstarcom
 $INCLUDE dictionary.valemount
 $INCLUDE dictionary.versanet
 $INCLUDE dictionary.vqp
 $INCLUDE dictionary.waverider
 $INCLUDE dictionary.walabi
+$INCLUDE dictionary.wimax
 $INCLUDE dictionary.wispr
 $INCLUDE dictionary.xedia
 $INCLUDE dictionary.xylan

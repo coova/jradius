@@ -1,6 +1,7 @@
 /**
  * JRadius - A RADIUS Server Java Adapter
  * Copyright (C) 2004-2005 PicoPoint, B.V.
+ * Copyright (c) 2006 David Bird <david@coova.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -18,20 +19,25 @@
  *
  */
 
-package net.jradius.tests;
+package net.jradius.packet.attribute;
 
-import java.security.PrivilegedAction;
 
 /**
+ * The RADIUS VSA. All radius vendor specific attributes (as build by RadiusDictionary)
+ * are derived from this abstract class.
+ *
  * @author David Bird
  */
-class TestAction implements PrivilegedAction {
-	
-	public TestAction() {
+public abstract class VSAWithSubAttributes extends VSAttribute implements HasSubAttributes
+{
+	private AttributeList subAttributes = new AttributeList();
+
+	public AttributeList getSubAttributes() {
+		return subAttributes;
+	}
+
+	public void setSubAttributes(AttributeList subAttributes) {
+		this.subAttributes = subAttributes;
 	}
 	
-    public Object run() {
-        System.out.println("Running TestAction...");
-        return null;
-    }
 }

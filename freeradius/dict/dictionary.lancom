@@ -1,12 +1,24 @@
-VENDOR        	Lancom        				16787
-ATTRIBUTE	Lancom-Location-ID			1	string	Lancom
-ATTRIBUTE	Lancom-Location-Name			2	string	Lancom
-ATTRIBUTE	Lancom-Logoff-URL			3	string	Lancom
-ATTRIBUTE	Lancom-Redirection-URL			4	string	Lancom
-ATTRIBUTE	Lancom-Bandwidth-Min-Up			5	integer	Lancom
-ATTRIBUTE	Lancom-Bandwidth-Min-Down		6	integer	Lancom
-ATTRIBUTE	Lancom-Bandwidth-Max-Up			7	integer	Lancom
-ATTRIBUTE	Lancom-Bandwidth-Max-Down		8	integer	Lancom
-ATTRIBUTE	Lancom-Session-Terminate-Time		9	string	Lancom
-ATTRIBUTE	Lancom-Session-Terminate-End-Of-Day	10	string	Lancom
-ATTRIBUTE	Lancom-Billing-Class-Of-Service		11	string	Lancom
+# -*- text -*-
+#
+# dictionary.lcs
+#
+#                             originally by
+#                             "Eugen K. " <>
+#
+
+VENDOR		Lancom				2356
+
+BEGIN-VENDOR	Lancom
+
+# Attributes
+ATTRIBUTE	LCS-Traffic-Limit			1	integer
+ATTRIBUTE	LCS-Mac-Address				2	string
+ATTRIBUTE	LCS-Redirection-URL			3	string
+ATTRIBUTE	LCS-Comment				4	string
+ATTRIBUTE	LCS-Account-End				5	integer
+ATTRIBUTE	LCS-WPA-Passphrase			6	string
+ATTRIBUTE	LCS-PbSpotUserName			7	string
+ATTRIBUTE	LCS-TxRateLimit				8	integer
+ATTRIBUTE	LCS-RxRateLimit				9	integer
+
+END-VENDOR   Lancom

@@ -45,6 +45,7 @@ import java.util.Map;
  *
  * @author David Bird
  */
+@SuppressWarnings("unchecked")
 public class RadiusDictionary
 {
     private static final String ppkg = "net.jradius.packet.attribute";
@@ -68,6 +69,7 @@ public class RadiusDictionary
     private LinkedHashMap vendorMap = new LinkedHashMap();
     private LinkedList seenNames = new LinkedList();
     private String cVendor = null;
+    private String cTLV = null;
     
     class AttrDesc 
     {
@@ -77,6 +79,7 @@ public class RadiusDictionary
         public String extra;
         public String vendor;
         public LinkedHashMap values = null;
+        public LinkedHashMap subAttributes = null;
         public AttrDesc(String n, String m, String t, String e, String v) 
         { 
             name = n; num = m; type = t; extra = e; vendor = v;
@@ -106,7 +109,7 @@ public class RadiusDictionary
         public String name;
         public String num;
         public String pkg;
-        public LinkedHashMap attrMap = new LinkedHashMap();
+		public LinkedHashMap attrMap = new LinkedHashMap();
         public VendorDesc(String n, String m, String p)
         {
             name = n; num = m; pkg = p;
@@ -153,6 +156,15 @@ public class RadiusDictionary
                 RadiusLog.error("Including file: " + file);
                 readFile(new BufferedReader(new FileReader(ddir + "/" + file)));
             }
+            else if (upperLine.startsWith("BEGIN-TLV"))
+            {
+                String parts[] = line.split("[\t ]+");
+                cTLV = parts[1];
+            }
+            else if (upperLine.startsWith("END-TLV"))
+            {
+            	cTLV = null;
+            }
             else if (upperLine.startsWith("BEGIN-VENDOR"))
             {
                 String parts[] = line.split("[\t ]+");
@@ -171,6 +183,7 @@ public class RadiusDictionary
                 String attrExtra = null;
                 String attrVendor = null;
                 VendorDesc vdesc = null;
+                
                 for (int i = 1; i < parts.length; i++)
                 {
                     String p = parts[i].trim();
@@ -187,7 +200,10 @@ public class RadiusDictionary
                     }
                 }
                 
-                if (attrName != null && attrNum != null && attrType != null && !seenNames.contains(attrName.toLowerCase()))
+                if (attrName != null 
+                		&& attrNum != null 
+                		&& attrType != null 
+                		&& !seenNames.contains(attrName.toLowerCase()))
                 {
                     Map map = attrMap;
                     if (attrVendor == null && cVendor != null) 
@@ -197,7 +213,16 @@ public class RadiusDictionary
                     }
                     if (vdesc != null)
                     {
-                        map = vdesc.attrMap;
+                    	if (cTLV != null)
+                    	{
+                    		AttrDesc attrDesc = (AttrDesc)vdesc.attrMap.get(cTLV);
+                    		if (attrDesc.subAttributes == null) attrDesc.subAttributes = new LinkedHashMap();
+                    		map = attrDesc.subAttributes;
+                    	}
+                    	else
+                    	{
+                    		map = vdesc.attrMap;
+                    	}
                     }
                     map.put(attrName, new AttrDesc(attrName, attrNum, attrType, attrExtra, attrVendor));
                     //RadiusLog.error(line);
@@ -263,7 +288,7 @@ public class RadiusDictionary
         return;
     }
     
-    public void writeAttrMap(Map map, String pkg, String vName, String cName, boolean withVendors)
+    public void writeAttrMap(Map map, String pkg, String vName, String cName, String pName, boolean withVendors)
     {
         String dir = sdir + "/" + pkg.replaceAll("\\.","/");
         Iterator iter = map.values().iterator();
@@ -275,71 +300,73 @@ public class RadiusDictionary
 
         (new File(dir)).mkdirs();
 
-        try
+        if (cName != null)
         {
-            dict = new PrintWriter(new FileWriter(dictFile));
-            dict.println(fileHeader);
-            dict.println("package " + pkg + ";");
-            dict.println("");
-            dict.println("import java.util.Map;");
-            dict.println("");
-            if (withVendors)
-            {
-                dict.println("import net.jradius.packet.attribute.AttributeDictionary;");
-            }
-            else
-            {
-                dict.println("import net.jradius.packet.attribute.VSADictionary;");
-            }
-            dict.println("");
-            dict.println("/**");
-            dict.println(" * Dictionary for package " + pkg);
-            dict.println(" * @author " + RadiusDictionary.class.toString());
-            dict.println(" */");
-            dict.print("public class " + cName);
-            if (withVendors)
-            {
-                dict.print(" implements AttributeDictionary");
-            }
-            else
-            {
-                dict.print(" implements VSADictionary");
-            }
-            dict.println("\n{");
-            if (withVendors)
-            {
-                dict.println("    public void loadVendorCodes(Map map)");
-                dict.println("    {");
-                Iterator iter2 = vendorMap.values().iterator();
-                while (iter2.hasNext())
-                {
-                    VendorDesc vdesc = (VendorDesc)iter2.next();
-                    dict.println("        map.put(new Long(" + vdesc.num + "L), " + vdesc.pkg + ".VSADictionaryImpl.class);");
-                }
-                dict.println("    }");
-                dict.println("");
-            }
-            else
-            {
-                dict.println("    public String getVendorName() { return \"" + vName + "\"; }\n");
-            }
-        }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
-
-        loadAttributes.append("    public void loadAttributes(Map map)\n");
-        loadAttributes.append("    {\n");
-
-        loadAttributesNames.append("    public void loadAttributesNames(Map map)\n");
-        loadAttributesNames.append("    {\n");
+	        try
+	        {
+	            dict = new PrintWriter(new FileWriter(dictFile));
+	            dict.println(fileHeader);
+	            dict.println("package " + pkg + ";");
+	            dict.println("");
+	            dict.println("import java.util.Map;");
+	            dict.println("");
+	            if (withVendors)
+	            {
+	                dict.println("import net.jradius.packet.attribute.AttributeDictionary;");
+	            }
+	            else
+	            {
+	                dict.println("import net.jradius.packet.attribute.VSADictionary;");
+	            }
+	            dict.println("");
+	            dict.println("/**");
+	            dict.println(" * Dictionary for package " + pkg);
+	            dict.println(" * @author " + RadiusDictionary.class.toString());
+	            dict.println(" */");
+	            dict.print("public class " + cName);
+	            if (withVendors)
+	            {
+	                dict.print(" implements AttributeDictionary");
+	            }
+	            else
+	            {
+	                dict.print(" implements VSADictionary");
+	            }
+	            dict.println("\n{");
+	            if (withVendors)
+	            {
+	                dict.println("    public void loadVendorCodes(Map<Long, Class<?>> map)");
+	                dict.println("    {");
+	                Iterator iter2 = vendorMap.values().iterator();
+	                while (iter2.hasNext())
+	                {
+	                    VendorDesc vdesc = (VendorDesc)iter2.next();
+	                    dict.println("        map.put(new Long(" + vdesc.num + "L), " + vdesc.pkg + ".VSADictionaryImpl.class);");
+	                }
+	                dict.println("    }");
+	                dict.println("");
+	            }
+	            else
+	            {
+	                dict.println("    public String getVendorName() { return \"" + vName + "\"; }\n");
+	            }
+	        }
+	        catch (Exception e)
+	        {
+	            e.printStackTrace();
+	        }
+	
+	        loadAttributes.append("    public void loadAttributes(Map<Long, Class<?>> map)\n");
+	        loadAttributes.append("    {\n");
+	
+	        loadAttributesNames.append("    public void loadAttributesNames(Map<String, Class<?>> map)\n");
+	        loadAttributesNames.append("    {\n");
+	    }
 
         while (iter.hasNext())
         {
             AttrDesc desc = (AttrDesc)iter.next();
             StringBuffer fileSB = new StringBuffer(dir);
-            String interfaceName = "";
             String pkgPath = pkg;
                         
             if (withVendors && desc.vendor != null)
@@ -348,10 +375,22 @@ public class RadiusDictionary
                 fileSB.append("/").append(vendor.replaceAll("\\.", "/"));
                 pkgPath += "." + vendor;
             }
-            
+
+            String implementsInterface = null;
             String className = "Attr_" + clean(desc.name);
             String parentName = "RadiusAttribute";
             if (!withVendors) parentName = "VSAttribute";
+            String parentImport = parentName;
+            if (desc.subAttributes != null)
+            {
+            	parentName = "VSAWithSubAttributes";
+            	parentImport = "VSAWithSubAttributes";
+            }
+            if (pName != null)
+            {
+            	parentName = "SubAttribute";
+            	parentImport = "SubAttribute";
+            }
             String valueClass = "OctetsValue";
             String valueArgs = "";
             String extraImport = null;
@@ -376,6 +415,10 @@ public class RadiusDictionary
                 }
             }
             if (desc.type.startsWith("integer"))
+            {
+                valueClass = "IntegerValue";
+            }
+            if (desc.type.startsWith("singed"))
             {
                 valueClass = "IntegerValue";
             }
@@ -409,12 +452,22 @@ public class RadiusDictionary
                 valueClass = "NamedValue";
                 valueArgs = "map != null ? map : (map = new NamedValueMap())";
             }
+
+            /*
             if (withVendors && desc.vendor != null)
             {
                 extraImport = valueClass;
                 valueArgs = "new " + valueClass + "(" + valueArgs + ")";
                 valueClass = "VSAValue";
             }
+            */
+            
+            if (desc.subAttributes != null)
+            {
+            	valueClass = "TLVValue";
+            	valueArgs = "getSubAttributes()";
+            }
+            
             try
             {
                 PrintWriter writer = new PrintWriter(new FileWriter(file));
@@ -433,7 +486,11 @@ public class RadiusDictionary
                     writer.println(extraUtils);
                     writer.println("");
                 }
-                writer.println("import " + ppkg + "." + parentName + ";");
+                writer.println("import " + ppkg + "." + parentImport + ";");
+                if (implementsInterface != null)
+                {
+                    writer.println("import " + ppkg + "." + implementsInterface + ";");
+                }
                 writer.println("import " + ppkg + ".value." + valueClass + ";");
                 if (desc.values != null && integerLength < 4)
                     writer.println("import " + ppkg + ".value.IntegerValue;");
@@ -476,13 +533,13 @@ public class RadiusDictionary
                 writer.println(" *");
                 writer.println(" * @author " + RadiusDictionary.class.toString());
                 writer.println(" */");
-                writer.println("public final class " + className + " extends " + parentName + interfaceName);
+                writer.println("public final class " + className + " extends " + parentName + (implementsInterface != null ? " implements "+implementsInterface : ""));
                 writer.println("{");
                 writer.println("    public static final String NAME = \"" + desc.name + "\";");
                 
                 String attributeType = desc.num;
                 
-                if (withVendors)	
+                if (pName != null || withVendors)	
                 {
                     writer.println("    public static final long TYPE = " + desc.num + ";");
                 }
@@ -493,9 +550,11 @@ public class RadiusDictionary
                     writer.println("    public static final int VSA_TYPE = " + desc.num + ";");
                     writer.println("    public static final long TYPE = ((VENDOR_ID & 0xFFFF) << 16) | VSA_TYPE;");
                 }
+                
                 writer.println("");
                 writer.println("    public static final long serialVersionUID = TYPE;");
                 writer.println("");
+                
                 if (desc.values != null)
                 {
                     Iterator iter2 = desc.values.values().iterator();
@@ -571,13 +630,17 @@ public class RadiusDictionary
                 writer.println("    {");
                 writer.println("        attributeName = NAME;");
                 writer.println("        attributeType = " + attributeType + ";");
-                if (!withVendors)
+                if (pName != null)
+                {
+                    writer.println("        setParentClass("+pName+".class);");
+                }
+                else if (!withVendors)
                 {
                     writer.println("        vendorId = VENDOR_ID;");
                     writer.println("        vsaAttributeType = VSA_TYPE;");
                 }
                 writer.println("        attributeValue = new " + valueClass + "(" + valueArgs + ");");
-                if (integerLength < 4)
+                if (valueClass.equals("IntegerValue") && integerLength < 4)
                 {
                     writer.println("        ((IntegerValue)attributeValue).setLength("+integerLength+");");
                 }
@@ -602,15 +665,30 @@ public class RadiusDictionary
                 }*/
                 writer.println("}");
                 writer.close();
-                if (!withVendors || desc.vendor == null)
+                
+                if (cName != null && !withVendors || desc.vendor == null)
                 {
                     loadAttributes.append("        map.put(new Long(" + desc.num + "L), " + className + ".class);\n");
-                    loadAttributesNames.append("        map.put(\"" + desc.name + "\", " + className + ".class);\n");
+                    loadAttributesNames.append("        map.put(" + className + ".NAME, " + className + ".class);\n");
+                    if (desc.subAttributes != null)
+                    {
+                    	for (Object obj : desc.subAttributes.values())
+                    	{
+                    		AttrDesc at = (AttrDesc) obj;
+                    		String cn = "Attr_" + clean(at.name);
+                            loadAttributesNames.append("        map.put(" + cn + ".NAME, " + cn + ".class);\n");
+                    	}
+                    }
                 } 
             }
             catch (Exception e)
             {
                 RadiusLog.error(e.getMessage(), e);
+            }
+
+            if (desc.subAttributes != null)
+            {
+            	writeAttrMap(desc.subAttributes, pkg, vName, null, className, false);
             }
 
             RadiusLog.info(desc.name);
@@ -619,25 +697,28 @@ public class RadiusDictionary
         loadAttributes.append("    }\n");
         loadAttributesNames.append("    }\n");
         
-        dict.println(loadAttributes.toString());
-        dict.print(loadAttributesNames.toString());
-
-        try
+        if (dict != null)
         {
-            dict.println("}");
-            dict.close();
+	        dict.println(loadAttributes.toString());
+	        dict.print(loadAttributesNames.toString());
+	        try
+	        {
+	            dict.println("}");
+	            dict.close();
+	        }
+	        catch (Exception e)
+	        {
+	            e.printStackTrace();
+	        }
         }
-        catch (Exception e)
-        {
-            e.printStackTrace();
-        }
+        
         if (withVendors)
         {
             Iterator iter2 = vendorMap.values().iterator();
             while (iter2.hasNext())
             {
                 VendorDesc vdesc = (VendorDesc)iter2.next();
-                writeAttrMap(vdesc.attrMap, vdesc.pkg, vdesc.name, "VSADictionaryImpl", false);
+                writeAttrMap(vdesc.attrMap, vdesc.pkg, vdesc.name, "VSADictionaryImpl", null, false);
             }
         }
     }
@@ -652,7 +733,7 @@ public class RadiusDictionary
     
     public void writeJavaClasses()
     {
-        writeAttrMap(attrMap, bpkg, null, "AttributeDictionaryImpl", true);
+        writeAttrMap(attrMap, bpkg, null, "AttributeDictionaryImpl", null, true);
     }
     
     private String clean(String s)

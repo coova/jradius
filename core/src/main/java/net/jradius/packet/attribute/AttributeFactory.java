@@ -43,25 +43,27 @@ import net.jradius.packet.attribute.RadiusAttribute.Operator;
  */
 public final class AttributeFactory
 {
-    private static LinkedHashMap attributeMap = new LinkedHashMap();
-    private static LinkedHashMap vendorMap = new LinkedHashMap();
-    private static LinkedHashMap attributeNameMap = new LinkedHashMap();
+    private static LinkedHashMap<Long, Class<?>> attributeMap = new LinkedHashMap<Long, Class<?>>();
+    private static LinkedHashMap<Long, Class<?>> vendorMap = new LinkedHashMap<Long, Class<?>>();
+    private static LinkedHashMap<Long, VendorValue> vendorValueMap = new LinkedHashMap<Long, VendorValue>();
+    private static LinkedHashMap<String, Class<?>> attributeNameMap = new LinkedHashMap<String, Class<?>>();
     
     public static final class VendorValue
     {
-        private Class c;
-        private Map map;
-        public VendorValue(Class c, Map m) { this.c = c; this.map = m; }
+        private Class<?> c;
+        private Map<String, Class<?>> map;
+
+        public VendorValue(Class<?> c, Map<String, Class<?>> m) { this.c = c; this.map = m; }
         /**
          * @return Returns the map.
          */
-        public Map getAttributeMap() {
+        public Map<String, Class<?>> getAttributeNameMap() {
             return map;
         }
         /**
          * @return Returns the c.
          */
-        public Class getDictClass() {
+        public Class<?> getDictClass() {
             return c;
         }
     }
@@ -75,7 +77,7 @@ public final class AttributeFactory
     {
         try
         {
-            Class clazz = Class.forName(className);
+            Class<?> clazz = Class.forName(className);
             Object o = clazz.newInstance();
             return loadAttributeDictionary((AttributeDictionary)o);
         } 
@@ -92,18 +94,18 @@ public final class AttributeFactory
         dict.loadAttributesNames(attributeNameMap);
         dict.loadVendorCodes(vendorMap);
 
-        Iterator i = vendorMap.keySet().iterator();
+        Iterator<Long> i = vendorMap.keySet().iterator();
         while (i.hasNext())
         {
-            Long id = (Long)i.next();
-            Class c = (Class)vendorMap.get(id);
+            Long id = i.next();
+            Class<?> c = vendorMap.get(id);
             try
             {
-                LinkedHashMap map = new LinkedHashMap();
+                LinkedHashMap<String, Class<?>> map = new LinkedHashMap<String, Class<?>>();
                 VSADictionary vsadict = (VSADictionary)c.newInstance();
-                vsadict.loadAttributes(map);
+                vsadict.loadAttributesNames(map);
                 vsadict.loadAttributesNames(attributeNameMap);
-                vendorMap.put(id, new AttributeFactory.VendorValue(c, map));
+                vendorValueMap.put(id, new AttributeFactory.VendorValue(c, map));
             }
             catch (Exception e)
             {
@@ -167,7 +169,7 @@ public final class AttributeFactory
      */
     public static RadiusAttribute newAttribute(long vendor, long type, byte[] value, int op)
     {
-        Class c = null;
+        Class<?> c = null;
         RadiusAttribute attr = null;
         
         try
@@ -187,11 +189,11 @@ public final class AttributeFactory
                     value = newValue;
                 }
 
-                VendorValue v = (VendorValue)vendorMap.get(new Long(vendor));
+                VendorValue v = vendorValueMap.get(new Long(vendor));
          
                 if (v != null)
                 {
-                		c = (Class)v.map.get(new Long(type));
+                		c = v.map.get(new Long(type));
                 }
           
                 if (c != null)
@@ -206,7 +208,7 @@ public final class AttributeFactory
             }
             else 
             {
-                c = (Class)attributeMap.get(new Long(type));
+                c = attributeMap.get(new Long(type));
                 if (c != null)
                 {
                 		attr = (RadiusAttribute)c.newInstance();
@@ -299,7 +301,7 @@ public final class AttributeFactory
     public static RadiusAttribute newAttribute(String aName)
     	throws UnknownAttributeException
     {
-        Class c = (Class)attributeNameMap.get(aName);
+        Class<?> c = attributeNameMap.get(aName);
         RadiusAttribute attr = null;
 
         if (c == null) 
@@ -355,7 +357,7 @@ public final class AttributeFactory
     public static long getTypeByName(String aName)
     	throws UnknownAttributeException
     {
-        Class c = (Class)attributeNameMap.get(aName);
+        Class<?> c = attributeNameMap.get(aName);
         RadiusAttribute attr = null;
 
         if (c == null) 
@@ -377,7 +379,7 @@ public final class AttributeFactory
     /**
      * @return Returns the attributeMap.
      */
-    public static LinkedHashMap getAttributeMap() 
+    public static LinkedHashMap<Long, Class<?>> getAttributeMap() 
     {
         return attributeMap;
     }
@@ -385,7 +387,7 @@ public final class AttributeFactory
     /**
      * @return Returns the attributeNameMap.
      */
-    public static LinkedHashMap getAttributeNameMap() 
+    public static LinkedHashMap<String, Class<?>> getAttributeNameMap() 
     {
         return attributeNameMap;
     }
@@ -393,8 +395,16 @@ public final class AttributeFactory
     /**
      * @return Returns the vendorMap.
      */
-    public static LinkedHashMap getVendorMap() 
+    public static LinkedHashMap<Long, Class<?>> getVendorMap() 
     {
-        return vendorMap;
+    	return vendorMap;
+    }
+
+    /**
+     * @return Returns the vendorValueMap.
+     */
+    public static LinkedHashMap<Long, VendorValue> getVendorValueMap() 
+    {
+    	return vendorValueMap;
     }
 }
