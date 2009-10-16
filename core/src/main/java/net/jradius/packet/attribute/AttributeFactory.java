@@ -51,18 +51,17 @@ public final class AttributeFactory
     public static final class VendorValue
     {
         private Class<?> c;
-        private Map<String, Class<?>> map;
+        private Map<Long, Class<?>> typeMap;
+        private Map<String, Class<?>> nameMap;
 
-        public VendorValue(Class<?> c, Map<String, Class<?>> m) { this.c = c; this.map = m; }
-        /**
-         * @return Returns the map.
-         */
+        public VendorValue(Class<?> c, LinkedHashMap<Long, Class<?>> t, Map<String, Class<?>> n) { this.c = c; typeMap = t; nameMap = n; }
+
         public Map<String, Class<?>> getAttributeNameMap() {
-            return map;
+            return nameMap;
         }
-        /**
-         * @return Returns the c.
-         */
+        public Map<Long, Class<?>> getAttributeMap() {
+            return typeMap;
+        }
         public Class<?> getDictClass() {
             return c;
         }
@@ -101,11 +100,13 @@ public final class AttributeFactory
             Class<?> c = vendorMap.get(id);
             try
             {
-                LinkedHashMap<String, Class<?>> map = new LinkedHashMap<String, Class<?>>();
+                LinkedHashMap<Long, Class<?>> typeMap = new LinkedHashMap<Long, Class<?>>();
+                LinkedHashMap<String, Class<?>> nameMap = new LinkedHashMap<String, Class<?>>();
                 VSADictionary vsadict = (VSADictionary)c.newInstance();
-                vsadict.loadAttributesNames(map);
+                vsadict.loadAttributes(typeMap);
+                vsadict.loadAttributesNames(nameMap);
                 vsadict.loadAttributesNames(attributeNameMap);
-                vendorValueMap.put(id, new AttributeFactory.VendorValue(c, map));
+                vendorValueMap.put(id, new AttributeFactory.VendorValue(c, typeMap, nameMap));
             }
             catch (Exception e)
             {
@@ -193,7 +194,7 @@ public final class AttributeFactory
          
                 if (v != null)
                 {
-                		c = v.map.get(new Long(type));
+                		c = v.typeMap.get(new Long(type));
                 }
           
                 if (c != null)
