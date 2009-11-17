@@ -447,6 +447,16 @@ public class RadiusDictionary
                 valueClass = "IntegerValue";
                 integerLength = 2;
             }
+            // WiMAX: signed
+            if (desc.type.startsWith("signed"))
+            {
+                valueClass = "SignedValue";
+            }
+            // WiMAX: combo-ip
+            if (desc.type.startsWith("combo-ip"))
+            {
+                valueClass = "ComboIPAddrValue";
+            }
             if (desc.values != null)
             {
                 valueClass = "NamedValue";

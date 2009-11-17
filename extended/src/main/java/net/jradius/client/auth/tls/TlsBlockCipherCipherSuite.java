@@ -126,7 +126,7 @@ public class TlsBlockCipherCipherSuite extends TlsCipherSuite
         if (offset + len - 1 - paddingsize < 0)
         {
             /*
-             * This would lead to an negativ array index, so this padding
+             * This would lead to a negative array index, so this padding
              * must be incorrect!
              */
             decrypterror = true;
@@ -169,7 +169,7 @@ public class TlsBlockCipherCipherSuite extends TlsCipherSuite
         }
 
         /*
-        * Now, it is save to fail.
+        * Now, it is safe to fail.
         */
         if (decrypterror)
         {

@@ -4,21 +4,22 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.bouncycastle.crypto.tls.CombinedHash;
+import java.io.OutputStream;
 
 /**
  * An implementation of the TLS 1.0 record layer.
  */
 public class RecordStream
 {
+
     private TlsProtocolHandler handler;
-    private ByteArrayInputStream is;
-    private ByteArrayOutputStream os;
+    private InputStream is;
+    private OutputStream os;
     protected CombinedHash hash1;
     protected CombinedHash hash2;
     protected TlsCipherSuite readSuite = null;
     protected TlsCipherSuite writeSuite = null;
+
 
     protected RecordStream(TlsProtocolHandler handler)
     {
@@ -29,21 +30,17 @@ public class RecordStream
         this.writeSuite = this.readSuite;
     }
 
-    public void setInputStream(ByteArrayInputStream stream)
+    protected RecordStream(TlsProtocolHandler handler, InputStream is, OutputStream os)
     {
-        is = stream;
+        this.handler = handler;
+        this.is = is;
+        this.os = os;
+        hash1 = new CombinedHash();
+        hash2 = new CombinedHash();
+        this.readSuite = new TlsNullCipherSuite();
+        this.writeSuite = this.readSuite;
     }
-    
-    public void setOutputStream(ByteArrayOutputStream stream)
-    {
-        os = stream;
-    }
-    
-    public boolean hasMore() throws IOException
-    {
-        return (is.available() > 0);
-    }
-    
+
     public void readData() throws IOException
     {
         short type = TlsUtils.readUint8(is);
@@ -51,6 +48,7 @@ public class RecordStream
         int size = TlsUtils.readUint16(is);
         byte[] buf = decodeAndVerify(type, is, size);
         handler.processData(type, buf, 0, buf.length);
+
     }
 
     protected byte[] decodeAndVerify(short type, InputStream is, int len) throws IOException
@@ -63,7 +61,7 @@ public class RecordStream
 
     protected void writeMessage(short type, byte[] message, int offset, int len) throws IOException
     {
-        if (type == 22)
+        if (type == 22) // TlsProtocolHandler.RL_HANDSHAKE
         {
             hash1.update(message, offset, len);
             hash2.update(message, offset, len);
@@ -77,6 +75,21 @@ public class RecordStream
         System.arraycopy(ciphertext, 0, writeMessage, 5, ciphertext.length);
         os.write(writeMessage);
         os.flush();
+    }
+    
+    public void setInputStream(ByteArrayInputStream stream)
+    {
+    	is = stream;
+    }
+   
+    public void setOutputStream(ByteArrayOutputStream stream)
+    {
+    	os = stream;
+    }
+	  
+    public boolean hasMore() throws IOException
+    {
+    	return (is.available() > 0);
     }
 
     protected void close() throws IOException

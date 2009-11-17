@@ -1,7 +1,5 @@
 package net.jradius.client.auth.tls;
 
-import org.bouncycastle.crypto.tls.TlsRuntimeException;
-
 /**
  * A NULL CipherSuite in java, this should only be used during handshake.
  */

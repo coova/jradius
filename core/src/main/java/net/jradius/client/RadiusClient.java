@@ -78,7 +78,7 @@ public class RadiusClient
         registerAuthenticator("eap-mschapv2", EAPMSCHAPv2Authenticator.class);
         try
         {
-            registerAuthenticator("eap-tls",  "net.jradius.client.auth.EAPTLSAuthenticator");
+            registerAuthenticator("eap-tls",  "net.jradius.client.auth.EAPTLS2Authenticator");
             registerAuthenticator("eap-ttls", "net.jradius.client.auth.EAPTTLSAuthenticator");
             registerAuthenticator("peap", "net.jradius.client.auth.PEAPAuthenticator");
             //registerAuthenticator("eap-aka",  "net.jradius.client.auth.EAPAKAAuthenticator");

@@ -22,15 +22,23 @@ package net.jradius.client.auth;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
+
 import net.jradius.client.RadiusClient;
+import net.jradius.client.auth.tls.AlwaysValidVerifyer;
 import net.jradius.client.auth.tls.TlsProtocolHandler;
 import net.jradius.exception.RadiusException;
-import net.jradius.packet.RadiusPacket;
 import net.jradius.log.RadiusLog;
-
-import org.bouncycastle.crypto.tls.AlwaysValidVerifyer;
+import net.jradius.packet.RadiusPacket;
+import net.jradius.util.KeyStoreUtil;
 
 
 /**
@@ -51,6 +59,9 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
     private String caPassword;
     
     private Boolean trustAll = Boolean.FALSE;
+
+    private ByteArrayOutputStream bout;
+    private ByteArrayInputStream bin;
 
     private TlsProtocolHandler handler = new TlsProtocolHandler();
     private AlwaysValidVerifyer verifyer = new AlwaysValidVerifyer();
@@ -78,11 +89,39 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
 
     /**
      * Initializs the SSL layer.
-     * @throws RadiusException
+     * @throws Exception 
+     * @throws FileNotFoundException 
      */
-    protected void init() throws RadiusException
+    protected void init()
     {
-        /*
+    	try
+    	{
+	        KeyManager keyManagers[] = null;
+	        TrustManager trustManagers[] = null;
+	        
+	        if (getKeyFile() != null)
+	        {
+	        	keyManagers = KeyStoreUtil.loadKeyManager(getKeyFileType(), new FileInputStream(getKeyFile()), getKeyPassword());
+	        }
+	
+	        if (getTrustAll().booleanValue()) 
+	        {
+	        	trustManagers = KeyStoreUtil.trustAllManager();
+	        }
+	        else if (getCaFile() != null)
+	        {
+	        	trustManagers = KeyStoreUtil.loadTrustManager(getCaFileType(), new FileInputStream(getCaFile()), getCaPassword());
+	        }
+	        
+	        handler.setKeyManagers(keyManagers);
+	        handler.setTrustManagers(trustManagers);
+    	}
+    	catch (Exception e)
+    	{
+    		e.printStackTrace();
+    	}
+
+    	/*
         try
         {
             KeyManager keyManagers[] = null;
@@ -205,13 +244,14 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
             {
                 case TLS_CLIENT_HELLO:
                 {
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    handler.clientHello(os, verifyer);
-                    data = os.toByteArray();
-                    state = TLS_SERVER_HELLO;
+                	ByteArrayOutputStream out = new ByteArrayOutputStream();
+                    handler.connect(out, verifyer);
+                    data = out.toByteArray();
+                    state = TLS_APP_DATA;
                 }
                 break;
-                
+
+                /*
                 case TLS_SERVER_HELLO:
                 {
                     receivedEAP.flip();
@@ -222,6 +262,7 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
                     receivedEAP.clear();
                 }
                 break;
+                */
                 
                 case TLS_APP_DATA:
                 {

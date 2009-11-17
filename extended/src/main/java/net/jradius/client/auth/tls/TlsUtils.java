@@ -106,6 +106,17 @@ public class TlsUtils
         buf[offset + 7] = (byte)(i);
     }
 
+    protected static void writeOpaque8(byte[] buf, OutputStream os) throws IOException
+    {
+        writeUint8((short)buf.length, os);
+        os.write(buf);
+    }
+
+    protected static void writeOpaque16(byte[] buf, OutputStream os) throws IOException
+    {
+        writeUint16(buf.length, os);
+        os.write(buf);
+    }
 
     protected static short readUint8(InputStream is) throws IOException
     {
@@ -157,7 +168,7 @@ public class TlsUtils
     {
         int read = 0;
         int i = 0;
-        do
+        while (read != buf.length)
         {
             i = is.read(buf, read, (buf.length - read));
             if (i == -1)
@@ -166,7 +177,22 @@ public class TlsUtils
             }
             read += i;
         }
-        while (read != buf.length);
+    }
+
+    protected static byte[] readOpaque8(InputStream is) throws IOException
+    {
+        short length = readUint8(is);
+        byte[] value = new byte[length];
+        readFully(value, is);
+        return value;
+    }
+
+    protected static byte[] readOpaque16(InputStream is) throws IOException
+    {
+        int length = readUint16(is);
+        byte[] value = new byte[length];
+        readFully(value, is);
+        return value;
     }
 
     protected static void checkVersion(byte[] readVersion, TlsProtocolHandler handler) throws IOException
