@@ -129,11 +129,11 @@
     <module>dictionary</module>
     <module>extended</module>
     <module>example</module>
-    <module>applet</module>
     <module>client</module>
+<!--
+    <module>applet</module>
     <module>extensions</module>
     <module>server</module>
-<!--
 -->
   </modules>
 
