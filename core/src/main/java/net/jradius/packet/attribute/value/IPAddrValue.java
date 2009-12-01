@@ -69,14 +69,17 @@ public class IPAddrValue extends AttributeValue
     
     public int getLength()
     {
-        return inetAddressValue == null ? 0 : inetAddressValue.getAddress().length;
+        return 4;
     }
     
     public void getBytes(OutputStream out) throws IOException
     {
         if (inetAddressValue != null)
         {
-            out.write(inetAddressValue.getAddress());
+        	byte[] a = inetAddressValue.getAddress();
+        	if (a.length != getLength())
+        		throw new RuntimeException("Wrong IP address size for attribute");
+            out.write(a);
         }
     }
     
@@ -85,6 +88,8 @@ public class IPAddrValue extends AttributeValue
         if (b == null) return;
         try
         {
+        	if (b.length != getLength())
+        		throw new RuntimeException("Wrong IP address size for attribute");
             inetAddressValue = InetAddress.getByAddress(b);
         }
         catch (Exception e)

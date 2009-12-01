@@ -6,30 +6,34 @@ import java.io.OutputStream;
 
 import net.jradius.packet.Format;
 import net.jradius.packet.attribute.RadiusAttribute;
-import net.jradius.packet.attribute.SubAttribute;
 
 public class TLVFormat extends Format
 {
-
+	int parentType;
+	long vendorId;
+	
+	public TLVFormat(long vendor, int pt)
+	{
+		this.vendorId = vendor;
+		this.parentType = pt;
+	}
+	
 	@Override
 	public void packAttribute(OutputStream out, RadiusAttribute a) throws IOException 
 	{
         AttributeValue attributeValue = a.getValue();
         writeUnsignedByte(out, (int)a.getType());
-        writeUnsignedByte(out, attributeValue.getLength());
-        writeUnsignedByte(out, ((SubAttribute)a).getFlags());
+        writeUnsignedByte(out, attributeValue.getLength() + 2);
         attributeValue.getBytes(out);
 	}
 
 	@Override
 	public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException 
 	{
-        ctx.attributeType = readUnsignedByte(in);
+        ctx.attributeType = (readUnsignedByte(in) << 8) | (parentType & 0xFF);
         ctx.attributeLength = readUnsignedByte(in);
-        int flags = readUnsignedByte(in);
-        ctx.headerLength = 0;
-        
+        ctx.vendorNumber = (int) vendorId;
+        ctx.headerLength = 2;
 		return 0;
 	}
-
 }

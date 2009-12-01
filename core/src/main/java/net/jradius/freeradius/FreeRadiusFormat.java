@@ -24,9 +24,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
+import net.jradius.packet.attribute.VSAWithSubAttributes;
 import net.jradius.packet.attribute.value.AttributeValue;
 
 
@@ -52,6 +55,39 @@ public class FreeRadiusFormat extends RadiusFormat
         }
     }
 
+    public void packAttribute(OutputStream out, RadiusAttribute a)
+    {
+    	if (a instanceof VSAWithSubAttributes)
+    	{
+    		VSAWithSubAttributes sa = (VSAWithSubAttributes) a;
+
+    		AttributeList subList = sa.getSubAttributes();
+
+    		for (RadiusAttribute ra : subList.getAttributeList())
+    		{
+    			try
+    			{
+    				super.packAttribute(out, ra);
+    			}
+    			catch (Exception e)
+    			{
+    				RadiusLog.warn(e.getMessage(), e);
+    			}
+    		}
+    	}
+        else 
+        {
+			try
+			{
+				super.packAttribute(out, a);
+			}
+			catch (Exception e)
+			{
+				RadiusLog.warn(e.getMessage(), e);
+			}
+        }
+    }
+    
     /**
      * @see net.jradius.packet.RadiusFormat#packHeader(java.io.OutputStream, net.jradius.packet.RadiusPacket, byte[], String)
      */

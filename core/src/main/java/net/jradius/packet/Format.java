@@ -57,19 +57,26 @@ public abstract class Format
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         
         Iterator<RadiusAttribute> iterator = attrs.getAttributeList().iterator();
+
         while (iterator.hasNext())
         {
-                RadiusAttribute attr = iterator.next();
-                if (onWire && attr.getType() > 1024) continue;
-                try
-                {
-                    packAttribute(out, attr);
-                }
-                catch (Exception e)
-                {
-                    RadiusLog.warn(e.getMessage(), e);
-                }
+        	RadiusAttribute attr = iterator.next();
+
+        	if (onWire && attr.getType() > 1024)
+        	{
+        		continue;
+        	}
+                
+            try
+            {
+            	packAttribute(out, attr);
+            }
+            catch (Exception e)
+            {
+                RadiusLog.warn(e.getMessage(), e);
+            }
         }
+
         try
         {
             out.close();
@@ -122,7 +129,7 @@ public abstract class Format
                 }
                 else
                 {
-                    attrs.add(attribute, false);
+                    attrs._add(attribute, false);
                 }
 
                 if (ctx.padding > 0) 

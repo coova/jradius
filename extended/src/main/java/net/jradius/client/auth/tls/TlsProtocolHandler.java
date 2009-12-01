@@ -1131,8 +1131,6 @@ public class TlsProtocolHandler
         byte[] message = bos.toByteArray();
 
         rs.writeMessage((short)RL_HANDSHAKE, message, 0, message.length);
-
-
         
         byte[] data = null;
         GenericSigner signer = new GenericSigner(new PKCS1Encoding(new RSABlindedEngine()), rs.hash1);

@@ -5,15 +5,15 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import net.jradius.packet.attribute.AttributeList;
-import net.jradius.util.Hex;
 
 public class TLVValue extends OctetsValue
 {
 	private static final long serialVersionUID = 1L;
-	private TLVFormat format = new TLVFormat();
+	private TLVFormat format;
 	private AttributeList list;
 	
-	public TLVValue(AttributeList subAttributes) {
+	public TLVValue(long vendorId, int vsaType, AttributeList subAttributes) {
+		format = new TLVFormat(vendorId, vsaType);
 		list = subAttributes;
 	}
 
@@ -36,7 +36,7 @@ public class TLVValue extends OctetsValue
 
 	@Override
 	public void setValue(byte[] b) {
-		super.setValue(b);
+		format.unpackAttributes(list, b, 0, b.length);
 	}
 
 	@Override
@@ -55,6 +55,4 @@ public class TLVValue extends OctetsValue
     {
     	return toDebugString();
     }
-
-	
 }

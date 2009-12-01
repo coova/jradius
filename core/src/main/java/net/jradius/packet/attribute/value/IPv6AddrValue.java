@@ -37,4 +37,9 @@ public class IPv6AddrValue extends IPAddrValue
     {
         super(i);
     }
+
+    public int getLength()
+    {
+        return 6;
+    }
 }

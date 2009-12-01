@@ -21,8 +21,6 @@
 
 package net.jradius.freeradius;
 
-import net.jradius.log.RadiusLog;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -36,6 +34,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Map;
+
+import net.jradius.log.RadiusLog;
 
 /**
  * JRadius Dictionary builder for FreeRADIUS
@@ -67,7 +67,8 @@ public class RadiusDictionary
     
     private LinkedHashMap attrMap = new LinkedHashMap();
     private LinkedHashMap vendorMap = new LinkedHashMap();
-    private LinkedList seenNames = new LinkedList();
+    private LinkedHashMap seenNames = new LinkedHashMap();
+    private LinkedHashMap classNames = new LinkedHashMap();
     private String cVendor = null;
     private String cTLV = null;
     
@@ -109,10 +110,19 @@ public class RadiusDictionary
         public String name;
         public String num;
         public String pkg;
+        public String extra;
 		public LinkedHashMap attrMap = new LinkedHashMap();
-        public VendorDesc(String n, String m, String p)
+        public VendorDesc(String n, String m, String p, String e)
         {
-            name = n; num = m; pkg = p;
+            name = n; num = m; pkg = p; extra = e;
+        }
+        public String getFormat() 
+        {
+        	if (extra != null && extra.startsWith("format="))
+        	{
+        		return extra.substring(7);
+        	}
+        	return null; /* not custom */
         }
     }
     
@@ -203,7 +213,7 @@ public class RadiusDictionary
                 if (attrName != null 
                 		&& attrNum != null 
                 		&& attrType != null 
-                		&& !seenNames.contains(attrName.toLowerCase()))
+                		&& !seenNames.containsKey(attrName.toLowerCase()))
                 {
                     Map map = attrMap;
                     if (attrVendor == null && cVendor != null) 
@@ -226,7 +236,8 @@ public class RadiusDictionary
                     }
                     map.put(attrName, new AttrDesc(attrName, attrNum, attrType, attrExtra, attrVendor));
                     //RadiusLog.error(line);
-                    seenNames.add(attrName.toLowerCase());
+                	System.out.println("Seen = " + attrName);
+                    seenNames.put(attrName.toLowerCase(), attrNum);
                 }
             }
             else if (upperLine.startsWith("VALUE"))
@@ -267,6 +278,7 @@ public class RadiusDictionary
                 String parts[] = line.split("[\t ]+");
                 String vendorName = null;
                 String vendorNum = null;
+                String vendorExtra = null;
                 String vendorPkg = null;
                 for (int i = 1; i < parts.length; i++)
                 {
@@ -274,13 +286,19 @@ public class RadiusDictionary
                     if (p.length() == 0) continue;
                     if (vendorName == null) vendorName = p;
                     else if (vendorNum == null) vendorNum = p;
+                    else if (vendorExtra == null) vendorExtra = p;
                 }
                 if (vendorName != null && vendorNum != null)
                 {
                     String vendor = "vsa_" + vendorName.toLowerCase().replaceAll("-",".");
                     vendorPkg = bpkg + "." + vendor;
 
-                    vendorMap.put(vendorName, new VendorDesc(vendorName, vendorNum, vendorPkg));
+                    if (vendorExtra != null)
+                    {
+                    	
+                    }
+
+                    vendorMap.put(vendorName, new VendorDesc(vendorName, vendorNum, vendorPkg, vendorExtra));
                     //RadiusLog.error(line);
                 }
             }
@@ -366,6 +384,8 @@ public class RadiusDictionary
         while (iter.hasNext())
         {
             AttrDesc desc = (AttrDesc)iter.next();
+            VendorDesc vdesc = null;
+            
             StringBuffer fileSB = new StringBuffer(dir);
             String pkgPath = pkg;
                         
@@ -376,21 +396,30 @@ public class RadiusDictionary
                 pkgPath += "." + vendor;
             }
 
+            if (desc.vendor != null)
+            {
+                vdesc = (VendorDesc)vendorMap.get(desc.vendor);
+            }
+
             String implementsInterface = null;
             String className = "Attr_" + clean(desc.name);
             String parentName = "RadiusAttribute";
             if (!withVendors) parentName = "VSAttribute";
+            
             String parentImport = parentName;
+            
             if (desc.subAttributes != null)
             {
             	parentName = "VSAWithSubAttributes";
             	parentImport = "VSAWithSubAttributes";
             }
+            
             if (pName != null)
             {
             	parentName = "SubAttribute";
             	parentImport = "SubAttribute";
             }
+
             String valueClass = "OctetsValue";
             String valueArgs = "";
             String extraImport = null;
@@ -475,7 +504,7 @@ public class RadiusDictionary
             if (desc.subAttributes != null)
             {
             	valueClass = "TLVValue";
-            	valueArgs = "getSubAttributes()";
+            	valueArgs = "VENDOR_ID, VSA_TYPE, getSubAttributes()";
             }
             
             try
@@ -523,7 +552,7 @@ public class RadiusDictionary
                 else
                 {
                     writer.println(" * Attribute Type: 26<br>");
-                    writer.println(" * Vendor Id: " + ((VendorDesc)vendorMap.get(desc.vendor)).num + "<br>");
+                    writer.println(" * Vendor Id: " + vdesc.num + "<br>");
                     writer.println(" * VSA Type: " + desc.num + "<br>");
                 }
                 writer.println(" * Value Type: " + valueClass + "<br>");
@@ -534,12 +563,15 @@ public class RadiusDictionary
                     Iterator iter2 = desc.values.values().iterator();
                     while (iter2.hasNext())
                     {
-                        AttrValueDesc vdesc = (AttrValueDesc)iter2.next();
-                        for (Iterator i = vdesc.names.iterator(); i.hasNext(); )
-                            writer.println(" * <li> " + i.next() + " (" + vdesc.num + ")");
+                        AttrValueDesc avdesc = (AttrValueDesc)iter2.next();
+                        for (Iterator i = avdesc.names.iterator(); i.hasNext(); )
+                            writer.println(" * <li> " + i.next() + " (" + avdesc.num + ")");
                     }
                     writer.println(" * </ul>");
                 }
+                
+                classNames.put(className, desc.num);
+                
                 writer.println(" *");
                 writer.println(" * @author " + RadiusDictionary.class.toString());
                 writer.println(" */");
@@ -548,8 +580,15 @@ public class RadiusDictionary
                 writer.println("    public static final String NAME = \"" + desc.name + "\";");
                 
                 String attributeType = desc.num;
-                
-                if (pName != null || withVendors)	
+
+                if (pName != null)
+                {
+                    writer.println("    public static final int VENDOR_ID = " + ((VendorDesc)vendorMap.get(desc.vendor)).num + ";");
+                    writer.println("    public static final int PARENT_TYPE = "+classNames.get(pName)+";");
+                    writer.println("    public static final int VSA_TYPE = (" + desc.num + " << 8) | PARENT_TYPE;");
+                    writer.println("    public static final long TYPE = ((VENDOR_ID & 0xFFFF) << 16) | VSA_TYPE;");
+                }
+                else if (withVendors)	
                 {
                     writer.println("    public static final long TYPE = " + desc.num + ";");
                 }
@@ -571,14 +610,14 @@ public class RadiusDictionary
                     Map names = new LinkedHashMap();
                     while (iter2.hasNext())
                     {
-                        AttrValueDesc vdesc = (AttrValueDesc)iter2.next();
-                        for (Iterator i = vdesc.names.iterator(); i.hasNext(); )
+                        AttrValueDesc avdesc = (AttrValueDesc)iter2.next();
+                        for (Iterator i = avdesc.names.iterator(); i.hasNext(); )
                         {
                             String name = clean((String)i.next());
                             if (names.get(name) == null)
                             {
                                 names.put(name, name);
-                                writer.println("    public static final Long " + name + " = new Long(" + vdesc.num + "L);");
+                                writer.println("    public static final Long " + name + " = new Long(" + avdesc.num + "L);");
                             }
                         }
                     }
@@ -591,8 +630,8 @@ public class RadiusDictionary
                     String pvalues=" ";
                     while (iter2.hasNext())
                     {
-                        AttrValueDesc vdesc = (AttrValueDesc)iter2.next();
-                        pvalues+="new Long("+vdesc.num+"L),";
+                        AttrValueDesc avdesc = (AttrValueDesc)iter2.next();
+                        pvalues+="new Long("+avdesc.num+"L),";
                     }
                     writer.println("        public Long[] knownValues = {"+pvalues.substring(0, pvalues.length()-1)+"};");
                     writer.println("");
@@ -604,11 +643,11 @@ public class RadiusDictionary
                     iter2 = desc.values.values().iterator();
                     while (iter2.hasNext())
                     {
-                        AttrValueDesc vdesc = (AttrValueDesc)iter2.next();
-                        for (Iterator i = vdesc.names.iterator(); i.hasNext(); )
+                    	AttrValueDesc avdesc = (AttrValueDesc)iter2.next();
+                        for (Iterator i = avdesc.names.iterator(); i.hasNext(); )
                         {
                             String name = (String)i.next();
-                            writer.println("            if (\""+name+"\".equals(name)) return new Long("+vdesc.num+"L);");
+                            writer.println("            if (\""+name+"\".equals(name)) return new Long("+avdesc.num+"L);");
                         }
                     }
                     writer.println("            return null;");
@@ -620,13 +659,13 @@ public class RadiusDictionary
                     iter2 = desc.values.values().iterator();
                     while (iter2.hasNext())
                     {
-                        AttrValueDesc vdesc = (AttrValueDesc)iter2.next();
-                        Iterator i = vdesc.names.iterator(); 
+                        AttrValueDesc avdesc = (AttrValueDesc)iter2.next();
+                        Iterator i = avdesc.names.iterator(); 
                         if (i != null && i.hasNext())
                         {
                             // The last one defined is the one used for number to String lookups!
                             String name = (String)i.next();
-                            writer.println("            if (new Long(" + vdesc.num + "L).equals(value)) return \""+name+"\";");
+                            writer.println("            if (new Long(" + avdesc.num + "L).equals(value)) return \""+name+"\";");
                         }
                     }
                     writer.println("            return null;");
@@ -640,20 +679,30 @@ public class RadiusDictionary
                 writer.println("    {");
                 writer.println("        attributeName = NAME;");
                 writer.println("        attributeType = " + attributeType + ";");
+                
                 if (pName != null)
                 {
                     writer.println("        setParentClass("+pName+".class);");
                 }
-                else if (!withVendors)
+                
+                if (pName != null || !withVendors)
                 {
                     writer.println("        vendorId = VENDOR_ID;");
                     writer.println("        vsaAttributeType = VSA_TYPE;");
                 }
+                
+                if (vdesc != null && vdesc.getFormat() != null)
+                {
+                    writer.println("        setFormat(\""+vdesc.getFormat()+"\");");
+                }
+                
                 writer.println("        attributeValue = new " + valueClass + "(" + valueArgs + ");");
+                
                 if (valueClass.equals("IntegerValue") && integerLength < 4)
                 {
                     writer.println("        ((IntegerValue)attributeValue).setLength("+integerLength+");");
                 }
+                
                 writer.println("    }");
                 writer.println("");
                 writer.println("    public " + className + "()");
@@ -686,6 +735,8 @@ public class RadiusDictionary
                     	{
                     		AttrDesc at = (AttrDesc) obj;
                     		String cn = "Attr_" + clean(at.name);
+                    		long value = ((Integer.parseInt(at.num)) << 8) | (Integer.parseInt(desc.num) & 0xFF);
+                            loadAttributes.append("        map.put(new Long(" + value + "L), " + cn + ".class);\n");
                             loadAttributesNames.append("        map.put(" + cn + ".NAME, " + cn + ".class);\n");
                     	}
                     }

@@ -42,16 +42,19 @@ public class UDPClientTransport extends RadiusClientTransport
 
     protected DatagramSocket socket;
 
-	public UDPClientTransport(DatagramSocket socket) {
+	public UDPClientTransport(DatagramSocket socket) 
+	{
 		this.socket = socket;
 		this.remoteInetAddress = socket.getInetAddress();
 	}
 
-	public UDPClientTransport() throws SocketException {
+	public UDPClientTransport() throws SocketException 
+	{
 		this(new DatagramSocket());
 	}
 
-	public void close() {
+	public void close()
+	{
 		socket.close();
 	}
 	
@@ -60,25 +63,32 @@ public class UDPClientTransport extends RadiusClientTransport
     	int port = req instanceof AccountingRequest ? acctPort : authPort;
     	
     	if (statusListener != null)
+    	{
     		statusListener.onBeforeSend(this, req);
+    	}
     	
         if (attempt > 1)
         {
             RadiusLog.warn("RadiusClient retrying request (attempt " + attempt + ")...");
         }
+
         byte[] b = format.packPacket(req, sharedSecret, true);
         DatagramPacket request = new DatagramPacket(b, b.length, getRemoteInetAddress(), port);
         socket.send(request);
 
         if (statusListener != null)
+        {
     		statusListener.onAfterSend(this);
+        }
     }
     
     protected RadiusResponse receive(RadiusRequest req) throws Exception
     {
         if (statusListener != null)
+        {
         	statusListener.onBeforeReceive(this);
-
+        }
+        
         byte replyBytes[] = new byte[RadiusPacket.MAX_PACKET_LENGTH];
         DatagramPacket reply = new DatagramPacket(replyBytes, replyBytes.length);
         
@@ -92,8 +102,10 @@ public class UDPClientTransport extends RadiusClientTransport
         }
 
         if (statusListener != null)
+        {
         	statusListener.onAfterReceive(this, replyPacket);
-
+        }
+        
         return (RadiusResponse)replyPacket;
     }
     

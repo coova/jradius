@@ -24,7 +24,7 @@ package net.jradius.packet.attribute;
 /**
  * @author David Bird
  */
-public class SubAttribute extends RadiusAttribute
+public class SubAttribute extends VSAttribute
 {
 	private static final long serialVersionUID = 1L;
 	private Class<?> parentClass;

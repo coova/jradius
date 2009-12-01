@@ -52,7 +52,6 @@ import net.jradius.packet.RadiusRequest;
 import net.jradius.packet.RadiusResponse;
 import net.jradius.session.JRadiusSession;
 
-
 /**
  * A Radius Client Context
  *
@@ -221,6 +220,7 @@ public class RadiusClient
         Class c = (Class)authenticators.get(protocolName);
         
         if (c == null) return null;
+
         try 
         {
             auth = (RadiusAuthenticator)c.newInstance();
@@ -230,6 +230,7 @@ public class RadiusClient
             RadiusLog.error("Invalid auth protocol", e);
             return null;
         }
+        
         if (args != null)
         {
             HashMap elements = new HashMap();

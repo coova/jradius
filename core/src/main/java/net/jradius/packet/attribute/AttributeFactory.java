@@ -177,34 +177,66 @@ public final class AttributeFactory
         {
             if (vendor > 1 || type == 26)
             {
-                if (vendor < 1)
+            	boolean onWire = (vendor < 1);
+                DataInputStream input = null;
+
+                if (onWire)
                 {
+                	/*
+                	 *  We are parsing an off-the-wire packet
+                	 */
                     ByteArrayInputStream bais = new ByteArrayInputStream(value);
-                    DataInputStream input = new DataInputStream(bais);
+                    input = new DataInputStream(bais);
+                    
                     vendor = RadiusFormat.readUnsignedInt(input);
                     type = RadiusFormat.readUnsignedByte(input);
-                    int vsaLength = RadiusFormat.readUnsignedByte(input);
-                    byte[] newValue = new byte[vsaLength - 2];
-                    input.readFully(newValue);
-                    input.close();
-                    value = newValue;
                 }
 
                 VendorValue v = vendorValueMap.get(new Long(vendor));
          
                 if (v != null)
                 {
-                		c = v.typeMap.get(new Long(type));
+                	c = v.typeMap.get(new Long(type));
                 }
           
                 if (c != null)
                 {
-                		attr = (RadiusAttribute)c.newInstance();
+                	attr = (RadiusAttribute)c.newInstance();
                 }
                 else
                 {
-                		RadiusLog.warn("Unknown Vendor Specific Attribute: " + vendor+":"+type);
-                		attr = new Attr_UnknownVSAttribute(vendor, type);
+                	RadiusLog.warn("Unknown Vendor Specific Attribute: " + vendor+":"+type);
+                	attr = new Attr_UnknownVSAttribute(vendor, type);
+                }
+                
+                if (onWire)
+                {
+                	VSAttribute vsa = (VSAttribute) attr;
+                    int vsaLength = 0;
+                    int vsaHeaderLen = 2;
+                    switch(vsa.getLengthLength())
+                    {
+	                    case 1:
+	                        vsaLength = RadiusFormat.readUnsignedByte(input);
+	                        break;
+	                    case 2:
+	                        vsaLength = RadiusFormat.readUnsignedShort(input);
+	                    	vsaHeaderLen ++;
+	                        break;
+	                    case 4:
+	                        vsaLength = (int) RadiusFormat.readUnsignedInt(input);
+	                    	vsaHeaderLen += 3;
+	                        break;
+                    }
+                    if (vsa.hasContinuationByte)
+                    {
+                    	vsa.continuation = (short) RadiusFormat.readUnsignedByte(input);
+                    	vsaHeaderLen ++;
+                    }
+                    byte[] newValue = new byte[vsaLength - vsaHeaderLen];
+                    input.readFully(newValue);
+                    input.close();
+                    value = newValue;
                 }
             }
             else 

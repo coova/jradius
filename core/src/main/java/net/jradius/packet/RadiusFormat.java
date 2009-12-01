@@ -160,11 +160,30 @@ public class RadiusFormat extends Format
     {
         AttributeValue attributeValue = a.getValue();
         int len = attributeValue.getLength();
+        int vsaHeader = VSA_HEADER_LENGTH;
+        if (a.hasContinuationByte()) vsaHeader ++;
         writeUnsignedByte(out, (int)a.getType());
-        writeUnsignedByte(out, len + VSA_HEADER_LENGTH);
+        writeUnsignedByte(out, len + vsaHeader);
         writeUnsignedInt(out, a.getVendorId());
         writeUnsignedByte(out, (int)a.getVsaAttributeType());
-        writeUnsignedByte(out, len + 2);
+        len += 2;
+        if (a.hasContinuationByte()) len ++;
+        switch(a.getLengthLength())
+        {
+	        case 1:
+	            writeUnsignedByte(out, len);
+	            break;
+	        case 2:
+	            writeUnsignedShort(out, len);
+	            break;
+	        case 4:
+	            writeUnsignedInt(out, len);
+	            break;
+        }
+        if (a.hasContinuationByte())
+        {
+        	writeUnsignedByte(out, a.getContinuation());
+        }
     }
     
  

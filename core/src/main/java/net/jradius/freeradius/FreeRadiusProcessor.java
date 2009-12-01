@@ -36,7 +36,6 @@ import net.jradius.server.JRadiusServer;
 import net.jradius.server.ListenerRequest;
 import net.jradius.server.RadiusProcessor;
 import net.jradius.server.config.Configuration;
-import org.springframework.context.ApplicationContext;
 
 
 /**

@@ -35,6 +35,32 @@ public abstract class VSAttribute extends RadiusAttribute
     protected long vendorId;
     protected long vsaAttributeType;
 
+    protected short typeLength = 1;
+    protected short lengthLength = 1;
+    protected short extraLength = 0;
+    protected boolean hasContinuationByte;
+    protected short continuation;
+    
+    public void setFormat(String format)
+    {
+    	String s[] = format.split(",");
+    	if (s != null && s.length > 0)
+    	{
+    		typeLength = Short.parseShort(s[0]);
+    		
+    		if (s.length > 1) 
+    			lengthLength = Short.parseShort(s[1]);
+    		
+    		if (s.length > 2)
+    		{
+    			if (s[2].equals("c")) 
+    			{
+    				hasContinuationByte = true;
+    			}
+    		}
+    	}
+    }
+    
     /**
      * Returns the VSA type (lower 2 bytes) encoded with the Vendor ID 
      * (upper 2 bytes) as an integer.
@@ -76,4 +102,30 @@ public abstract class VSAttribute extends RadiusAttribute
     {
         this.vsaAttributeType = vsaAttributeType;
     }
+
+
+	public short getTypeLength() 
+	{
+		return typeLength;
+	}
+
+	public short getLengthLength()
+	{
+		return lengthLength;
+	}
+
+	public short getExtraLength() 
+	{
+		return extraLength;
+	}
+
+	public boolean hasContinuationByte() 
+	{
+		return hasContinuationByte;
+	}
+
+	public int getContinuation()
+	{
+		return continuation;
+	}    
 }

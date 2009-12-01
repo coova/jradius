@@ -77,7 +77,7 @@ public class AttributeList implements Serializable
     }
     
     @SuppressWarnings("unchecked")
-    private void _add(RadiusAttribute a, boolean overwrite)
+	public void _add(RadiusAttribute a, boolean overwrite)
     {
         Long key = new Long(a.getFormattedType());
         Object o = attributeMap.get(key);

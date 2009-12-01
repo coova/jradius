@@ -39,11 +39,11 @@ public abstract class RadiusAttribute implements Serializable
     protected int attributeOp = Operator.SET;
     protected AttributeValue attributeValue = null;
     protected String attributeName = "Unknown Attribute";
-    
+
     public RadiusAttribute() 
     { 
     }
- 
+
     abstract public void setup();
     
     protected void setup(Serializable value)
@@ -209,5 +209,5 @@ public abstract class RadiusAttribute implements Serializable
             if (op.equals("==")) return CMP_EQ;
             return 0;
         }
-    }    
+    }
 }
