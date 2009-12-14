@@ -20,10 +20,9 @@
 
 package net.jradius.radsec;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import net.jradius.dictionary.Attr_SharedSecret;
 import net.jradius.exception.RadiusException;
@@ -48,7 +47,7 @@ import net.jradius.util.MessageAuthenticator;
  */
 public class RadSecProcessor extends RadiusProcessor
 {
-    protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
+    protected void processRequest(ListenerRequest listenerRequest) throws Exception
     {
         RadSecRequest request = (RadSecRequest) listenerRequest.getRequestEvent();
         
@@ -67,7 +66,7 @@ public class RadSecProcessor extends RadiusProcessor
         {
         	OutputStream out = listenerRequest.getOutputStream();
         	synchronized (out) {
-                this.writeResponse(request, out);
+                this.writeResponse(request, request.buffer_out, out);
 			}
         }
         catch(Throwable e)
@@ -76,11 +75,8 @@ public class RadSecProcessor extends RadiusProcessor
         }
     }
 
-    public void writeResponse(JRadiusRequest request, OutputStream outputStream) throws IOException, RadiusException 
+    public void writeResponse(JRadiusRequest request, ByteBuffer buffer, OutputStream outputStream) throws IOException, RadiusException 
     {
-        ByteArrayOutputStream outBytes = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(outBytes);
-
         if (Configuration.isDebug()) 
             request.printDebugInfo();
 
@@ -96,10 +92,10 @@ public class RadSecProcessor extends RadiusProcessor
 		MessageAuthenticator.generateResponseMessageAuthenticator(req, res, sharedSecret);
 		res.generateAuthenticator(req.getAuthenticator(), sharedSecret);
 
-        out.write(format.packPacket(res, sharedSecret, true));
+		buffer.clear();
+		format.packPacket(res, sharedSecret, buffer, true);
         
-        out.close();
-        outputStream.write(outBytes.toByteArray());
+        outputStream.write(buffer.array(), 0, buffer.position());
         outputStream.flush();
     }
 

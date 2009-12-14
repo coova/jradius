@@ -20,9 +20,8 @@
 
 package net.jradius.packet.attribute.value;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 import net.jradius.packet.attribute.AttributeList;
 
@@ -36,17 +35,18 @@ public class TLVValue extends OctetsValue
 		format = new TLVFormat(vendorId, vsaType);
 		list = subAttributes;
 	}
-
+	
 	@Override
-	public void getBytes(OutputStream out) throws IOException {
-		byteValue = format.packAttributeList(list);
-		super.getBytes(out);
+	public void getBytes(ByteBuffer buffer) {
+		format.packAttributeList(list, buffer, false);
 	}
 
 	@Override
 	public int getLength() {
-		byteValue = format.packAttributeList(list);
-		return super.getLength();
+		//XXX
+		ByteBuffer b = ByteBuffer.allocate(1500);
+		format.packAttributeList(list, b, true);
+		return b.position();
 	}
 
 	@Override
@@ -56,9 +56,16 @@ public class TLVValue extends OctetsValue
 
 	@Override
 	public void setValue(byte[] b) {
-		format.unpackAttributes(list, b, 0, b.length);
+		ByteBuffer bb = ByteBuffer.wrap(b);
+		format.unpackAttributes(list, bb, bb.limit());
 	}
 
+	@Override
+    public void setValue(byte[] b, int off, int len) {
+		ByteBuffer bb = ByteBuffer.wrap(b, off, len);
+		format.unpackAttributes(list, bb, len);
+    }
+    
 	@Override
 	public void setValueObject(Serializable o) {
 		super.setValueObject(o);

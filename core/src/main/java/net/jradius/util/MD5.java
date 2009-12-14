@@ -90,6 +90,11 @@ public class MD5
 
     public static byte[] hmac_md5(byte[] text, byte[] key)
     {
+    	return hmac_md5(text, 0, text.length, key);
+    }
+    
+    public static byte[] hmac_md5(byte[] text, int toff, int tlen, byte[] key)
+    {
         int minKeyLen = 64;
         byte[] digest = new byte[16];
         
@@ -115,7 +120,7 @@ public class MD5
             RadiusLog.warn(e.getMessage(), e);
         }
         
-        mac.update(text, 0, text.length);
+        mac.update(text, toff, tlen);
         System.arraycopy(mac.digest(), 0, digest, 0, 16);
         return digest;
     }

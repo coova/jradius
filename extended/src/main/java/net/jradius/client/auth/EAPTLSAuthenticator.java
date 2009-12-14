@@ -334,13 +334,13 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         return b;
     }
 
-    protected void putAppBuffer(byte[] d) throws SSLException
+    protected void putAppBuffer(byte[] d, int length) throws SSLException
     {
         SSLEngineResult result = null;
         Runnable task;
         
         int chunk = appOutBuffer.capacity();
-        int left = d.length;
+        int left = length;
         
         for (int offset = 0; left > 0; offset += chunk)
         {

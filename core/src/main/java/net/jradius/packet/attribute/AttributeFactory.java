@@ -24,6 +24,8 @@ package net.jradius.packet.attribute;
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -34,6 +36,10 @@ import net.jradius.exception.UnknownAttributeException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.attribute.RadiusAttribute.Operator;
+
+import org.apache.commons.pool.KeyedObjectPool;
+import org.apache.commons.pool.KeyedPoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 
 /**
  * The Attribute Factor. This factor builds the RADIUS attributes
@@ -47,6 +53,111 @@ public final class AttributeFactory
     private static LinkedHashMap<Long, Class<?>> vendorMap = new LinkedHashMap<Long, Class<?>>();
     private static LinkedHashMap<Long, VendorValue> vendorValueMap = new LinkedHashMap<Long, VendorValue>();
     private static LinkedHashMap<String, Class<?>> attributeNameMap = new LinkedHashMap<String, Class<?>>();
+
+    private static RadiusAttribute vsa(long vendor, long type) throws InstantiationException, IllegalAccessException
+    {
+    	RadiusAttribute attr = null;
+        VendorValue v = vendorValueMap.get(new Long(vendor));
+        Class<?> c = null;
+	         
+        if (v != null)
+        {
+        	c = v.typeMap.get(new Long(type));
+        }
+  
+        if (c != null)
+        {
+        	attr = (RadiusAttribute) c.newInstance();
+        }
+        else
+        {
+        	RadiusLog.warn("Unknown Vendor Specific Attribute: " + vendor+":"+type);
+        	attr = new Attr_UnknownVSAttribute(vendor, type);
+        }
+     
+        return attr;
+    }
+
+    private static RadiusAttribute attr(long type) throws InstantiationException, IllegalAccessException
+    {
+    	RadiusAttribute attr = null;
+        Class<?> c = attributeMap.get(new Long(type));
+    	
+        if (c != null)
+        {
+        	attr = (RadiusAttribute) c.newInstance();
+        }
+        else
+        {
+        	RadiusLog.warn("Unknown Attribute: " + type);
+        	attr = new Attr_UnknownAttribute(type);
+        }
+
+        return attr;
+    }
+    
+    private static KeyedObjectPool attributeObjectPool = new GenericKeyedObjectPool(new KeyedPoolableObjectFactory() 
+    {
+		public boolean validateObject(Object arg0, Object arg1) {
+			return true;
+		}
+		
+		public void passivateObject(Object arg0, Object arg1) throws Exception {
+		}
+		
+		public Object makeObject(Object arg0) throws Exception {
+			return newAttribute((Long) arg0);
+		}
+		
+		public void destroyObject(Object arg0, Object arg1) throws Exception {
+		}
+		
+		public void activateObject(Object arg0, Object arg1) throws Exception {
+		}
+	}, -1);
+
+    public static RadiusAttribute newAttribute(Long key) throws Exception
+    {
+		RadiusAttribute a = null;
+		long val = key.longValue();
+		long vendor = val >> 16;
+		long type = val & 0xFFFF;
+		if (vendor != 0)
+		{
+			a = vsa(vendor, type);
+		}
+		else
+		{
+			a = attr(type);
+		}
+		a.recyclable = true;
+		return a;
+    }
+    
+    public static RadiusAttribute newAttribute(Long key, Serializable value) 
+    {
+    	RadiusAttribute attr = null;
+    	
+    	try
+    	{
+	        if (attributeObjectPool != null)
+	        {
+	        	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
+	        }
+	        else 
+	        {
+	        	attr = newAttribute(key);
+	        }
+    	}
+    	catch (Exception e)
+    	{
+    		e.printStackTrace();
+    	}
+    	
+    	attr.getValue().setValueObject(value);
+        
+        return attr;
+    }
     
     public static final class VendorValue
     {
@@ -170,7 +281,6 @@ public final class AttributeFactory
      */
     public static RadiusAttribute newAttribute(long vendor, long type, byte[] value, int op)
     {
-        Class<?> c = null;
         RadiusAttribute attr = null;
         
         try
@@ -192,21 +302,15 @@ public final class AttributeFactory
                     type = RadiusFormat.readUnsignedByte(input);
                 }
 
-                VendorValue v = vendorValueMap.get(new Long(vendor));
-         
-                if (v != null)
+                Long key = new Long(vendor << 16 | type);
+                
+                if (attributeObjectPool != null)
                 {
-                	c = v.typeMap.get(new Long(type));
+                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
                 }
-          
-                if (c != null)
+                else 
                 {
-                	attr = (RadiusAttribute)c.newInstance();
-                }
-                else
-                {
-                	RadiusLog.warn("Unknown Vendor Specific Attribute: " + vendor+":"+type);
-                	attr = new Attr_UnknownVSAttribute(vendor, type);
+                	attr = vsa(vendor, type);
                 }
                 
                 if (onWire)
@@ -214,7 +318,7 @@ public final class AttributeFactory
                 	VSAttribute vsa = (VSAttribute) attr;
                     int vsaLength = 0;
                     int vsaHeaderLen = 2;
-                    switch(vsa.getLengthLength())
+                    switch (vsa.getLengthLength())
                     {
 	                    case 1:
 	                        vsaLength = RadiusFormat.readUnsignedByte(input);
@@ -241,19 +345,18 @@ public final class AttributeFactory
             }
             else 
             {
-                c = attributeMap.get(new Long(type));
-                if (c != null)
+                if (attributeObjectPool != null)
                 {
-                		attr = (RadiusAttribute)c.newInstance();
+                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(type);
                 }
                 else
                 {
-                		RadiusLog.warn("Unknown Attribute: " + type);
-                		attr = new Attr_UnknownAttribute(type);
+                	attr = attr(type);
                 }
             }
         
             if (value != null) attr.setValue(value);
+            else attr.setValue(new byte[] { });
             if (op > -1) attr.setAttributeOp(op);
         }
         catch (InstantiationException e)
@@ -265,6 +368,113 @@ public final class AttributeFactory
             e.printStackTrace();
         }
         catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+        
+        return attr;
+    }
+
+    public static RadiusAttribute newAttribute(long vendor, long type, long len, int op, ByteBuffer buffer)
+    {
+        RadiusAttribute attr = null;
+        
+        int valueLength = (int) len;
+        
+        try
+        {
+            if (vendor > 1 || type == 26)
+            {
+            	boolean onWire = (vendor < 1);
+
+                if (onWire)
+                {
+                	/*
+                	 *  We are parsing an off-the-wire packet
+                	 */
+                	vendor = RadiusFormat.getUnsignedInt(buffer);
+                    type = RadiusFormat.getUnsignedByte(buffer);
+                }
+
+                Long key = new Long(vendor << 16 | type);
+                
+                if (attributeObjectPool != null)
+                {
+                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
+                }
+                else 
+                {
+                	attr = vsa(vendor, type);
+                }
+                
+                if (onWire)
+                {
+                	VSAttribute vsa = (VSAttribute) attr;
+                    int vsaLength = 0;
+                    int vsaHeaderLen = 2;
+                    switch (vsa.getLengthLength())
+                    {
+	                    case 1:
+	                        vsaLength = RadiusFormat.getUnsignedByte(buffer);
+	                        break;
+	                    case 2:
+	                        vsaLength = RadiusFormat.getUnsignedShort(buffer);
+	                    	vsaHeaderLen ++;
+	                        break;
+	                    case 4:
+	                        vsaLength = (int) RadiusFormat.getUnsignedInt(buffer);
+	                    	vsaHeaderLen += 3;
+	                        break;
+                    }
+                    if (vsa.hasContinuationByte)
+                    {
+                    	vsa.continuation = (short) RadiusFormat.getUnsignedByte(buffer);
+                    	vsaHeaderLen ++;
+                    }
+                    valueLength = vsaLength - vsaHeaderLen;
+                }
+            }
+            else 
+            {
+                if (attributeObjectPool != null)
+                {
+                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(type);
+                }
+                else
+                {
+                	attr = attr(type);
+                }
+            }
+        
+            if (valueLength > 0) 
+            {
+            	attr.setValue(buffer.array(), buffer.position(), valueLength);
+            	buffer.position(buffer.position() + valueLength);
+            }
+            else 
+            {
+            	attr.setValue(null, 0, 0);
+            }
+            
+            if (op > -1) attr.setAttributeOp(op);
+        }
+        catch (InstantiationException e)
+        {
+            e.printStackTrace();
+        }
+        catch (IllegalAccessException e)
+        {
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+        catch (Exception e)
         {
             e.printStackTrace();
         }
@@ -338,8 +548,10 @@ public final class AttributeFactory
         RadiusAttribute attr = null;
 
         if (c == null) 
+        {
             throw new UnknownAttributeException("Unknown attribute " + aName);
-
+        }
+        
         try 
         {
             attr = (RadiusAttribute)c.newInstance();
@@ -394,8 +606,10 @@ public final class AttributeFactory
         RadiusAttribute attr = null;
 
         if (c == null) 
+        {
             throw new UnknownAttributeException("Unknown attribute " + aName);
-
+        }
+        
         try
         {
             attr = (RadiusAttribute)c.newInstance();
@@ -440,4 +654,40 @@ public final class AttributeFactory
     {
     	return vendorValueMap;
     }
+
+    public static void poolStatus()
+    {
+		if (attributeObjectPool == null) return;
+		System.err.println("AttributePool: active="+attributeObjectPool.getNumActive()+" idle="+attributeObjectPool.getNumIdle());
+    }
+    
+	public static void recycle(RadiusAttribute a) 
+	{
+		if (attributeObjectPool == null || !a.recyclable) return;
+		
+		try 
+		{
+			if (a instanceof VSAWithSubAttributes)
+			{
+				VSAWithSubAttributes aa = (VSAWithSubAttributes) a;
+				AttributeList list = aa.getSubAttributes();
+				recycle(list);
+				list.clear();
+			}
+			
+			attributeObjectPool.returnObject(a.getFormattedType(), a);
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+		}
+	}
+
+	public static void recycle(AttributeList list) 
+	{
+		for (RadiusAttribute a : list.getAttributeList())
+		{
+			recycle(a);
+		}
+	}
 }

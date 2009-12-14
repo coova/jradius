@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -60,7 +61,7 @@ public class WebServiceListener extends TCPListener implements InitializingBean,
     protected Integer timeToLive;
     protected Integer idleTime;
     
-    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, WebServiceException
+    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, ByteBuffer byteBuffer, InputStream inputStream) throws IOException, WebServiceException
     {
         DataInputStream reader = new DataInputStream(inputStream);
         WebServiceRequest request = new WebServiceRequest();

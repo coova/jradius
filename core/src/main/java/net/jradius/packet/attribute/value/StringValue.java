@@ -41,7 +41,7 @@ public class StringValue extends OctetsValue
     public String toString()
     {
         if (byteValue == null) return null;
-        String stringValue = new String(byteValue);
+        String stringValue = new String(byteValue, byteValueOffset, byteValueLength);
         return stringValue.trim();
     }
     
@@ -56,12 +56,12 @@ public class StringValue extends OctetsValue
     public Serializable getValueObject()
     {
         if (byteValue == null) return null;
-        return new String(byteValue);
+        return new String(byteValue, byteValueOffset, byteValueLength);
     }
 
     public void setString(String s)
     {
-        byteValue = s.getBytes();
+        setValue(s.getBytes());
     }
 
     public void setValueObject(Serializable o)

@@ -39,6 +39,7 @@ public abstract class RadiusAttribute implements Serializable
     protected int attributeOp = Operator.SET;
     protected AttributeValue attributeValue = null;
     protected String attributeName = "Unknown Attribute";
+    protected boolean recyclable;
 
     public RadiusAttribute() 
     { 
@@ -48,7 +49,7 @@ public abstract class RadiusAttribute implements Serializable
     
     protected void setup(Serializable value)
     {
-    		setup(value, Operator.SET);
+    	setup(value, Operator.SET);
     }
 
     protected void setup(Serializable o, int op) 
@@ -128,7 +129,12 @@ public abstract class RadiusAttribute implements Serializable
      */
     public void setValue(byte b[]) 
     {
-        attributeValue.setValue(b);
+    	attributeValue.setValue(b);
+    }
+
+    public void setValue(byte b[], int off, int len) 
+    {
+    	attributeValue.setValue(b, off, len);
     }
 
     /**

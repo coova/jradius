@@ -20,15 +20,19 @@
 
 package net.jradius.packet;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.freeradius.FreeRadiusFormat;
 import net.jradius.log.RadiusLog;
+import net.jradius.packet.attribute.AttributeList;
+
+import org.apache.commons.pool.KeyedObjectPool;
+import org.apache.commons.pool.KeyedPoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericKeyedObjectPool;
 
 
 /**
@@ -39,10 +43,12 @@ import net.jradius.log.RadiusLog;
  */
 public class PacketFactory
 {
-    private static LinkedHashMap codeMap = new LinkedHashMap();
+    private static LinkedHashMap<Integer, Class<?>> codeMap = new LinkedHashMap<Integer, Class<?>>();
     
     static
     {
+        codeMap.put(new Integer(0),       				   NullPacket.class);           // 0
+
         codeMap.put(new Integer(AccessRequest.CODE),       AccessRequest.class);        // 1
         codeMap.put(new Integer(AccessAccept.CODE),        AccessAccept.class);         // 2
         codeMap.put(new Integer(AccessReject.CODE),        AccessReject.class);         // 3
@@ -70,7 +76,79 @@ public class PacketFactory
         codeMap.put(new Integer(DHCPInform.CODE),          DHCPInform.class);           // 1032
         codeMap.put(new Integer(DHCPForceRenew.CODE),      DHCPForceRenew.class);       // 1033
     }
+
+    private static KeyedObjectPool pktObjectPool = new GenericKeyedObjectPool(new KeyedPoolableObjectFactory() 
+    {
+		public boolean validateObject(Object arg0, Object arg1) {
+			return true;
+		}
+		
+		public void passivateObject(Object arg0, Object arg1) throws Exception {
+		}
+		
+		public Object makeObject(Object arg0) throws Exception {
+			RadiusPacket p = createPacket((Integer) arg0);
+			p.recyclable = true;
+			return p;
+		}
+		
+		public void destroyObject(Object arg0, Object arg1) throws Exception {
+		}
+		
+		public void activateObject(Object arg0, Object arg1) throws Exception {
+			RadiusPacket p = (RadiusPacket) arg1;
+			p.setAuthenticator(null);
+		}
+		
+	}, -1);
+
+    private static RadiusPacket createPacket(Integer code) throws Exception
+    {
+		Class<?> c = (Class<?>) codeMap.get(code);
+        if (c == null)
+        {
+            throw new RadiusException("bad radius code");
+        }
+        return (RadiusPacket) c.newInstance();
+    }
     
+    public static RadiusPacket newPacket(Integer code)
+    {
+    	try 
+    	{
+            if (pktObjectPool != null)
+            {
+            	return (RadiusPacket) pktObjectPool.borrowObject(code);
+            }
+          
+            return createPacket(code);
+		} 
+    	catch (Exception e)
+    	{
+			throw new RuntimeException(e);
+		}
+    }
+
+    public static RadiusPacket newPacket(byte b)
+    {
+    	return newPacket(new Integer(b));
+    }
+
+    public static RadiusPacket newPacket(byte b, int identifier)
+    {
+    	RadiusPacket p = newPacket(new Integer(b));
+    	p.setIdentifier(identifier);
+    	return p;
+    }
+
+    public static RadiusPacket newPacket(byte b, int identifier, AttributeList list)
+    {
+    	RadiusPacket p = newPacket(new Integer(b));
+    	p.setIdentifier(identifier);
+    	p.getAttributes().add(list);
+    	return p;
+    }
+
     /**
      * Parse a UDP RADIUS message
      * @param dp The Datagram to be parsed
@@ -79,48 +157,128 @@ public class PacketFactory
      */
     public static RadiusPacket parse(DatagramPacket dp) throws RadiusException
     {
-        ByteArrayInputStream bais = new ByteArrayInputStream(dp.getData());
-        DataInputStream input = new DataInputStream(bais);
+    	ByteBuffer buffer = ByteBuffer.wrap(dp.getData(), dp.getOffset(), dp.getLength());
         RadiusPacket rp = null;
 
         try
         {
-            rp = parseUDP(input);
+            rp = parseUDP(buffer);
         }
         catch (IOException e)
         {
             RadiusLog.error(e.getMessage(), e);
         }
+        
         return rp;
     }
 
-    public static RadiusPacket parseUDP(DataInputStream input) throws RadiusException, IOException
+    public static RadiusPacket parseUDP(ByteBuffer buffer) throws RadiusException, IOException
+    {
+        int code = RadiusFormat.getUnsignedByte(buffer);
+        int identifier = RadiusFormat.getUnsignedByte(buffer);
+        int length = RadiusFormat.getUnsignedShort(buffer);
+
+        return parseUDP(code, identifier, length, buffer);
+    }
+    
+    public static RadiusPacket parseUDP(int code, int identifier, int length, ByteBuffer buffer) throws RadiusException, IOException
     {
     	RadiusPacket rp = null;
-        int code = RadiusFormat.readUnsignedByte(input);
-        int identifier = RadiusFormat.readUnsignedByte(input);
+        Integer key = new Integer(code);
 
-        Class c = (Class)codeMap.get(new Integer(code));
-     
-        if (c == null)
+        if (pktObjectPool != null)
         {
-            throw new RadiusException("bad radius code");
+        	try
+        	{
+        		rp = (RadiusPacket) pktObjectPool.borrowObject(key);
+        	}
+        	catch (Exception e)
+        	{
+        		e.printStackTrace();
+        	}
         }
+        
+        if (rp == null)
+        {
+	        Class<?> c = (Class<?>) codeMap.get(key);
+	     
+	        if (c == null)
+	        {
+	            throw new RadiusException("bad radius code");
+	        }
 
-        int length = RadiusFormat.readUnsignedShort(input);
+	        try
+	        {
+	            rp = (RadiusPacket)c.newInstance();
+	        }
+	        catch (Exception e)
+	        {
+	            RadiusLog.error(e.getMessage(), e);
+	            return null;
+	        }
+        }
+        
         byte[] bAuthenticator = new byte[16];
-        input.readFully(bAuthenticator);
+        buffer.get(bAuthenticator);
 
-        byte[] bAttributes = new byte[length - RadiusPacket.RADIUS_HEADER_LENGTH];
-        input.readFully(bAttributes);
-      
+        rp.setIdentifier(identifier);
+        rp.setAuthenticator(bAuthenticator);
+        
+        length -= RadiusPacket.RADIUS_HEADER_LENGTH;
+        if (length > 0)
+        {
+        	RadiusFormat.setAttributeBytes(rp, buffer, length);
+        }
+        
+        return rp;
+    }
+
+    /*
+    public static RadiusPacket parsePacket(InputStream in) throws RadiusException, IOException
+    {
+        RadiusPacket rp = null;
+        int code = (int) RadiusFormat.readUnsignedInt(in);
+        int identifier = (int) RadiusFormat.readUnsignedInt(in);
+
+        Integer key = new Integer(code);
+        
+        if (pktObjectPool != null)
+        {
+        	try
+        	{
+        		rp = (RadiusPacket) pktObjectPool.borrowObject(key);
+        	}
+        	catch (Exception e)
+        	{
+        		e.printStackTrace();
+        	}
+        }
+        
+        if (rp == null)
+        {
+	        Class<?> c = (Class<?>) codeMap.get(key);
+	        if (c == null)
+	        {
+	            throw new RadiusException("bad radius packet type: " + code);
+	        }
+	        try
+	        {
+	            rp = (RadiusPacket) c.newInstance();
+	        }
+	        catch (Exception e)
+	        {
+	            RadiusLog.error(e.getMessage(), e);
+	        }
+        } 
+
+        long length = Format.readUnsignedInt(in);
+        byte[] bAttributes = new byte[(int) length];
+        in.read(bAttributes);
+        
         try
         {
-            rp = (RadiusPacket)c.newInstance();
-            //rp.setCode(code);
             rp.setIdentifier(identifier);
-            rp.setAuthenticator(bAuthenticator);
-            RadiusFormat.setAttributeBytes(rp, bAttributes);
+            FreeRadiusFormat.setAttributeBytes(rp, bAttributes);
         }
         catch (Exception e)
         {
@@ -128,38 +286,51 @@ public class PacketFactory
         }
         return rp;
     }
-
-    public static RadiusPacket parsePacket(DataInputStream input) throws RadiusException, IOException
+    */
+    
+    public static RadiusPacket parsePacket(ByteBuffer buffer) throws RadiusException
     {
         RadiusPacket rp = null;
-        int code = (int)RadiusFormat.readUnsignedInt(input);
-        int identifier = (int)RadiusFormat.readUnsignedInt(input);
+        int code = (int) Format.getUnsignedInt(buffer);
+        int identifier = (int) Format.getUnsignedInt(buffer);
+        long length = Format.getUnsignedInt(buffer);
+
+        Integer key = new Integer(code);
         
-        Class c;
-        if (code == 0)
+        if (pktObjectPool != null)
         {
-            c = NullPacket.class;
-        }
-        else
-        {
-            c = (Class)codeMap.get(new Integer(code));
-        }
-     
-        if (c == null)
-        {
-            throw new RadiusException("bad radius packet type: " + code);
+        	try
+        	{
+        		rp = (RadiusPacket) pktObjectPool.borrowObject(key);
+        	}
+        	catch (Exception e)
+        	{
+        		e.printStackTrace();
+        	}
         }
         
-        int length = input.readInt();
-        byte[] bAttributes = new byte[length];
-        input.readFully(bAttributes);
-        
+        if (rp == null)
+        {
+	        Class<?> c = (Class<?>) codeMap.get(key);
+	        if (c == null)
+	        {
+	            throw new RadiusException("bad radius packet type: " + code);
+	        }
+	        try
+	        {
+	            rp = (RadiusPacket) c.newInstance();
+	        }
+	        catch (Exception e)
+	        {
+	            RadiusLog.error(e.getMessage(), e);
+	        }
+        } 
+
         try
         {
-            rp = (RadiusPacket)c.newInstance();
-            //rp.setCode(code);
             rp.setIdentifier(identifier);
-            FreeRadiusFormat.setAttributeBytes(rp, bAttributes);
+            FreeRadiusFormat.setAttributeBytes(rp, buffer, (int) length);
+            //buffer.position(buffer.position() + (int) length);
         }
         catch (Exception e)
         {
@@ -170,20 +341,18 @@ public class PacketFactory
     
     /**
      * Parse multiple RadiusPackets from a data stream
-     * @param input The input data stream
+     * @param in The input data stream
      * @param packetCount Number of packets to expect
      * @return Returns an array of RadiusPackets
      * @throws RadiusException
-     */
-    public static RadiusPacket[] parse(DataInputStream input, int packetCount) throws RadiusException
+    public static RadiusPacket[] parse(InputStream in, int packetCount) throws RadiusException
     {
         RadiusPacket rp[] = new RadiusPacket[packetCount];
-        
         try
         {
             for (int i=0; i < packetCount; i++)
             {
-                rp[i] = parsePacket(input);
+            	rp[i] = parsePacket(in);
             }
         }
         catch (IOException e)
@@ -192,4 +361,53 @@ public class PacketFactory
         }
         return rp;
     }
+     */
+
+
+	public static RadiusPacket[] parse(ByteBuffer buffer, int packetCount)
+	{
+        RadiusPacket rp[] = new RadiusPacket[packetCount];
+        try
+        {
+            for (int i=0; i < packetCount; i++)
+            {
+            	rp[i] = parsePacket(buffer);
+            }
+        }
+        catch (RadiusException e)
+        {
+            RadiusLog.error(e.getMessage(), e);
+        }
+        return rp;
+	}
+
+    public static void poolStatus()
+    {
+		if (pktObjectPool == null) return;
+		System.err.println("PacketPool: active="+pktObjectPool.getNumActive()+" idle="+pktObjectPool.getNumIdle());
+    }
+    
+	public static void recycle(RadiusPacket[] rp) 
+	{
+		for (RadiusPacket p : rp)
+		{
+			AttributeList list = p.getAttributes();
+			list.clear();
+			
+			if (pktObjectPool != null && p.recyclable)
+			{
+				try
+				{
+					pktObjectPool.returnObject(new Integer(p.getCode()), p);
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		//poolStatus();
+		//AttributeFactory.poolStatus();
+	}
 }

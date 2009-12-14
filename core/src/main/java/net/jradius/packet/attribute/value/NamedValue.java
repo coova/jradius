@@ -21,9 +21,9 @@
 
 package net.jradius.packet.attribute.value;
 
-import net.jradius.log.RadiusLog;
-
 import java.io.Serializable;
+
+import net.jradius.log.RadiusLog;
 
 /**
  * The "Named Value" attribute value (Integer enumerated attributes)

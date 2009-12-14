@@ -68,10 +68,9 @@ public abstract class RadiusClientTransport
      */
     public RadiusResponse sendReceive(RadiusRequest p, int retries) throws RadiusException
     {
-    	InetAddress a = getRemoteInetAddress();
     	RadiusResponse r = null;
         int tries = 0;
-        
+
         if (p instanceof AccessRequest)
         {
             try

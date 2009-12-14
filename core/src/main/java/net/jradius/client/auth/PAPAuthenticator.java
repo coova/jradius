@@ -46,7 +46,7 @@ public class PAPAuthenticator extends RadiusAuthenticator
         password.setValue(RadiusUtils.encodePapPassword(
 	            password.getValue().getBytes(), 
 	            // Create an authenticator (AccessRequest just needs shared secret)
-	            p.createAuthenticator(null, client.getSharedSecret()), 
+	            p.createAuthenticator(null, 0, 0, client.getSharedSecret()), 
 	            client.getSharedSecret()));
     }
 

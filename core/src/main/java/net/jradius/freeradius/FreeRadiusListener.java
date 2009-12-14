@@ -21,9 +21,8 @@
 
 package net.jradius.freeradius;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.PacketFactory;
@@ -34,41 +33,92 @@ import net.jradius.server.JRadiusEvent;
 import net.jradius.server.ListenerRequest;
 import net.jradius.server.TCPListener;
 
+import org.apache.commons.pool.ObjectPool;
+import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.commons.pool.impl.SoftReferenceObjectPool;
+
 /**
  * FreeRADIUS/rlm_jradius Listener
  *
+ * @author David Bird
  * @author Gert Jan Verhoog
  */
 public class FreeRadiusListener extends TCPListener
 {
     private static final FreeRadiusFormat format = new FreeRadiusFormat();
-
-    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException 
+    
+    private ObjectPool requestObjectPool = new SoftReferenceObjectPool(new PoolableObjectFactory() 
     {
-        FreeRadiusRequest request = new FreeRadiusRequest();
-        DataInputStream in = new DataInputStream(inputStream);
+		public boolean validateObject(Object arg0) {
+			return true;
+		}
+		
+		public void passivateObject(Object arg0) throws Exception {
+		}
+		
+		public Object makeObject() throws Exception {
+			return new FreeRadiusRequest();
+		}
+		
+		public void destroyObject(Object arg0) throws Exception {
+		}
+		
+		public void activateObject(Object arg0) throws Exception {
+		}
+	});
+    
 
-        long nameLength  = RadiusFormat.readUnsignedInt(in);
+    public JRadiusEvent parseRequest(ListenerRequest listenerRequest, ByteBuffer notUsed, InputStream in) throws Exception 
+    {
+    	FreeRadiusRequest request = (FreeRadiusRequest) requestObjectPool.borrowObject();
+    	request.setBorrowedFromPool(requestObjectPool);
+
+        int totalLength  = (int) (RadiusFormat.readUnsignedInt(in) - 4);
+        int readOffset = 0;
+
+        ByteBuffer buffer = request.buffer_in;
+        
+        if (totalLength < 0 || totalLength > buffer.capacity()) 
+        {
+        	return null;
+        }
+        
+        buffer.clear();
+        byte[] payload = buffer.array();
+        
+        while (readOffset < totalLength)
+        {
+        	int result = in.read(payload, readOffset, totalLength - readOffset);
+        	if (result < 0) return null;
+        	readOffset += result;
+        }
+        
+        buffer.limit(totalLength);
+
+        long nameLength = RadiusFormat.getUnsignedInt(buffer);
 
         if (nameLength < 0 || nameLength > 1024) 
         {
             throw new RadiusException("KeepAlive rlm_jradius connection has been closed");
         }
         
-        byte[] nameBytes = new byte[(int)nameLength];
-        in.readFully(nameBytes);
+        byte[] nameBytes = new byte[(int) nameLength];
+        buffer.get(nameBytes);
         
-        int messageType = RadiusFormat.readUnsignedByte(in);
-        int packetCount = RadiusFormat.readUnsignedByte(in);
+        int messageType = RadiusFormat.getUnsignedByte(buffer);
+        int packetCount = RadiusFormat.getUnsignedByte(buffer);
 
-        RadiusPacket rp[] = PacketFactory.parse(in, packetCount);
+        RadiusPacket rp[] = PacketFactory.parse(buffer, packetCount);
         
-        long length  = RadiusFormat.readUnsignedInt(in);
-        byte[] bConfig = new byte[(int)length];
-        in.readFully(bConfig);
+        long length  = RadiusFormat.getUnsignedInt(buffer);
 
+        if (length > buffer.remaining())
+        {
+        	throw new RadiusException("bad length");
+        }
+        
         AttributeList configItems = new AttributeList();
-        format.unpackAttributes(configItems, bConfig, 0, (int)length);
+        format.unpackAttributes(configItems, buffer, (int) length);
         
         request.setConfigItems(configItems);
         request.setSender(new String(nameBytes));

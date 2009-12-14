@@ -21,6 +21,8 @@
 
 package net.jradius.client.auth;
 
+import java.nio.ByteBuffer;
+
 import javax.net.ssl.SSLException;
 
 import net.jradius.client.RadiusClient;
@@ -114,15 +116,20 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
             AttributeList list = tunnelChallenge.getAttributes();
             list.clear();
             
-            diameterFormat.unpackAttributes(list, in, 0, in.length);
+            ByteBuffer buffer = ByteBuffer.wrap(in);
+            
+            diameterFormat.unpackAttributes(list, buffer, buffer.limit());
             if (tunnelAuth instanceof EAPAuthenticator && tunnelChallenge.findAttribute(Attr_EAPMessage.TYPE) == null)
                 tunnelAuth.setupRequest(client, tunnelRequest);
             else
                 tunnelAuth.processChallenge(tunnelRequest, tunnelChallenge);
         }
         else tunnelChallenge = new AccessChallenge();
-        
-        putAppBuffer(diameterFormat.packAttributeList(tunnelRequest.getAttributes()));
+
+        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        diameterFormat.packAttributeList(tunnelRequest.getAttributes(), buffer, true);
+
+        putAppBuffer(buffer.array(), buffer.position());
         RadiusLog.debug("Tunnel Request:\n" + tunnelRequest.toString());
     }
 

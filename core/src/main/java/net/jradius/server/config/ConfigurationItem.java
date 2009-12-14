@@ -44,7 +44,7 @@ public abstract class ConfigurationItem
     protected String name;
     protected String description;
     protected String className;
-    protected Map    properties;
+    protected Map<String, String> properties;
 
     public ConfigurationItem(String name)
     {
@@ -88,13 +88,13 @@ public abstract class ConfigurationItem
         properties = getPropertiesFromConfig(config, root);
     }
     
-    public static HashMap getPropertiesFromConfig(XMLConfiguration config, HierarchicalConfiguration.Node root)
+    public static HashMap<String, String> getPropertiesFromConfig(XMLConfiguration config, HierarchicalConfiguration.Node root)
     {
-        HashMap map = new HashMap();
+        HashMap<String, String> map = new HashMap<String, String>();
         
-        List list = root.getChildren("property");
+        List<?> list = root.getChildren("property");
         HierarchicalConfiguration.Node node;
-        for (Iterator l = list.iterator(); l.hasNext();)
+        for (Iterator<?> l = list.iterator(); l.hasNext();)
         {
             node = (HierarchicalConfiguration.Node)l.next();
             config.setRoot(node);
@@ -122,7 +122,7 @@ public abstract class ConfigurationItem
         return name;
     }
 
-    public Map getProperties()
+    public Map<String, String> getProperties()
     {
         return properties;
     }
@@ -164,7 +164,7 @@ public abstract class ConfigurationItem
     /**
      * @param properties The properties to set.
      */
-    public void setProperties(Map properties)
+    public void setProperties(Map<String, String> properties)
     {
         this.properties = properties;
     }

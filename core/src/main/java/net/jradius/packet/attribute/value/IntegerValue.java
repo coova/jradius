@@ -20,11 +20,13 @@
 
 package net.jradius.packet.attribute.value;
 
-import net.jradius.log.RadiusLog;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+
+import net.jradius.log.RadiusLog;
+import net.jradius.packet.Format;
 
 /**
  * The Integer attribute value. Uses a Long as the underlying object since
@@ -91,17 +93,44 @@ public class IntegerValue extends AttributeValue
         }
     }
 
+    public void getBytes(ByteBuffer buffer)
+    {
+        if (integerValue != null)
+        {
+            long longValue = integerValue.longValue();
+            
+            if (length == 4)
+            {
+            	Format.putUnsignedByte(buffer, (int)((longValue >> 24) & 0xFF));
+            	Format.putUnsignedByte(buffer, (int)((longValue >> 16) & 0xFF));
+            }
+            
+            if (length >= 2)
+            {
+            	Format.putUnsignedByte(buffer, (int)((longValue >> 8) & 0xFF));
+            }
+
+        	Format.putUnsignedByte(buffer, (int)(longValue & 0xFF));
+        }
+    }
+
     public void setValue(byte[] b)
+    {
+        if (b == null) return;
+    	setValue(b, 0, b.length);
+    }
+    
+    public void setValue(byte[] b, int off, int len)
     {
         if (b == null) return;
         try
         {
-            switch(b.length)
+        	switch (len)
             {
                 case 1: // it's really a byte
                 {
                     length = 1;
-                    integerValue = new Long((int)b[0]&0xFF);
+                    integerValue = new Long((int)b[off]&0xFF);
                 }
                 break;
                 
@@ -109,8 +138,8 @@ public class IntegerValue extends AttributeValue
                 {
                     length = 2;
                     long longValue = 
-                        (long)((int)b[0] & 0xFF) <<  8 | 
-                        (long)((int)b[1] & 0xFF);
+                        (long)((int)b[off] & 0xFF) <<  8 | 
+                        (long)((int)b[off + 1] & 0xFF);
         
                     integerValue = new Long(longValue);
                 }
@@ -119,10 +148,10 @@ public class IntegerValue extends AttributeValue
                 case 4:
                 {
                     long longValue = 
-                        (long)((int)b[0] & 0xFF) << 24 | 
-                        (long)((int)b[1] & 0xFF) << 16 | 
-                        (long)((int)b[2] & 0xFF) <<  8 | 
-                        (long)((int)b[3] & 0xFF);
+                        (long)((int)b[off] & 0xFF) << 24 | 
+                        (long)((int)b[off + 1] & 0xFF) << 16 | 
+                        (long)((int)b[off + 2] & 0xFF) <<  8 | 
+                        (long)((int)b[off + 3] & 0xFF);
         
                     integerValue = new Long(longValue);
                 }

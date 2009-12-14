@@ -20,6 +20,9 @@
 
 package net.jradius.server;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 
@@ -33,10 +36,14 @@ public class KeepAliveListener extends JRadiusThread
     private Socket socket;
     private TCPListener listener;
     private BlockingQueue<ListenerRequest> queue;
+    private BufferedInputStream bin;
+    private BufferedOutputStream bout;
     
-    public KeepAliveListener(Socket socket, TCPListener listener, BlockingQueue<ListenerRequest> queue)
+    public KeepAliveListener(Socket socket, TCPListener listener, BlockingQueue<ListenerRequest> queue) throws IOException
     {
         this.socket = socket;
+    	this.bin = new BufferedInputStream(socket.getInputStream(), 4096);
+    	this.bout = new BufferedOutputStream(socket.getOutputStream(), 4096);
         this.listener = listener;
         this.queue = queue;
     }
@@ -49,17 +56,18 @@ public class KeepAliveListener extends JRadiusThread
         {
             while (true)
             {
-            	// connects to input stream, try to parse input and if succeeded create new TCPListenerRequest
-                ListenerRequest lr = new TCPListenerRequest(this.socket, this.listener, true);
+            	TCPListenerRequest lr = (TCPListenerRequest) listener.requestObjectPool.borrowObject();
+            	lr.setBorrowedFromPool(listener.requestObjectPool);
+            	lr.accept(this.socket, this.bin, this.bout, this.listener, true);
 
-                if (lr == null)
+                if (lr == null || lr.event == null)
                 {
                     RadiusLog.debug("JRadius/KeepAliveListener.run(): shutting down tcp socket listener");
                     break;
                 }
                 
-                //enqueue item to list so one of processors can start processing
-                while(true)
+                // enqueue item to list so one of processors can start processing
+                while (true)
                 {
                     try
                     {
@@ -113,7 +121,7 @@ public class KeepAliveListener extends JRadiusThread
 
             this.socket = null;
 
-            if(tryToInterrupt)
+            if (tryToInterrupt)
             {
                 try
                 {

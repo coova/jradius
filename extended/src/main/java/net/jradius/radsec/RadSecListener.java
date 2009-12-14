@@ -20,15 +20,16 @@
 
 package net.jradius.radsec;
 
-import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 import net.jradius.dictionary.Attr_SharedSecret;
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.AccountingRequest;
 import net.jradius.packet.NullResponse;
 import net.jradius.packet.PacketFactory;
+import net.jradius.packet.RadiusFormat;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.RadiusRequest;
 import net.jradius.packet.attribute.AttributeList;
@@ -55,13 +56,20 @@ public class RadSecListener extends TCPListener
 		this.port = 2083;
 	}
 	
-	public JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException 
+	public JRadiusEvent parseRequest(ListenerRequest listenerRequest, ByteBuffer byteBuffer, InputStream inputStream) throws IOException, RadiusException 
     {
         RadSecRequest request = new RadSecRequest();
-        DataInputStream in = new DataInputStream(inputStream);
-
-        RadiusRequest req = (RadiusRequest) PacketFactory.parseUDP(in);
+        ByteBuffer buffer = request.buffer_in;
         
+        int code = RadiusFormat.readUnsignedByte(inputStream);
+        int identifier = RadiusFormat.readUnsignedByte(inputStream);
+        int length = RadiusFormat.readUnsignedShort(inputStream);
+
+        buffer.clear();
+        buffer.limit(inputStream.read(buffer.array(), 0, length));
+        
+        RadiusRequest req = (RadiusRequest) PacketFactory.parseUDP(code, identifier, length, buffer);
+
         if (req == null) 
         {
             throw new RadiusException("RadSec connection has been closed");

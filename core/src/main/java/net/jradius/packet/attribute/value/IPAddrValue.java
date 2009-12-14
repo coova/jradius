@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
 
 import net.jradius.log.RadiusLog;
 
@@ -83,6 +84,17 @@ public class IPAddrValue extends AttributeValue
         }
     }
     
+    public void getBytes(ByteBuffer buffer)
+    {
+        if (inetAddressValue != null)
+        {
+        	byte[] a = inetAddressValue.getAddress();
+        	if (a.length != getLength())
+        		throw new RuntimeException("Wrong IP address size for attribute");
+        	buffer.put(a);
+        }
+    }
+    
     public void setValue(byte[] b)
     {
         if (b == null) return;
@@ -91,6 +103,24 @@ public class IPAddrValue extends AttributeValue
         	if (b.length != getLength())
         		throw new RuntimeException("Wrong IP address size for attribute");
             inetAddressValue = InetAddress.getByAddress(b);
+        }
+        catch (Exception e)
+        {
+        }
+    }
+    
+    public void setValue(byte[] b, int off, int len)
+    {
+        if (b == null) return;
+        try
+        {
+        	if (len != getLength())
+        	{
+        		throw new RuntimeException("Wrong IP address size for attribute");
+        	}
+        	byte[] bf = new byte[len];
+        	System.arraycopy(b, off, bf, 0, len);
+            inetAddressValue = InetAddress.getByAddress(bf);
         }
         catch (Exception e)
         {

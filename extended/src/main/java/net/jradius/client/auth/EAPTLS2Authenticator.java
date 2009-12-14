@@ -240,31 +240,33 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
                 return tlsResponse(flags, null);
             }
 
-            switch(state)
+            switch (state)
             {
-                case TLS_CLIENT_HELLO:
+                case 0:
                 {
                 	ByteArrayOutputStream out = new ByteArrayOutputStream();
-                    handler.connect(out, verifyer);
+                	handler.connect(out, verifyer);
                     data = out.toByteArray();
-                    state = TLS_APP_DATA;
+                    state = 1;
                 }
                 break;
 
-                /*
-                case TLS_SERVER_HELLO:
+                case 1:
                 {
                     receivedEAP.flip();
+                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), receivedEAP.position(), receivedEAP.remaining());
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    handler.serverHello(new ByteArrayInputStream(receivedEAP.array(), receivedEAP.position(), receivedEAP.remaining()), os);
+                    short s = handler.updateConnectState(is, os);
                     data = os.toByteArray();
-                    state = TLS_APP_DATA;
                     receivedEAP.clear();
+                    if (s == TlsProtocolHandler.CS_DONE) 
+                    {
+                    	state = 2;
+                    }
                 }
                 break;
-                */
-                
-                case TLS_APP_DATA:
+
+                case 2:
                 {
                     receivedEAP.flip();
                     ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), receivedEAP.position(), receivedEAP.remaining());
@@ -289,12 +291,6 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
                     
                     data = os.toByteArray();
                     receivedEAP.clear();
-                }
-                break;
-                
-                default:
-                {
-                	RadiusLog.error("-----\n\nUnhandled EAP-TLS packet\n\n------\n");
                 }
                 break;
             }

@@ -27,7 +27,6 @@ import net.jradius.exception.RadiusException;
 import net.jradius.exception.RadiusSecurityException;
 import net.jradius.handler.chain.JRCommand;
 import net.jradius.log.RadiusLog;
-import net.jradius.server.event.HandlerLogEvent;
 import net.jradius.session.JRadiusSession;
 import net.jradius.session.JRadiusSessionManager;
 
@@ -78,54 +77,61 @@ public abstract class RadiusProcessor extends Processor
         int result = JRadiusServer.RLM_MODULE_NOOP;
         boolean exceptionThrown = false;
         
-        RadiusLog.debug("Processing JRadiusRequest: " + request.toString());
+        //RadiusLog.debug("Processing JRadiusRequest: " + request.toString());
         
         if (handlers == null) return result;
 
         JRadiusSessionManager sessionManager = JRadiusSessionManager.getManager(request.getSender());
+        JRadiusSession session = null;
 
+        /*
         if (sessionManager == null) 
         {
             RadiusLog.error("No JRadiusSessionManager for request: " + request.toString());
             return result;
         }
-
-        JRadiusSession session = request.getSession();
+         */
         
-        if (session == null)
+        if (sessionManager != null)
         {
-            try
-            {
-                session = sessionManager.getSession(request);
-            }
-            catch (RadiusException e)
-            {
-                String error = e.getMessage();
-                String mesg = "Rejecting request";
+        	session = request.getSession();
+        
+	        if (session == null)
+	        {
+	            try
+	            {
+	                session = sessionManager.getSession(request);
+	            }
+	            catch (RadiusException e)
+	            {
+	                String error = e.getMessage();
+	                String mesg = "Rejecting request";
+	
+	                try
+	                {
+	                    mesg = mesg + ": " + request.getRequestPacket().toString();
+	                }
+	                catch (RadiusException e2)
+	                {
+	                }
+	
+	                RadiusLog.warn(mesg + ": " + error);
+	                RadiusLog.problem(request, null, e, mesg);
+	                return JRadiusServer.RLM_MODULE_REJECT;
+	            }
+	        }
+	
+	        if (session == null)
+	        {
+	            RadiusLog.error("Unable to create session");
+	            return JRadiusServer.RLM_MODULE_REJECT;
+	        }
 
-                try
-                {
-                    mesg = mesg + ": " + request.getRequestPacket().toString();
-                }
-                catch (RadiusException e2)
-                {
-                }
+	        request.setSession(session);
 
-                RadiusLog.warn(mesg + ": " + error);
-                RadiusLog.problem(request, null, e, mesg);
-                return JRadiusServer.RLM_MODULE_REJECT;
-            }
+	        sessionManager.lock(session);
         }
-
-        if (session == null)
-        {
-            RadiusLog.error("Unable to create session");
-            return JRadiusServer.RLM_MODULE_REJECT;
-        }
-
-        request.setSession(session);
-
-        sessionManager.lock(session);
+        
         try
         {
             for (JRCommand handler : handlers)
@@ -187,13 +193,18 @@ public abstract class RadiusProcessor extends Processor
             }
            
             // Send a log-event to the event-dispatcher
-            HandlerLogEvent log = new HandlerLogEvent(request, request.getSessionKey(), result);
-            getEventDispatcher().post(log);
+
+            //HandlerLogEvent log = new HandlerLogEvent(request, request.getSessionKey(), result);
+            //getEventDispatcher().post(log);
         }
         finally
         {
-        	sessionManager.unlock(session);
+        	if (session != null)
+        	{
+        		sessionManager.unlock(session);
+        	}
         }
+        
         return result;
     }
 }

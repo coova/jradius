@@ -24,4 +24,9 @@ package net.jradius.packet;
  */
 public abstract class CoAResponse extends AccountingResponse
 {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 }

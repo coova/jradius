@@ -170,7 +170,8 @@ public final class RadiusUtils
             byte identifier,
             short length,
             byte[] requestAuthenticator,
-            byte[] responseAttributeBytes) 
+            byte[] responseAttributeBytes,
+            int responseAttributeLength) 
     {
     	IMessageDigest md5 = MD5.getMD5();
                                                                                                                   
@@ -179,7 +180,7 @@ public final class RadiusUtils
         md5.update((byte)(length >> 8));
         md5.update((byte)(length & 0xff));
         md5.update(requestAuthenticator, 0, requestAuthenticator.length);
-        md5.update(responseAttributeBytes, 0, responseAttributeBytes.length);
+        md5.update(responseAttributeBytes, 0, responseAttributeLength);
         md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
                                                                                                                   
         return md5.digest();
@@ -199,24 +200,21 @@ public final class RadiusUtils
             byte code,
             byte identifier,
             int length,
-            byte[] requestAttributes) 
+            byte[] requestAttributes,
+            int attributesOffset,
+            int attributesLength) 
     {
     	IMessageDigest md5 = MD5.getMD5();
     	
-        byte [] requestAuthenticator = new byte [16];
+        byte[] requestAuthenticator = new byte[16];
                                                                                                                   
-        for (int i = 0; i < 16; i++) 
-        {
-                requestAuthenticator[i] = 0;
-        }
         md5.reset();
-                                                                                                                  
         md5.update((byte)code);
         md5.update((byte)identifier);
         md5.update((byte)(length >> 8));
         md5.update((byte)(length & 0xff));
         md5.update(requestAuthenticator, 0, requestAuthenticator.length);
-        md5.update(requestAttributes, 0, requestAttributes.length);
+        md5.update(requestAttributes, attributesOffset, attributesLength);
         md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
                                                                                                                   
         return md5.digest();

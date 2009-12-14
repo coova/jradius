@@ -20,8 +20,6 @@
 
 package net.jradius.packet;
 
-import java.util.Arrays;
-
 import net.jradius.client.RadiusClient;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.util.RadiusUtils;
@@ -64,7 +62,7 @@ public class AccessRequest extends RadiusRequest
      * Creates an Access-Request Authenticator
      * @see net.jradius.packet.RadiusPacket#createAuthenticator(byte[])
      */
-    public byte[] createAuthenticator(byte[] attributes, String sharedSecret) 
+    public byte[] createAuthenticator(byte[] attributes, int off, int len, String sharedSecret) 
     {
     	authenticator = RadiusUtils.makeRFC2865RequestAuthenticator(sharedSecret);
     	return authenticator;

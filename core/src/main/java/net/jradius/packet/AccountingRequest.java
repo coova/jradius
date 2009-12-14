@@ -21,6 +21,7 @@
 
 package net.jradius.packet;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import net.jradius.client.RadiusClient;
@@ -30,7 +31,6 @@ import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.packet.attribute.value.NamedValue;
 import net.jradius.util.RadiusUtils;
-
 
 
 /**
@@ -108,20 +108,22 @@ public class AccountingRequest extends RadiusRequest
      * Creates a Accounting-Request Authenticator
      * @see net.jradius.packet.RadiusPacket#createAuthenticator(byte[])
      */
-    public byte[] createAuthenticator(byte[] attributes, String sharedSecret) 
+    public byte[] createAuthenticator(byte[] attributes, int offset, int length, String sharedSecret) 
     {
         this.authenticator = RadiusUtils.makeRFC2866RequestAuthenticator(sharedSecret,
-                (byte)getCode(), (byte)getIdentifier(), attributes.length + RADIUS_HEADER_LENGTH, attributes);
+        		(byte)getCode(), (byte)getIdentifier(), attributes.length + RADIUS_HEADER_LENGTH, attributes, offset, length);
 
         return this.authenticator;
     }
 
     public boolean verifyAuthenticator(String sharedSecret)
     {
-        byte[] attributes = new RadiusFormat().packAttributeList(getAttributes());
+    	ByteBuffer buffer = ByteBuffer.allocate(1500);
+    	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
 
         byte[] newauth = RadiusUtils.makeRFC2866RequestAuthenticator(sharedSecret,
-                (byte)getCode(), (byte)getIdentifier(), attributes.length + RADIUS_HEADER_LENGTH, attributes);
+                (byte)getCode(), (byte)getIdentifier(), buffer.position() + RADIUS_HEADER_LENGTH, 
+                buffer.array(), 0, buffer.position());
 
         return Arrays.equals(newauth, this.authenticator);
     }

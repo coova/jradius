@@ -24,6 +24,8 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
@@ -45,6 +47,9 @@ public class RadSecClientTransport extends RadiusClientTransport
 	private KeyManager keyManagers[];
 	private TrustManager trustManagers[];
 	
+    protected final ByteBuffer buffer_in;
+    protected final ByteBuffer buffer_out;
+
 	public RadSecClientTransport(KeyManager keyManager, TrustManager trustManager) 
 	{
 		this(new KeyManager[] { keyManager } , new TrustManager[] { trustManager });
@@ -54,6 +59,12 @@ public class RadSecClientTransport extends RadiusClientTransport
 	{
 		this.keyManagers = keyManagers;
 		this.trustManagers = trustManagers;
+		
+    	buffer_in = ByteBuffer.allocate(25000);
+    	buffer_in.order(ByteOrder.BIG_ENDIAN);
+
+    	buffer_out = ByteBuffer.allocate(25000);
+    	buffer_out.order(ByteOrder.BIG_ENDIAN);
 	}
 	
 	private void initialize()
@@ -96,6 +107,8 @@ public class RadSecClientTransport extends RadiusClientTransport
 		}
 	}
 
+	
+	
 	protected RadiusResponse receive(RadiusRequest req) throws Exception {
         RadiusResponse res = null;
         DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -104,7 +117,14 @@ public class RadSecClientTransport extends RadiusClientTransport
             if (statusListener != null)
         		statusListener.onBeforeReceive(this);
             
-            res = (RadiusResponse) PacketFactory.parseUDP(in);
+            int code = RadiusFormat.readUnsignedByte(in);
+            int identifier = RadiusFormat.readUnsignedByte(in);
+            int length = RadiusFormat.readUnsignedShort(in);
+
+            buffer_in.clear();
+            buffer_in.limit(in.read(buffer_in.array(), 0, length));
+            
+            res = (RadiusResponse) PacketFactory.parseUDP(code, identifier, length, buffer_in);
 
             if (statusListener != null)
         		statusListener.onAfterReceive(this, res);
@@ -123,11 +143,14 @@ public class RadSecClientTransport extends RadiusClientTransport
         RadiusFormat format = RadiusFormat.getInstance();
         OutputStream out = sock.getOutputStream();
 
+        buffer_out.clear();
+        format.packPacket(req, "radsec", buffer_out, true);
+
         synchronized (out) {
             if (statusListener != null)
         		statusListener.onBeforeSend(this, req);
 
-        	out.write(format.packPacket(req, "radsec", true));
+        	out.write(buffer_out.array(), 0, buffer_out.position());
 
         	if (statusListener != null)
         		statusListener.onAfterSend(this);

@@ -115,7 +115,7 @@ public class TlsProtocolHandler
 
     private static final short CS_SERVER_CHANGE_CIPHER_SPEC_RECEIVED = 11;
 
-    private static final short CS_DONE = 12;
+    public static final short CS_DONE = 12;
 
 
     protected static final short AP_close_notify = 0;
@@ -560,11 +560,11 @@ public class TlsProtocolHandler
                                     boolean isCertReq = (connection_state == CS_CERTIFICATE_REQUEST_RECEIVED);
                                     connection_state = CS_SERVER_HELLO_DONE_RECEIVED;
 
-                                    if (isCertReq)
-                                    {
-                                        sendClientCertificate();
-                                    }
-
+                                    //if (isCertReq)
+                                    //{
+                                    	sendClientCertificate();
+                                    //}
+                                    
                                     /*
                                     * Send the client key exchange message, depending
                                     * on the key exchange we are using in our
@@ -651,7 +651,7 @@ public class TlsProtocolHandler
                                     }
 
                                     connection_state = CS_CLIENT_KEY_EXCHANGE_SEND;
-
+                                    
                                     /*
                                     * Now, we send change cipher state
                                     */
@@ -1267,6 +1267,17 @@ public class TlsProtocolHandler
         }
     }
     
+    public short updateConnectState(ByteArrayInputStream is, ByteArrayOutputStream os) throws IOException
+    {
+    	rs.setInputStream(is);
+    	rs.setOutputStream(os);
+    	while (connection_state != CS_DONE && rs.hasMore())
+    	{
+    		rs.readData();
+    	}
+    	return connection_state;
+    }
+    
     public byte[] readApplicationData(ByteArrayInputStream is, ByteArrayOutputStream os) throws IOException
     {
     	/*
@@ -1313,6 +1324,7 @@ public class TlsProtocolHandler
             }
             catch (RuntimeException e)
             {
+            	e.printStackTrace();
                 if (!this.closed)
                 {
                     this.failWithError(AL_fatal, AP_internal_error);

@@ -21,11 +21,10 @@
 
 package net.jradius.packet;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import net.jradius.log.RadiusLog;
@@ -38,20 +37,25 @@ import net.jradius.packet.attribute.RadiusAttribute;
  */
 public abstract class Format
 {
-    abstract public void packAttribute(OutputStream out, RadiusAttribute a) throws IOException;
+	//abstract public void packAttribute(OutputStream out, RadiusAttribute a) throws IOException;
 
-    abstract public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException;
+    abstract public void packAttribute(ByteBuffer buffer, RadiusAttribute a);
+
+    //abstract public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException;
+    
+    abstract public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException;
     
     /**
      * Packs an AttributeList into a byte array
      * @param attrs The AttributeList to pack
      * @return Returns the packed AttributeList
-     */
     public byte[] packAttributeList(AttributeList attrs)
     {
     	return packAttributeList(attrs, false);
     }
+     */
     
+    /*
     public byte[] packAttributeList(AttributeList attrs, boolean onWire)
     {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -88,12 +92,30 @@ public abstract class Format
         
         return out.toByteArray();
     }
+    */
+
+    public void packAttributeList(AttributeList attrs, ByteBuffer buffer, boolean onWire)
+    {
+        Iterator<RadiusAttribute> iterator = attrs.getAttributeList().iterator();
+
+        while (iterator.hasNext())
+        {
+        	RadiusAttribute attr = iterator.next();
+
+        	if (onWire && attr.getType() > 1024)
+        	{
+        		continue;
+        	}
+                
+        	packAttribute(buffer, attr);
+        }
+    }
 
     protected class AttributeParseContext
     {
-        public int attributeType = 0;
-        public int attributeLength = 0;
-        public int attributeOp = RadiusAttribute.Operator.EQ;
+        public long attributeType = 0;
+        public long attributeLength = 0;
+        public long attributeOp = RadiusAttribute.Operator.EQ;
         public byte[] attributeValue = null;
         public int headerLength = 0;
         public int vendorNumber = -1;
@@ -105,7 +127,6 @@ public abstract class Format
      * @param attrs The AttributeList to put unpacked attributes
      * @param bytes The bytes to be unpacked
      * @param bLength The length of the bytes to be unpacked
-     */
     public void unpackAttributes(AttributeList attrs, byte[] bytes, int bOffset, int bLength) 
     {
     	InputStream attributeInput = new ByteArrayInputStream(bytes, bOffset, bLength);
@@ -120,8 +141,8 @@ public abstract class Format
                 
                 RadiusAttribute attribute = null;
                 ctx.attributeValue = new byte[(int)(ctx.attributeLength - ctx.headerLength)];
-                attributeInput.read(ctx.attributeValue, 0, ctx.attributeLength - ctx.headerLength);
-                attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeValue, ctx.attributeOp);
+                attributeInput.read(ctx.attributeValue, 0, (int)(ctx.attributeLength - ctx.headerLength));
+                attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeValue, (int) ctx.attributeOp);
 
                 if (attribute == null)
                 {
@@ -137,7 +158,7 @@ public abstract class Format
                     pos += ctx.padding; 
                     while (ctx.padding-- > 0) 
                     {
-                            readUnsignedByte(attributeInput);
+                    	readUnsignedByte(attributeInput);
                     }
                 }
                 
@@ -150,15 +171,70 @@ public abstract class Format
             RadiusLog.warn(e.getMessage(), e);
         }
     }
+     */
+
+    public void unpackAttributes(AttributeList attrs, ByteBuffer buffer, int length) 
+    {
+    	AttributeParseContext ctx = new AttributeParseContext();
+		int pos = 0;
+
+    	try
+        {
+    		while (pos < length)
+        	{
+        		pos += unpackAttributeHeader(buffer, ctx);
+                
+        		RadiusAttribute attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeLength, (int) ctx.attributeOp, buffer);
+
+                if (attribute == null)
+                {
+                	RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
+                }
+                else
+                {
+                    attrs._add(attribute, false);
+                }
+
+                if (ctx.padding > 0) 
+                { 
+                    pos += ctx.padding; 
+                    while (ctx.padding-- > 0) 
+                    {
+                    	getUnsignedByte(buffer);
+                    }
+                }
+                
+                pos += ctx.attributeLength;
+            }
+        }
+        catch (IOException e)
+        {
+            RadiusLog.warn(e.getMessage(), e);
+        }
+    }
 
     public static long readUnsignedInt(InputStream in) throws IOException
     {
-        return ((long)readUnsignedShort(in) << 16) | (long)readUnsignedShort(in);
+    	byte[] b = new byte[4];
+    	in.read(b);
+    	
+    	long value = b[3] & 0xFF;
+    	value |= (b[2] & 0xFF) << 8;
+    	value |= (b[1] & 0xFF) << 16;
+    	value |= (b[0] & 0xFF) << 24;
+
+    	return value;
     }
     
     public static int readUnsignedShort(InputStream in) throws IOException
     {
-        return (readUnsignedByte(in) << 8) | readUnsignedByte(in);
+    	byte[] b = new byte[2];
+    	in.read(b);
+
+    	int value = b[1] & 0xFF;
+    	value |= (b[0] & 0xFF) << 8;
+    	
+    	return value;
     }
     
     public static int readUnsignedByte(InputStream in) throws IOException
@@ -181,5 +257,66 @@ public abstract class Format
     {
         writeUnsignedShort(out, (int)(i >> 16) & 0xFFFF);
         writeUnsignedShort(out, (int)i & 0xFFFF);
+    }
+    
+    public static short getUnsignedByte (ByteBuffer bb)
+    {
+       return ((short)(bb.get() & 0xff));
+    }
+
+    public static void putUnsignedByte (ByteBuffer bb, int value)
+    {
+       bb.put ((byte)(value & 0xff));
+    }
+
+    public static short getUnsignedByte (ByteBuffer bb, int position)
+    {
+       return ((short)(bb.get (position) & (short)0xff));
+    }
+
+    public static void putUnsignedByte (ByteBuffer bb, int position,
+       int value)
+    {
+       bb.put (position, (byte)(value & 0xff));
+    }
+
+    public static int getUnsignedShort (ByteBuffer bb)
+    {
+       return (bb.getShort() & 0xffff);
+    }
+
+    public static void putUnsignedShort (ByteBuffer bb, int value)
+    {
+       bb.putShort ((short)(value & 0xffff));
+    }
+
+    public static int getUnsignedShort (ByteBuffer bb, int position)
+    {
+       return (bb.getShort (position) & 0xffff);
+    }
+
+    public static void putUnsignedShort (ByteBuffer bb, int position, int value)
+    {
+       bb.putShort (position, (short)(value & 0xffff));
+    }
+
+    public static long getUnsignedInt (ByteBuffer bb)
+    {
+       return ((long)bb.getInt() & 0xffffffffL);
+    }
+
+    public static void putUnsignedInt (ByteBuffer bb, long value)
+    {
+       bb.putInt ((int)(value & 0xffffffffL));
+    }
+
+    public static long getUnsignedInt (ByteBuffer bb, int position)
+    {
+       return ((long)bb.getInt (position) & 0xffffffffL);
+    }
+
+    public static void putUnsignedInt (ByteBuffer bb, int position, long value)
+    {
+       bb.putInt (position, (int)(value & 0xffffffffL));
     }
 }

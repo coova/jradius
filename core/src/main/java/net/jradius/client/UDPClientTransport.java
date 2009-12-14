@@ -23,6 +23,7 @@ package net.jradius.client;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
@@ -72,8 +73,9 @@ public class UDPClientTransport extends RadiusClientTransport
             RadiusLog.warn("RadiusClient retrying request (attempt " + attempt + ")...");
         }
 
-        byte[] b = format.packPacket(req, sharedSecret, true);
-        DatagramPacket request = new DatagramPacket(b, b.length, getRemoteInetAddress(), port);
+        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        format.packPacket(req, sharedSecret, buffer, true);
+        DatagramPacket request = new DatagramPacket(buffer.array(), buffer.position(), getRemoteInetAddress(), port);
         socket.send(request);
 
         if (statusListener != null)

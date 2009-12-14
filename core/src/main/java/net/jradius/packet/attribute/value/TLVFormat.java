@@ -20,9 +20,7 @@
 
 package net.jradius.packet.attribute.value;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import net.jradius.packet.Format;
 import net.jradius.packet.attribute.RadiusAttribute;
@@ -37,7 +35,8 @@ public class TLVFormat extends Format
 		this.vendorId = vendor;
 		this.parentType = pt;
 	}
-	
+
+	/*
 	@Override
 	public void packAttribute(OutputStream out, RadiusAttribute a) throws IOException 
 	{
@@ -55,5 +54,27 @@ public class TLVFormat extends Format
         ctx.vendorNumber = (int) vendorId;
         ctx.headerLength = 2;
 		return 0;
+	}
+*/
+	
+	public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) 
+	{
+        ctx.attributeType = (getUnsignedByte(buffer) << 8) | (parentType & 0xFF);
+        ctx.attributeLength = getUnsignedByte(buffer);
+        ctx.vendorNumber = (int) vendorId;
+        ctx.headerLength = 2;
+        
+        ctx.attributeLength -= ctx.headerLength;
+        
+		return 2;
+	}
+
+	@Override
+	public void packAttribute(ByteBuffer buffer, RadiusAttribute a) 
+	{
+        AttributeValue attributeValue = a.getValue();
+        putUnsignedByte(buffer, (int) a.getType());
+        putUnsignedByte(buffer, attributeValue.getLength() + 2);
+        attributeValue.getBytes(buffer);
 	}
 }

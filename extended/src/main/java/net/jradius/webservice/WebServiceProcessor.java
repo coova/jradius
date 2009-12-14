@@ -41,7 +41,6 @@ import net.jradius.server.ListenerRequest;
 import net.jradius.server.Processor;
 import net.jradius.server.TCPListenerRequest;
 
-
 /**
  * JRadius Relay Request Processor
  * 
@@ -59,7 +58,7 @@ public class WebServiceProcessor extends Processor
 	protected static final byte[] unauthorized = toHTTPBytes(" 401 Unauthorized\r\n");
 	private boolean wantClientCertificates = true;
     
-	protected void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException
+	protected void processRequest(ListenerRequest listenerRequest) throws Exception
 	{
 		Socket socket = ((TCPListenerRequest)listenerRequest).getSocket();
 		socket.setSoTimeout(15000); // 15 second read timeout

@@ -21,6 +21,8 @@
 
 package net.jradius.server;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,34 +30,55 @@ import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
 
-import net.jradius.exception.RadiusException;
-
 /**
  * @author David Bird
  */
 public class TCPListenerRequest extends ListenerRequest
 {
     private Socket socket;
-    
-    public TCPListenerRequest(Socket socket, Listener listener, boolean getEvent) throws IOException, RadiusException
+    private InputStream bin;
+    private OutputStream bout;
+
+    public TCPListenerRequest()
     {
-    	super(listener);
+    }
+    
+    public TCPListenerRequest(Socket socket, Listener listener, boolean getEvent) throws Exception
+    {
+    	accept(socket, listener, getEvent);
+    }
+    
+    public TCPListenerRequest(Socket socket, InputStream bin, OutputStream bout, Listener listener, boolean getEvent) throws Exception
+    {
+    	accept(socket, bin, bout, listener, getEvent);
+    }
+    
+    public void accept(Socket socket, Listener listener, boolean getEvent) throws Exception
+    {
+    	accept(socket, new BufferedInputStream(socket.getInputStream(), 4096), new BufferedOutputStream(socket.getOutputStream(), 4096), listener, getEvent);
+    }
+    
+    public void accept(Socket socket, InputStream bin, OutputStream bout, Listener listener, boolean getEvent) throws Exception
+    {
+    	this.listener = listener;
     	this.socket = socket;
+    	this.bin = bin;
+    	this.bout = bout;
         
         if (getEvent)
         {
             this.event = getEventFromListener();
         }
-    }
-    
-    public InputStream getInputStream() throws IOException
+	}
+
+	public InputStream getInputStream() throws IOException
     {
-        return socket.getInputStream();
+    	return bin;
     }
 
     public OutputStream getOutputStream() throws IOException
     {
-        return socket.getOutputStream();
+    	return bout;
     }
 
 	public Map<String, String> getServerVariables() 

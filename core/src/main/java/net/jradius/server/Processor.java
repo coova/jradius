@@ -21,16 +21,15 @@
 
 package net.jradius.server;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-import net.jradius.exception.RadiusException;
 import net.jradius.handler.chain.JRCommand;
 import net.jradius.log.RadiusLog;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.commons.pool.ObjectPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -66,7 +65,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
         queue = q;
     }
 
-    public BlockingQueue getRequestQueue()
+    public BlockingQueue<ListenerRequest> getRequestQueue()
     {
         return queue;
     }
@@ -91,7 +90,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
         return requestHandlers;
     }
 
-    protected abstract void processRequest(ListenerRequest listenerRequest) throws IOException, RadiusException;
+    protected abstract void processRequest(ListenerRequest listenerRequest) throws Exception;
 
     public void run()
     {
@@ -107,6 +106,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
             }
             catch (Throwable e)
             {
+            	e.printStackTrace();
                 RadiusLog.error("Error in radius task Processor", e);
             }
         }
@@ -114,16 +114,16 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
 
     public void process() throws Exception
     {
-        Object queueElement;
+        Object queueElement = null;
 
-        while(true)
+        while (queueElement == null)
         {
             try
             {
                 queueElement = this.queue.take();
                 break;
             }
-            catch(InterruptedException e)
+            catch (InterruptedException e)
             {
             }
         }
@@ -132,8 +132,21 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
         {
             throw new IllegalArgumentException("Expected ListenerRequest but found " + queueElement.getClass().getName());
         }
-        
-        processRequest((ListenerRequest)queueElement);
+
+		ListenerRequest request = (ListenerRequest) queueElement;
+
+		try
+		{
+			processRequest(request);
+		}
+		finally
+		{
+			ObjectPool pool = request.getBorrowedFromPool();
+	        if (pool != null)
+	        {
+	        	pool.returnObject(request);
+	        }
+		}
     }
 
     public ApplicationContext getApplicationContext()

@@ -20,9 +20,6 @@
 
 package net.jradius.packet.attribute.value;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Serializable;
 import java.net.InetAddress;
 
 /**

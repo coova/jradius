@@ -28,7 +28,12 @@ import net.jradius.packet.attribute.AttributeList;
  */
 public abstract class DHCPPacket extends RadiusPacket
 {
-    public DHCPPacket() 
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public DHCPPacket() 
     { 
         super();
     }

@@ -34,7 +34,7 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void error(String message)
     {
-        if(message != null)
+    	if (message != null)
         {
             this.log.error(message);
         }
@@ -69,7 +69,7 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void warn(String message, Throwable e)
     {
-        if(message != null)
+    	if (message != null)
         {
             if(e != null)
             {
@@ -80,7 +80,7 @@ public class Log4JRadiusLogger implements RadiusLogger
                 this.log.warn(message);
             }
         }
-        else if(e != null)
+    	else if (e != null)
         {
             this.log.warn("", e);
         }
@@ -88,7 +88,7 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void info(String message)
     {
-        if(message != null)
+        if (message != null)
         {
             this.log.info(message);
         }
@@ -96,18 +96,18 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void info(String message, Throwable e)
     {
-        if(message != null)
+    	if (message != null)
         {
-            if(e != null)
+    		if (e != null)
             {
-                this.log.info(message, e);
+            	this.log.info(message, e);
             }
             else
             {
                 this.log.info(message);
             }
         }
-        else if(e != null)
+    	else if (e != null)
         {
             this.log.info("", e);
         }
@@ -115,12 +115,12 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void debug(String message)
     {
-        if(this.log.isDebugEnabled() == false)
+    	if (this.log.isDebugEnabled() == false)
         {
             return;
         }
 
-        if(message != null)
+    	if (message != null)
         {
             this.log.debug(message);
         }
@@ -128,14 +128,14 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void debug(String message, Throwable e)
     {
-        if(this.log.isDebugEnabled() == false)
+    	if (this.log.isDebugEnabled() == false)
         {
             return;
         }
 
-        if(message != null)
+    	if (message != null)
         {
-            if(e != null)
+    		if (e != null)
             {
                 this.log.debug(message, e);
             }

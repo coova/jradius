@@ -20,10 +20,15 @@
 
 package net.jradius.freeradius;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusRequest;
 import net.jradius.server.JRadiusServer;
+
+import org.apache.commons.pool.ObjectPool;
 
 
 /**
@@ -33,11 +38,31 @@ import net.jradius.server.JRadiusServer;
  */
 public class FreeRadiusRequest extends JRadiusRequest
 {
-    private int type;
-    private RadiusPacket packets[];
-    private AttributeList configItems;
-    private int returnValue = JRadiusServer.RLM_MODULE_UPDATED;
+	private static final long serialVersionUID = 1L;
+	
+	protected int type;
+    
+	protected RadiusPacket packets[];
+    protected AttributeList configItems;
+    
+    protected int returnValue = JRadiusServer.RLM_MODULE_UPDATED;
+    
+    protected ObjectPool borrowedFromPool;
 
+    protected final ByteBuffer buffer_in;
+    protected final ByteBuffer buffer_out;
+
+    public FreeRadiusRequest()
+    {
+    	super();
+    	
+    	buffer_in = ByteBuffer.allocate(25000);
+    	buffer_in.order(ByteOrder.BIG_ENDIAN);
+
+    	buffer_out = ByteBuffer.allocate(25000);
+    	buffer_out.order(ByteOrder.BIG_ENDIAN);
+    }
+    
     /**
      * @return the "config_items" of the request (FreeRADIUS "control"
      * 			attributes)
@@ -122,4 +147,12 @@ public class FreeRadiusRequest extends JRadiusRequest
             default:                                 return "UNKNOWN";
         }
     }
+
+	public ObjectPool getBorrowedFromPool() {
+		return borrowedFromPool;
+	}
+
+	public void setBorrowedFromPool(ObjectPool borrowedFromPool) {
+		this.borrowedFromPool = borrowedFromPool;
+	}
 }

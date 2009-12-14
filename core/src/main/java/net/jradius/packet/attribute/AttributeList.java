@@ -32,7 +32,7 @@ import net.jradius.exception.UnknownAttributeException;
 
 /**
  * Represents the Attribute List of a packet. Supports singleton
- * and lists of attribute values (building packets with serverl
+ * and lists of attribute values (building packets with several
  * of the same attribute).
  *
  * @author David Bird
@@ -146,7 +146,7 @@ public class AttributeList implements Serializable
      */
     public void remove(RadiusAttribute a)
     {
-        remove(a.getFormattedType());
+    	remove(a.getFormattedType());
     }
 
     /**
@@ -157,33 +157,35 @@ public class AttributeList implements Serializable
     {
         Long key = new Long(attributeType);
         Object o = attributeMap.remove(key);
-        if (o instanceof LinkedList)
+        if (o instanceof LinkedList<?>)
         {
-        		for (Iterator i = ((LinkedList)o).iterator(); i.hasNext(); )
-        		{
-        			removeFromList(i.next());
-        		}
+        	for (Iterator<?> i = ((LinkedList<?>) o).iterator(); i.hasNext(); )
+        	{
+        		removeFromList(i.next());
+        	}
         }
         else removeFromList(o);
     }
     
     public void clear()
     {
-    		attributeMap.clear();
-    		attributeOrderList.clear();
+		AttributeFactory.recycle(this);
+
+		attributeMap.clear();
+    	attributeOrderList.clear();
     }
 
     private void removeFromList(Object o)
     {
-    		Object ol[] = attributeOrderList.toArray();
-    		for (int i = 0; i < ol.length; i++)
+    	Object ol[] = attributeOrderList.toArray();
+    	for (int i = 0; i < ol.length; i++)
+    	{
+    		if (ol[i] == o)
     		{
-    			if (ol[i] == o)
-    			{
-    				attributeOrderList.remove(i);
-    				return;
-    			}
+    			attributeOrderList.remove(i);
+    			return;
     		}
+    	}
     }
     
     /**
@@ -257,10 +259,10 @@ public class AttributeList implements Serializable
         Iterator<RadiusAttribute> i = attributeOrderList.iterator();
         while (i.hasNext())
         {
-        		RadiusAttribute attr = (RadiusAttribute)i.next();
-        		if (!nonStandardAttrs && attr.attributeType > 256) continue;
-        		if (!unknownAttrs && attr instanceof UnknownAttribute) continue;
-        		sb.append(attr.toString()).append("\n");
+        	RadiusAttribute attr = (RadiusAttribute)i.next();
+        	if (!nonStandardAttrs && attr.attributeType > 256) continue;
+        	if (!unknownAttrs && attr instanceof UnknownAttribute) continue;
+        	sb.append(attr.toString()).append("\n");
         }
         return sb.toString();
     }
@@ -298,7 +300,7 @@ public class AttributeList implements Serializable
         
         Object ol[];
 
-        if (o instanceof LinkedList)
+        if (o instanceof LinkedList<?>)
         {
             ol = ((LinkedList<?>)o).toArray();
         }

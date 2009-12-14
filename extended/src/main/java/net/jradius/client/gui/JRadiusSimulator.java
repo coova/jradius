@@ -2247,14 +2247,17 @@ public class JRadiusSimulator extends JFrame
 	                        recd++;
 						}
 
-						public void onAfterSend(RadiusClientTransport transport) {
+						public void onAfterSend(RadiusClientTransport transport)
+						{
 						}
 
-						public void onBeforeReceive(RadiusClientTransport transport) {
+						public void onBeforeReceive(RadiusClientTransport transport)
+						{
 	                        statusLabel.setText("Waiting for response...");
 						}
 
-						public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) {
+						public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) 
+						{
 	                        logSent.println("Sending RADIUS Packet:");
 	                        logSent.println(logSepLine);
 	                        logSent.println(packet.toString());

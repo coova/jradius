@@ -22,8 +22,7 @@
 package net.jradius.packet;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.packet.attribute.VSAttribute;
@@ -56,51 +55,46 @@ public class DiameterFormat extends Format
     //private static final byte AVP_MANDITORY	= (byte)0x40;
     //private static final byte AVP_ENCRYPTION	= (byte)0x20;
 
-    public void packAttribute(OutputStream out, RadiusAttribute a) throws IOException
+    public void packAttribute(ByteBuffer  buffer, RadiusAttribute a) 
     {
         AttributeValue attributeValue = a.getValue();
         int length = attributeValue.getLength();
         int padding = ((length + 0x03) & ~(0x03)) - length;
-        if (a instanceof VSAttribute) 
-            packHeader(out, (VSAttribute) a);
-        else
-            formatHeader(out, a);
-        attributeValue.getBytes(out);
-        while (padding-- > 0) out.write(0);
+        packHeader(buffer, a);
+        attributeValue.getBytes(buffer);
+        while (padding-- > 0) putUnsignedByte(buffer, 0);
     }
 
-    private void formatHeader(OutputStream out, RadiusAttribute a) throws IOException
-    {
-        AttributeValue attributeValue = a.getValue();
-        writeUnsignedInt(out, a.getType());
-        writeUnsignedByte(out, 0);
-        writeUnsignedByte(out, 0); // part of the AVP Length!
-        writeUnsignedShort(out, attributeValue.getLength() + 8);
-    }
-
-    public void packHeader(OutputStream out, RadiusAttribute a) throws IOException
+    public void packHeader(ByteBuffer buffer, RadiusAttribute a) 
     {
         if (a instanceof VSAttribute) 
         { 
-            packHeader(out, (VSAttribute)a); 
+            packHeader(buffer, (VSAttribute) a); 
+            return;
         }
+
+        AttributeValue attributeValue = a.getValue();
+        putUnsignedInt(buffer, a.getType());
+        putUnsignedByte(buffer, 0);
+        putUnsignedByte(buffer, 0); // part of the AVP Length!
+        putUnsignedShort(buffer, attributeValue.getLength() + 8);
     }
 
-    public void packHeader(OutputStream out, VSAttribute a) throws IOException
+    public void packHeader(ByteBuffer buffer, VSAttribute a) 
     {
         AttributeValue attributeValue = a.getValue();
-        writeUnsignedInt(out, a.getVsaAttributeType());
-        writeUnsignedByte(out, AVP_VENDOR);
-        writeUnsignedByte(out, 0); // part of the AVP Length!
-        writeUnsignedShort(out, attributeValue.getLength() + 12);
-        writeUnsignedInt(out, a.getVendorId());
+        putUnsignedInt(buffer, a.getVsaAttributeType());
+        putUnsignedByte(buffer, AVP_VENDOR);
+        putUnsignedByte(buffer, 0); // part of the AVP Length!
+        putUnsignedShort(buffer, attributeValue.getLength() + 12);
+        putUnsignedInt(buffer, a.getVendorId());
     }
 
-    public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException
+    public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
     {
-        ctx.attributeType = (int)readUnsignedInt(in);
+        ctx.attributeType = (int) getUnsignedInt(buffer);
 
-        long flen = readUnsignedInt(in);
+        long flen = getUnsignedInt(buffer);
         byte flags = (byte) ((flen >> 24) & 0xff);
 
         ctx.attributeLength = (int)(flen & 0x00ffffff);
@@ -108,11 +102,11 @@ public class DiameterFormat extends Format
 
         if ((flags & AVP_VENDOR) > 0)
         {
-            ctx.vendorNumber = (int)readUnsignedInt(in);
+            ctx.vendorNumber = (int)getUnsignedInt(buffer);
             ctx.headerLength += 4;
         }
 
-        ctx.padding = ((ctx.attributeLength + 0x03) & ~(0x03)) - ctx.attributeLength;
+        ctx.padding = (int) (((ctx.attributeLength + 0x03) & ~(0x03)) - ctx.attributeLength);
 
         return 0;
     }

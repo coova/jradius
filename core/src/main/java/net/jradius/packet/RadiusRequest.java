@@ -32,7 +32,12 @@ import net.jradius.packet.attribute.AttributeList;
  */
 public abstract class RadiusRequest extends RadiusPacket 
 {
-    protected RadiusClient client = null;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	protected RadiusClient client = null;
     
     /**
      * Default constructor

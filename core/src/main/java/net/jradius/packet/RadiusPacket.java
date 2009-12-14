@@ -49,6 +49,7 @@ public abstract class RadiusPacket implements Serializable
     protected byte[] authenticator;
     
     protected final AttributeList attributes = new AttributeList();
+    protected boolean recyclable;
     
     /**
      * Default Constructor
@@ -165,7 +166,7 @@ public abstract class RadiusPacket implements Serializable
      * @param attributes
      * @return Returns 16 bytes
      */
-    public byte[] createAuthenticator(byte[] attributes, String sharedSecret)
+    public byte[] createAuthenticator(byte[] attributes, int offset, int attributsLength, String sharedSecret)
     {
     	return new byte[16];
     }
@@ -201,7 +202,20 @@ public abstract class RadiusPacket implements Serializable
         if (this.authenticator == null)
         {
         	if (sharedSecret != null)
-        		this.authenticator = createAuthenticator(attributes, sharedSecret);
+        		this.authenticator = createAuthenticator(attributes, 0, attributes.length, sharedSecret);
+        	else
+        		this.authenticator = new byte[16];
+        }
+        
+        return this.authenticator;
+    }
+
+    public byte[] getAuthenticator(byte[] attributes, int offset, int attributesLength, String sharedSecret) 
+    {
+        if (this.authenticator == null)
+        {
+        	if (sharedSecret != null)
+        		this.authenticator = createAuthenticator(attributes, offset, attributesLength, sharedSecret);
         	else
         		this.authenticator = new byte[16];
         }
@@ -232,8 +246,7 @@ public abstract class RadiusPacket implements Serializable
      * @return Returns the RadiusAttribute, null if not found
      * @throws UnknownAttributeException
      */
-    public RadiusAttribute findAttribute(String aName)
-    	throws UnknownAttributeException
+    public RadiusAttribute findAttribute(String aName) throws UnknownAttributeException
     {
         return attributes.get(aName);
     }

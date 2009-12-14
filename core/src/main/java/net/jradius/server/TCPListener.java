@@ -23,7 +23,6 @@ package net.jradius.server;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -49,13 +48,16 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.server.config.Configuration;
 import net.jradius.server.config.ListenerConfigurationItem;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.pool.ObjectPool;
+import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.commons.pool.impl.SoftReferenceObjectPool;
 
 /**
  * The base abstract class of all Listeners
@@ -69,6 +71,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
 
 	protected boolean active = false;
     protected ListenerConfigurationItem config;
+    
     protected BlockingQueue<ListenerRequest> queue;
     
     protected int port = 1814;
@@ -76,6 +79,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     protected boolean requiresSSL = false;
     protected boolean usingSSL = false;
     protected boolean keepAlive;
+ 
     protected ServerSocket serverSocket;
     
     protected final List<KeepAliveListener> keepAliveListeners = new LinkedList<KeepAliveListener>();
@@ -85,7 +89,28 @@ public abstract class TCPListener extends JRadiusThread implements Listener
     protected String[] sslEnabledProtocols;
     protected String[] sslEnabledCiphers;
 
-    public abstract JRadiusEvent parseRequest(ListenerRequest listenerRequest, InputStream inputStream) throws IOException, RadiusException;
+    protected ObjectPool requestObjectPool = new SoftReferenceObjectPool(new PoolableObjectFactory() 
+    {
+		public boolean validateObject(Object arg0) {
+			return true;
+		}
+		
+		public void passivateObject(Object arg0) throws Exception {
+		}
+		
+		public Object makeObject() throws Exception {
+			return new TCPListenerRequest();
+		}
+		
+		public void destroyObject(Object arg0) throws Exception {
+		}
+		
+		public void activateObject(Object arg0) throws Exception {
+			TCPListenerRequest req = (TCPListenerRequest) arg0;
+			req.clear();
+		}
+	});
+    
 
     public void setConfiguration(ListenerConfigurationItem cfg) 
     {
@@ -260,13 +285,16 @@ public abstract class TCPListener extends JRadiusThread implements Listener
      * @throws InterruptedException
      * @throws RadiusException
      */
-    public void listen() throws IOException, InterruptedException, RadiusException
+    public void listen() throws Exception
     {
         RadiusLog.debug("Listening on socket...");
         Socket socket = serverSocket.accept();
+
+    	socket.setTcpNoDelay(false);
+
         if (keepAlive)
         {
-            KeepAliveListener keepAliveListener = new KeepAliveListener(socket, this, queue);
+        	KeepAliveListener keepAliveListener = new KeepAliveListener(socket, this, queue);
             keepAliveListener.start();
 
             synchronized (keepAliveListeners)
@@ -276,7 +304,9 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         }
         else
         {
-            TCPListenerRequest lr = new TCPListenerRequest(socket, this, false);
+        	TCPListenerRequest lr = (TCPListenerRequest) requestObjectPool.borrowObject();
+        	lr.setBorrowedFromPool(requestObjectPool);
+        	lr.accept(socket, this, false);
 
             while(true)
             {

@@ -20,12 +20,11 @@
 
 package net.jradius.packet;
 
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.util.RadiusUtils;
-
-
 
 /**
  * The RADIUS Response Packet
@@ -34,7 +33,12 @@ import net.jradius.util.RadiusUtils;
  */
 public abstract class RadiusResponse extends RadiusPacket
 {
-    public RadiusResponse() 
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public RadiusResponse() 
     {
 		super();
 	}
@@ -53,20 +57,22 @@ public abstract class RadiusResponse extends RadiusPacket
      */
     public boolean verifyAuthenticator(byte[] requestAuthenticator, String sharedSecret)
     {
-        byte[] attribtues = RadiusFormat.getInstance().packAttributeList(getAttributes());
+    	ByteBuffer buffer = ByteBuffer.allocate(1500);
+    	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
         byte[] hash = RadiusUtils.makeRFC2865ResponseAuthenticator(sharedSecret,
 		        (byte)(getCode() & 0xff), (byte)(getIdentifier() & 0xff), 
-		        (short)(attribtues.length + RADIUS_HEADER_LENGTH), 
-		        requestAuthenticator, attribtues);
+		        (short)(buffer.position() + RADIUS_HEADER_LENGTH), 
+		        requestAuthenticator, buffer.array(), buffer.position());
         return Arrays.equals(hash, getAuthenticator());
     }
 
     public void generateAuthenticator(byte[] requestAuthenticator, String sharedSecret)
     {
-        byte[] attribtues = RadiusFormat.getInstance().packAttributeList(getAttributes());
+    	ByteBuffer buffer = ByteBuffer.allocate(1500);
+    	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
 		setAuthenticator(RadiusUtils.makeRFC2865ResponseAuthenticator( sharedSecret,
 		        (byte)(getCode() & 0xff), (byte)(getIdentifier() & 0xff), 
-		        (short)(attribtues.length + RADIUS_HEADER_LENGTH), 
-		        requestAuthenticator, attribtues));
+		        (short)(buffer.position() + RADIUS_HEADER_LENGTH), 
+		        requestAuthenticator, buffer.array(), buffer.position()));
     }
 }

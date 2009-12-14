@@ -23,6 +23,7 @@ package net.jradius.packet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.packet.attribute.VSAttribute;
@@ -50,10 +51,28 @@ public class DHCPFormat extends Format
         attributeValue.getBytes(out);
     }
 
+    public void packAttribute(ByteBuffer buffer, VSAttribute a) 
+    {
+    	throw new RuntimeException("not yet implemented");
+    }
+
+    public void packAttribute(ByteBuffer buffer, RadiusAttribute a) 
+    {
+    	throw new RuntimeException("not yet implemented");
+    }
+
     public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException
     {
         ctx.attributeType = readUnsignedByte(in);
         ctx.attributeLength = readUnsignedByte(in);
+        ctx.headerLength = 2;
+        return 0;
+    }
+
+    public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
+    {
+        ctx.attributeType = getUnsignedByte(buffer);
+        ctx.attributeLength = getUnsignedByte(buffer);
         ctx.headerLength = 2;
         return 0;
     }

@@ -20,6 +20,9 @@
 
 package net.jradius.radsec;
 
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusNativeRequest;
@@ -33,10 +36,27 @@ import net.jradius.server.JRadiusServer;
  */
 public class RadSecRequest extends JRadiusNativeRequest
 {
-    private RadiusPacket packets[];
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private RadiusPacket packets[];
     private AttributeList configItems;
     private int returnValue = JRadiusServer.RLM_MODULE_UPDATED;
 
+    protected final ByteBuffer buffer_in;
+    protected final ByteBuffer buffer_out;
+
+    public RadSecRequest()
+    {
+    	buffer_in = ByteBuffer.allocate(25000);
+    	buffer_in.order(ByteOrder.BIG_ENDIAN);
+
+    	buffer_out = ByteBuffer.allocate(25000);
+    	buffer_out.order(ByteOrder.BIG_ENDIAN);
+    }
+    
     /**
      * @return the "config_items" of the request (FreeRADIUS "control" attributes)
      */
@@ -87,4 +107,12 @@ public class RadSecRequest extends JRadiusNativeRequest
     {
         this.returnValue = returnValue;
     }
+
+	public ByteBuffer getBufferIn() {
+		return buffer_in;
+	}
+
+	public ByteBuffer getBufferOut() {
+		return buffer_out;
+	}
 }

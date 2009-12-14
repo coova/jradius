@@ -127,5 +127,20 @@ public abstract class VSAttribute extends RadiusAttribute
 	public int getContinuation()
 	{
 		return continuation;
+	}
+
+	public void setContinuation(short cont) 
+	{
+		this.continuation = cont;
+	}    
+
+	public void setContinuation() 
+	{
+		setContinuation((short)(1 << 7));
+	}
+
+	public void unsetContinuation()
+	{
+		setContinuation((short)0);
 	}    
 }
