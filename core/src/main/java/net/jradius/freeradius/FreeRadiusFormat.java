@@ -212,6 +212,10 @@ public class FreeRadiusFormat extends RadiusFormat
 
     public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
     {
+    	ctx.attributeOp = 0;
+    	ctx.vendorNumber = -1;
+    	ctx.padding = 0;
+
 	    ctx.attributeType = getUnsignedInt(buffer);
 	    ctx.attributeLength = getUnsignedInt(buffer);
 	    ctx.attributeOp = getUnsignedInt(buffer);

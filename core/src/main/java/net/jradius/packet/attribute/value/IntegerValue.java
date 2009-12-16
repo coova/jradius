@@ -64,7 +64,7 @@ public class IntegerValue extends AttributeValue
     
     public int getLength()
     {
-        return integerValue == null ? 0 : length;
+        return length;
     }
     
     public void setLength(int length)
