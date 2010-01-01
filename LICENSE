@@ -9,7 +9,7 @@ the standard The GNU General Public License (GPL). For details, visit
 http://jradius.net/. See source files for details regarding stand-alone
 applications contained herein which are released under the GPL. 
 
-Copyright 2006-2008 David Bird <david@coova.com>
+Copyright 2006-2010 Coova Technologies, LLC. All rights reserved.
 
 See doc/GPL-LICENSE, doc/LGPL-LICENSE, and source files for details.
 
@@ -23,9 +23,9 @@ to use for non-commercial purposes, without modification or reverse
 engineering. For intructions on how to customize and extend the
 interface, as well as additional licening information, see:
 
-	http://coova.org/wiki/index.php/CoovaEWT
+	http://www.coova.com/CoovaEWT
 
-Copyright 2008 David Bird <david@coova.com>
+Copyright 2010 Coova Technologies, LLC, All rights reserved.
 
 ==========================================================================
 
