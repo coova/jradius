@@ -24,9 +24,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 import javax.net.ssl.KeyManager;
@@ -92,7 +89,7 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
      * @throws Exception 
      * @throws FileNotFoundException 
      */
-    protected void init()
+    protected void init() throws RadiusException
     {
     	try
     	{
@@ -193,6 +190,18 @@ public class EAPTLS2Authenticator extends EAPAuthenticator
         try
         {
             appOutput.write(b);
+        }
+        catch (Exception e)
+        {
+            RadiusLog.error(e.getMessage(), e);
+        }
+    }
+
+    public void putAppBuffer(byte []b, int off, int len)
+    {
+        try
+        {
+            appOutput.write(b, off, len);
         }
         catch (Exception e)
         {

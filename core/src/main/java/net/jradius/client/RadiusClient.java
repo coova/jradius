@@ -217,7 +217,7 @@ public class RadiusClient
 
         protocolName = protocolName.toLowerCase();
         
-        Class c = (Class)authenticators.get(protocolName);
+        Class c = (Class) authenticators.get(protocolName);
         
         if (c == null) return null;
 

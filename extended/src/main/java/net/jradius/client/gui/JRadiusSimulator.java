@@ -1261,7 +1261,7 @@ public class JRadiusSimulator extends JFrame
     private RadiusAuthenticator getAuthenticator() throws Exception
     {
         String authName = authTypeNames[authTypeComboBox.getSelectedIndex()];
-        if (authName.startsWith("EAP-T"))
+        if (authName.startsWith("EAP-T") || authName.startsWith("PEAP"))
         {
             if (isJava14)
             {
@@ -1320,6 +1320,7 @@ public class JRadiusSimulator extends JFrame
             authName = sb.toString();
             System.out.println("Using Authenticator String: " + authName);
         }
+        
         return RadiusClient.getAuthProtocol(authName);
     }
 

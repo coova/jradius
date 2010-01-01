@@ -43,7 +43,7 @@ import net.jradius.packet.attribute.AttributeList;
  * 
  * @author David Bird
  */
-public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelAuthenticator
+public class EAPTTLSAuthenticator extends EAPTLS2Authenticator implements TunnelAuthenticator
 {
     public static final String NAME = "eap-ttls";
     private String innerProtocol = "pap";
@@ -129,7 +129,7 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
         ByteBuffer buffer = ByteBuffer.allocate(1500);
         diameterFormat.packAttributeList(tunnelRequest.getAttributes(), buffer, true);
 
-        putAppBuffer(buffer.array(), buffer.position());
+        putAppBuffer(buffer.array(), 0, buffer.position());
         RadiusLog.debug("Tunnel Request:\n" + tunnelRequest.toString());
     }
 
