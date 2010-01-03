@@ -19,7 +19,7 @@
  *
  *  This module is used to connect FreeRADIUS to the JRadius server. 
  *  JRadius is a Java RADIUS client and server framework, see doc/rlm_jradius
- *  and http://jradius.net/ for more information. 
+ *  and http://www.coova.org/JRadius for more information. 
  *
  *  Author(s): David Bird <david@coova.com>
  *

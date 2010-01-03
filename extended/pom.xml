@@ -35,9 +35,9 @@
     </dependency>
 
     <dependency>
-      <groupId>bouncycastle</groupId>
+      <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15</artifactId>
-      <version>143</version>
+      <version>1.44</version>
     </dependency>
     
   </dependencies>

@@ -2,30 +2,17 @@
 
 Coova JRadius License:
 
-The Coova extensions to JRadius library are licensed under the The GNU
+The Coova JRadius core libraries are licensed under the The GNU
 Library or "Lesser" General Public License (LGPL), while stand-alone
-applications within in the JRadius project, listed below, are released under
-the standard The GNU General Public License (GPL). For details, visit
-http://jradius.net/. See source files for details regarding stand-alone
-applications contained herein which are released under the GPL. 
+applications within in the JRadius project, listed below, are released 
+under the standard The GNU General Public License (GPL). For details, 
+visit http://www.coova.org/JRadius. See source files for details 
+regarding stand-alone applications contained herein which are 
+released under the GPL. 
 
 Copyright 2006-2010 Coova Technologies, LLC. All rights reserved.
 
 See doc/GPL-LICENSE, doc/LGPL-LICENSE, and source files for details.
-
-==========================================================================
-
-CoovaEWT License:
-
-The CoovaEWT user interface and accompanying back-end add-ons (found
-in the 'extensions' directory and module) are provided with the right
-to use for non-commercial purposes, without modification or reverse
-engineering. For intructions on how to customize and extend the
-interface, as well as additional licening information, see:
-
-	http://www.coova.com/CoovaEWT
-
-Copyright 2010 Coova Technologies, LLC, All rights reserved.
 
 ==========================================================================
 

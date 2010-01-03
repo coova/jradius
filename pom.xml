@@ -130,30 +130,11 @@
     <module>extended</module>
     <module>example</module>
     <module>client</module>
-<!--
     <module>applet</module>
-    <module>extensions</module>
     <module>server</module>
--->
   </modules>
 
   <repositories>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>coova</id>
-      <name>Coova Repository</name>
-      <url>http://dev.coova.org/mvn</url>
-    </repository>
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>springframework</id>
-      <name>Spring Repository</name>
-      <url>https://s3.amazonaws.com/maven.springframework.org/milestone</url>
-    </repository>
     <repository>
       <snapshots>
         <enabled>false</enabled>
@@ -170,13 +151,23 @@
       <name>ibiblio Repository Switchboard</name>
       <url>http://www.ibiblio.org/maven</url>
     </repository>
+<!--
     <repository>
       <snapshots>
         <enabled>false</enabled>
       </snapshots>
-      <id>gwt-maven</id>
-      <name>GWT</name>
-      <url>http://gwt-maven.googlecode.com/svn/trunk/mavenrepo/</url>
+      <id>springframework</id>
+      <name>Spring Repository</name>
+      <url>http://repository.springsource.com/maven/bundles/release</url>
+    </repository>
+-->
+    <repository>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+      <id>coova</id>
+      <name>Coova Repository</name>
+      <url>http://dev.coova.org/mvn</url>
     </repository>
   </repositories>
 
