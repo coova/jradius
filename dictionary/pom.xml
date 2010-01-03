@@ -4,13 +4,13 @@
   <groupId>net.jradius</groupId>
   <artifactId>jradius-dictionary</artifactId>
   <name>${project.artifactId}-${project.version}</name>
-  <version>1.1.0</version>
+  <version>1.1.1-SNAPSHOT</version>
   <description>JRadius Dictionary</description>
   
   <parent>
     <groupId>net.jradius</groupId>
     <artifactId>jradius</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
@@ -18,7 +18,7 @@
     <dependency>
       <groupId>net.jradius</groupId>
       <artifactId>jradius-core</artifactId>
-      <version>1.1.0</version>
+      <version>1.1.1-SNAPSHOT</version>
     </dependency>
   </dependencies>
   
