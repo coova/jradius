@@ -41,6 +41,7 @@
        files. With the <chain-catalog/> configuraiton below, we
        load the exmaple FreeRADIUS packet handler chains.
        
+       -->
        <packet-handlers>
 	 <packet-handler name="LocalUsers">
 	   <description>Generic FreeRADIUS Local Users Handler</description>
@@ -56,7 +57,6 @@
 	 </packet-handler>
        </packet-handlers>
        
-       -->
   
   <!-- 
        Loading Packet Handler Chains
@@ -78,15 +78,10 @@
       <class>bean:radiusListener</class>
       
       <processor-class>bean:radiusProcessor</processor-class>
-      <processor-threads>4</processor-threads>
+      <processor-threads>128</processor-threads>
       
-      <!-- 
 	   <packet-handler type="authorize" handler="LocalUsers"/>
 	   <packet-handler type="post_auth" handler="LocalUsers"/>
-	   <packet-handler catalog="example"/>
-      -->
-      
-      <packet-handler catalog="example"/>
       <event-handler handler="event-handler"/>
       
       <property><name>port</name><value>1814</value></property>

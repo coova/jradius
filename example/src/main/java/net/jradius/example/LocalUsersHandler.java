@@ -27,7 +27,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import net.jradius.dictionary.Attr_AuthType;
 import net.jradius.dictionary.Attr_CleartextPassword;
 import net.jradius.dictionary.Attr_UserName;
 import net.jradius.dictionary.Attr_UserPassword;
@@ -42,7 +41,6 @@ import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.server.JRadiusRequest;
 import net.jradius.server.JRadiusServer;
 import net.jradius.server.config.ConfigurationItem;
-import net.jradius.session.JRadiusSession;
 
 import org.apache.commons.configuration.HierarchicalConfiguration;
 
@@ -136,7 +134,7 @@ public class LocalUsersHandler extends PacketHandlerBase
     /*
      * Hash map of local users
      */
-    private final LinkedHashMap users = new LinkedHashMap();
+    private final LinkedHashMap<String, LocalUser> users = new LinkedHashMap<String, LocalUser>();
     
     public void setConfig(ConfigurationItem cfg)
     {
@@ -147,17 +145,17 @@ public class LocalUsersHandler extends PacketHandlerBase
         /*
          * Look for <users> ... </users> in the configuration
          */
-        List usersList = root.getChildren("users");
+        List<?> usersList = root.getChildren("users");
         HierarchicalConfiguration.Node node;
 
-        for (Iterator l = usersList.iterator(); l.hasNext();)
+        for (Iterator<?> l = usersList.iterator(); l.hasNext();)
         {
             /*
              * Iterate the <user> ... </user> blocks
              */
             node = (HierarchicalConfiguration.Node)l.next();
-            List children = node.getChildren("user");
-            for (Iterator i = children.iterator(); i.hasNext();)
+            List<?> children = node.getChildren("user");
+            for (Iterator<?> i = children.iterator(); i.hasNext();)
             {
                 node = (HierarchicalConfiguration.Node)i.next();
                 root = xmlCfg.getRoot();
@@ -206,8 +204,6 @@ public class LocalUsersHandler extends PacketHandlerBase
             RadiusPacket req = jRequest.getRequestPacket();
             RadiusPacket rep = jRequest.getReplyPacket();
 
-            JRadiusSession session = jRequest.getSession();
-            
             /*
              * Find the username in the request packet
              */
@@ -217,7 +213,7 @@ public class LocalUsersHandler extends PacketHandlerBase
              * See if this is a local user, otherwise we will reject (though, you may
              * want to return "ok" if you have modules configured after jradius in FreeRADIUS)
              */
-    	    LocalUser u = (LocalUser)users.get(username);
+    	    LocalUser u = (LocalUser) users.get(username);
     	    
     	    if (u == null)
     	    {
@@ -251,7 +247,7 @@ public class LocalUsersHandler extends PacketHandlerBase
             	         * we will the packet with the attributes configured for the user.
             	         */
             	        rep.addAttributes(u.getAttributeList());
-            	        RadiusLog.info("Authentication successful for username: " + username);
+            	        //RadiusLog.info("Authentication successful for username: " + username);
             	    }
             	    else
             	    {

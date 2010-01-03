@@ -34,15 +34,15 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:https://coova.org:1443/svn/cjradius</connection>
-    <developerConnection>scm:svn:https://coova.org:1443/svn/cjradius</developerConnection>
+    <connection>scm:svn:https://dev.coova.org/svn/cjradius</connection>
+    <developerConnection>scm:svn:https://dev.coova.org/svn/cjradius</developerConnection>
     <url>http://dev.coova.org/svn/cjradius</url>
   </scm>
 
   <distributionManagement>
     <repository>
       <id>ssh-repository</id>
-      <url>scp://coova.org/home/repo/public</url>
+      <url>file:///home/mvn</url>
     </repository>
   </distributionManagement>
 
@@ -191,7 +191,7 @@
           <maxmemory>1g</maxmemory>
 	  <stylesheetfile>${basedir}/../html/style.css</stylesheetfile>
 	  <doctitle><![CDATA[<h1>${project.description} ${project.version}</h1>]]></doctitle>
-	  <bottom><![CDATA[<i>Copyright &#169; 2008 <a target="top" href="http://jradius.net/">JRadius Project</a>, All Rights Reserved.</i>]]></bottom>
+	  <bottom><![CDATA[<i>Copyright &#169; 2010 <a target="top" href="http://www.coova.org/">Coova Technologies, LLC</a>, All Rights Reserved.</i>]]></bottom>
         </configuration>
       </plugin>
     </plugins>
