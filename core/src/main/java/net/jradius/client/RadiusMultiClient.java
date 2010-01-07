@@ -1,5 +1,6 @@
 package net.jradius.client;
 
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
@@ -13,7 +14,7 @@ public class RadiusMultiClient extends RadiusClient
 	String requestCacheName;
 	Cache requestCache;
 	
-	public RadiusMultiClient() throws SocketException 
+	public RadiusMultiClient() throws IOException 
 	{
 		super();
 	}
@@ -28,12 +29,12 @@ public class RadiusMultiClient extends RadiusClient
 		super(socket, address, secret);
 	}
 
-	public RadiusMultiClient(InetAddress address, String secret, int authPort, int acctPort, int timeout) throws SocketException 
+	public RadiusMultiClient(InetAddress address, String secret, int authPort, int acctPort, int timeout) throws IOException 
 	{
 		super(address, secret, authPort, acctPort, timeout);
 	}
 
-	public RadiusMultiClient(InetAddress address, String secret) throws SocketException 
+	public RadiusMultiClient(InetAddress address, String secret) throws IOException 
 	{
 		super(address, secret);
 	}
@@ -42,6 +43,4 @@ public class RadiusMultiClient extends RadiusClient
 	{
 		super(transport);
 	}
-	
-	
 }

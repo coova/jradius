@@ -12,6 +12,7 @@
 	<include>jradius-dictionary-*</include>
 	<include>jradius-extended-*</include>
 	<include>commons-logging-*</include>
+	<include>commons-pool-*</include>
 	<include>gnu-crypto-*</include>
 	<include>bcprov-*</include>
       </includes>

@@ -23,6 +23,7 @@ package net.jradius.client;
 
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
@@ -61,7 +62,7 @@ public class RadiusClient
 {
 	protected RadiusClientTransport transport;
 
-    protected static final LinkedHashMap authenticators = new LinkedHashMap();
+    protected static final LinkedHashMap<String, Class<?>> authenticators = new LinkedHashMap<String, Class<?>>();
     
     protected JRadiusSession session;
 
@@ -93,11 +94,12 @@ public class RadiusClient
     
     /**
      * Default constructor
-     * @throws SocketException 
+     * @throws IOException 
      */
-    public RadiusClient() throws SocketException 
+    public RadiusClient() throws IOException 
     { 
-    	this(new DatagramSocket());
+    	this.transport = new UDPClientTransport();
+    	this.transport.setRadiusClient(this);
     }
 
     public RadiusClient(DatagramSocket socket) 
@@ -116,12 +118,15 @@ public class RadiusClient
      * RadiusClient constructor
      * @param address The Internet address to send to
      * @param secret Our shared secret
-     * @throws SocketException 
+     * @throws IOException 
      * @throws RadiusException
      */
-    public RadiusClient(InetAddress address, String secret) throws SocketException 
+    public RadiusClient(InetAddress address, String secret) throws IOException 
     {
-        this(new DatagramSocket(), address, secret);
+    	this.transport = new UDPClientTransport();
+    	this.transport.setRadiusClient(this);
+        setRemoteInetAddress(address);
+        setSharedSecret(secret);
     }
 
     public RadiusClient(DatagramSocket socket, InetAddress address, String secret)
@@ -138,12 +143,18 @@ public class RadiusClient
      * @param authPort The authentication port
      * @param acctPort The accounting port
      * @param timeout Timeout (time to wait for a reply)
-     * @throws SocketException 
+     * @throws IOException 
      * @throws RadiusException
      */
-    public RadiusClient(InetAddress address, String secret, int authPort, int acctPort, int timeout) throws SocketException 
+    public RadiusClient(InetAddress address, String secret, int authPort, int acctPort, int timeout) throws IOException 
     {
-        this(new DatagramSocket(), address, secret, authPort, acctPort, timeout);
+    	this.transport = new UDPClientTransport();
+    	this.transport.setRadiusClient(this);
+        setRemoteInetAddress(address);
+        setSharedSecret(secret);
+        setAuthPort(authPort);
+        setAcctPort(acctPort);
+        setSocketTimeout(timeout);
     }
 
     public RadiusClient(DatagramSocket socket, InetAddress address, String secret, int authPort, int acctPort, int timeout) throws SocketException 
@@ -166,14 +177,14 @@ public class RadiusClient
      * @param name The authentication protocol name
      * @param c The RadiusAuthenticator class that implements the protocol
      */
-    public static void registerAuthenticator(String name, Class c)
+    public static void registerAuthenticator(String name, Class<?> c)
     {
         authenticators.put(name, c);
     }
     
     public static void registerAuthenticator(String name, String className) throws ClassNotFoundException
     {
-        Class c = Class.forName(className);
+        Class<?> c = Class.forName(className);
         authenticators.put(name, c);
     }
     
@@ -217,7 +228,7 @@ public class RadiusClient
 
         protocolName = protocolName.toLowerCase();
         
-        Class c = (Class) authenticators.get(protocolName);
+        Class<?> c = (Class<?>) authenticators.get(protocolName);
         
         if (c == null) return null;
 
@@ -233,8 +244,8 @@ public class RadiusClient
         
         if (args != null)
         {
-            HashMap elements = new HashMap();
-            Class clazz = auth.getClass();
+            HashMap<String, PropertyDescriptor> elements = new HashMap<String, PropertyDescriptor>();
+            Class<?> clazz = auth.getClass();
             PropertyDescriptor[] props = null;
             try
             {
@@ -272,7 +283,7 @@ public class RadiusClient
                     else 
                     {
                         Object valueObject = value;
-                        Class cType = pd.getPropertyType();
+                        Class<?> cType = pd.getPropertyType();
                         if (cType == Boolean.class)
                         {
                             valueObject = new Boolean(value);

@@ -20,10 +20,12 @@
 
 package net.jradius.client;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
@@ -41,6 +43,7 @@ public class UDPClientTransport extends RadiusClientTransport
     public static final int defaultAuthPort = 1812;
     public static final int defaultAcctPort = 1813;
 
+    protected DatagramChannel channel;
     protected DatagramSocket socket;
 
 	public UDPClientTransport(DatagramSocket socket) 
@@ -49,14 +52,24 @@ public class UDPClientTransport extends RadiusClientTransport
 		this.remoteInetAddress = socket.getInetAddress();
 	}
 
-	public UDPClientTransport() throws SocketException 
+	public UDPClientTransport() throws IOException 
 	{
-		this(new DatagramSocket());
+		this.channel = DatagramChannel.open();
+		this.socket = channel.socket();
+		this.remoteInetAddress = socket.getInetAddress();
 	}
 
 	public void close()
 	{
 		socket.close();
+		if (channel != null)
+		{
+			try {
+				channel.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
     protected void send(RadiusRequest req, int attempt) throws Exception
@@ -110,5 +123,15 @@ public class UDPClientTransport extends RadiusClientTransport
         
         return (RadiusResponse)replyPacket;
     }
+
+	@Override
+	public void setSocketTimeout(int timeout) {
+		super.setSocketTimeout(timeout);
+		try {
+			socket.setSoTimeout(this.socketTimeout);
+		} catch (SocketException e) {
+			e.printStackTrace();
+		}
+	}
     
 }

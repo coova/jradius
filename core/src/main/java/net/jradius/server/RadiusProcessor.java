@@ -27,6 +27,7 @@ import net.jradius.exception.RadiusException;
 import net.jradius.exception.RadiusSecurityException;
 import net.jradius.handler.chain.JRCommand;
 import net.jradius.log.RadiusLog;
+import net.jradius.server.event.HandlerLogEvent;
 import net.jradius.session.JRadiusSession;
 import net.jradius.session.JRadiusSessionManager;
 
@@ -194,8 +195,8 @@ public abstract class RadiusProcessor extends Processor
            
             // Send a log-event to the event-dispatcher
 
-            //HandlerLogEvent log = new HandlerLogEvent(request, request.getSessionKey(), result);
-            //getEventDispatcher().post(log);
+            HandlerLogEvent log = new HandlerLogEvent(request, request.getSessionKey(), result);
+            getEventDispatcher().post(log);
         }
         finally
         {

@@ -21,7 +21,6 @@
 package net.jradius.security.auth;
 
 import java.io.IOException;
-import java.net.SocketException;
 import java.util.Map;
 
 import javax.security.auth.Subject;
@@ -42,8 +41,6 @@ import net.jradius.packet.RadiusResponse;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.security.JRadiusPrincipal;
-
-
 
 /**
  * JRadius JAAS LoginModule.
@@ -103,7 +100,7 @@ public class JRadiusModule implements LoginModule
         {
             try {
 				radiusClient = new RadiusClient();
-			} catch (SocketException e) {
+			} catch (Exception e) {
 				throw new LoginException();
 			}
         }

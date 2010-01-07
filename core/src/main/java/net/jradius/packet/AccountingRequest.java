@@ -111,7 +111,9 @@ public class AccountingRequest extends RadiusRequest
     public byte[] createAuthenticator(byte[] attributes, int offset, int length, String sharedSecret) 
     {
         this.authenticator = RadiusUtils.makeRFC2866RequestAuthenticator(sharedSecret,
-        		(byte)getCode(), (byte)getIdentifier(), attributes.length + RADIUS_HEADER_LENGTH, attributes, offset, length);
+        		(byte) getCode(), (byte) getIdentifier(), 
+        		length + RADIUS_HEADER_LENGTH, 
+        		attributes, offset, length);
 
         return this.authenticator;
     }
@@ -122,7 +124,8 @@ public class AccountingRequest extends RadiusRequest
     	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
 
         byte[] newauth = RadiusUtils.makeRFC2866RequestAuthenticator(sharedSecret,
-                (byte)getCode(), (byte)getIdentifier(), buffer.position() + RADIUS_HEADER_LENGTH, 
+                (byte)getCode(), (byte)getIdentifier(), 
+                buffer.position() + RADIUS_HEADER_LENGTH, 
                 buffer.array(), 0, buffer.position());
 
         return Arrays.equals(newauth, this.authenticator);
