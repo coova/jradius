@@ -181,7 +181,7 @@ public class RadClient
         int acctPort = 1813;
         int timeout = 60;
 
-        boolean sendbackClass = true;
+        //boolean sendbackClass = true;
         boolean tunneledRequest = false;
         boolean generateSessionId = false;
         RadiusAttribute generatedSessionId = null;
@@ -224,7 +224,7 @@ public class RadClient
 
             	case 'C':
             	{
-            	    sendbackClass = false;
+            		//sendbackClass = false;
             	}
             	break;
             	
@@ -276,7 +276,7 @@ public class RadClient
 
             if (check != null)
             {
-                Class c = Class.forName(check);
+                Class<?> c = Class.forName(check);
                 try
                 {
                     standard = (RadiusStandard)c.newInstance();

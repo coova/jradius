@@ -20,8 +20,6 @@
 
 package net.jradius.client;
 
-import java.util.Date;
-
 import net.jradius.client.auth.RadiusAuthenticator;
 import net.jradius.packet.attribute.RadiusAttribute;
 
@@ -44,7 +42,7 @@ public class RadiusClientSession implements Runnable
     private boolean stopped = false;
     private RadiusAttribute classAttribute;
     private RadiusAuthenticator radiusAuthenticator;
-    private Date startTime;
+    //private Date startTime;
     private Thread thread;
 
     /*
@@ -96,7 +94,9 @@ public class RadiusClientSession implements Runnable
     
     class RadiusClientSessionException extends Exception 
     {
-        public RadiusClientSessionException(String s)
+		private static final long serialVersionUID = 1L;
+
+		public RadiusClientSessionException(String s)
         {
             super(s);
         }

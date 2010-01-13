@@ -119,7 +119,7 @@ public class AttributeList implements Serializable
     		try 
     		{
     			RadiusAttribute _pAttribute = (RadiusAttribute) subAttribute.getParentClass().newInstance();
-    			RadiusAttribute pAttribute = (RadiusAttribute) get(_pAttribute.getType(), true);
+    			RadiusAttribute pAttribute = (RadiusAttribute) get(_pAttribute.getFormattedType(), true);
 
     			if (pAttribute == null)
     			{
