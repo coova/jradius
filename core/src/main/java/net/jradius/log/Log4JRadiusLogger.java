@@ -42,9 +42,9 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void error(String message, Throwable e)
     {
-        if(message != null)
+        if (message != null)
         {
-            if(e != null)
+        	if (e != null)
             {
                 this.log.error(message, e);
             }
@@ -53,7 +53,7 @@ public class Log4JRadiusLogger implements RadiusLogger
                 this.log.error(message);
             }
         }
-        else if(e != null)
+        else if (e != null)
         {
             this.log.error("", e);
         }
@@ -61,7 +61,7 @@ public class Log4JRadiusLogger implements RadiusLogger
 
     public void warn(String message)
     {
-        if(message != null)
+    	if (message != null)
         {
             this.log.warn(message);
         }
@@ -71,7 +71,7 @@ public class Log4JRadiusLogger implements RadiusLogger
     {
     	if (message != null)
         {
-            if(e != null)
+    		if (e != null)
             {
                 this.log.warn(message, e);
             }

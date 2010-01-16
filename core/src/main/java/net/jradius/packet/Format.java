@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 
 import net.jradius.log.RadiusLog;
+import net.jradius.packet.attribute.AttributeDictionary;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
@@ -106,8 +107,25 @@ public abstract class Format
         	{
         		continue;
         	}
-                
-        	packAttribute(buffer, attr);
+
+        	if (attr.isOverflow())
+        	{
+        		continue;
+        	}
+        	
+        	int currentPosition = buffer.position();
+        	
+        	try
+        	{
+        		packAttribute(buffer, attr);
+        	}
+        	catch (Throwable e) 
+        	{
+        		RadiusAttribute a = attrs.get(AttributeDictionary.CHARGEABLE_USER_IDENTITY);
+        		RadiusLog.error("Truncating RADIUS packet " + (a == null ? "unknown" : a.toString())+" :: "+attr.toString(), null);
+        		buffer.position(currentPosition);
+        		attr.setOverflow(true);
+        	}
         }
     }
 

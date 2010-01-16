@@ -41,6 +41,7 @@ public abstract interface AttributeDictionary
     public static final int ACCT_STATUS_TYPE 		= 40;	// Acct-Status-Type
     public static final int EAP_MESSAGE				= 79;	// EAP-Message
     public static final int MESSAGE_AUTHENTICATOR	= 80;	// Message-Authenticator
+    public static final int CHARGEABLE_USER_IDENTITY= 89;	// Message-Authenticator
     
     public void loadVendorCodes(Map<Long, Class<?>> map);
     public void loadAttributes(Map<Long, Class<?>> map);

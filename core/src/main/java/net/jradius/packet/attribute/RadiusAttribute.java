@@ -40,6 +40,7 @@ public abstract class RadiusAttribute implements Serializable
     protected AttributeValue attributeValue = null;
     protected String attributeName = "Unknown Attribute";
     protected boolean recyclable;
+    protected boolean overflow;
 
     public RadiusAttribute() 
     { 
@@ -216,4 +217,14 @@ public abstract class RadiusAttribute implements Serializable
             return 0;
         }
     }
+
+	public void setOverflow(boolean b) 
+	{
+		this.overflow = b;
+	}
+
+	public boolean isOverflow()
+	{
+		return this.overflow;
+	}
 }

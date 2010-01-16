@@ -665,6 +665,8 @@ public final class AttributeFactory
 	{
 		if (attributeObjectPool == null || !a.recyclable) return;
 		
+		a.setOverflow(false);
+		
 		try 
 		{
 			if (a instanceof VSAWithSubAttributes)
