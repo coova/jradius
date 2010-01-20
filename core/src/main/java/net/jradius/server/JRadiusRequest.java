@@ -21,17 +21,18 @@
 
 package net.jradius.server;
 
-import java.io.StringWriter;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import net.jradius.exception.RadiusException;
+import net.jradius.log.RadiusLog;
 import net.jradius.packet.AccountingRequest;
+import net.jradius.packet.PacketFactory;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.server.config.Configuration;
 import net.jradius.session.JRadiusSession;
-import net.jradius.log.RadiusLog;
 
 /**
  * An abstract class representing a JRadius Server Request.
@@ -41,7 +42,12 @@ import net.jradius.log.RadiusLog;
  */
 public abstract class JRadiusRequest extends JRadiusEvent
 {
-    private JRadiusSession session;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	private JRadiusSession session;
 
     /**
      * @return Returns the return value of the JRadiusRequest
@@ -137,6 +143,11 @@ public abstract class JRadiusRequest extends JRadiusEvent
     public void setReplyPacket(RadiusPacket np)
     {
         RadiusPacket p[] = getPackets();
+        if (p[1] != null)
+        {
+        	// System.err.println("\n\n\n"+p[1]+"\n\n");
+        	PacketFactory.recycle(p[1]);
+        }
         p[1] = np;
     }
 

@@ -80,6 +80,8 @@ public abstract class AttributeValue implements Serializable
 
     public abstract void setValueObject(Serializable o);
 
+	public abstract void copy(AttributeValue value);
+
     public void setValue(String s) 
     { 
     	if (s.startsWith("0x"))

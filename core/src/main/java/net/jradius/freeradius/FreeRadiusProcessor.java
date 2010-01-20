@@ -83,7 +83,7 @@ public class FreeRadiusProcessor extends RadiusProcessor
         	if (request != null)
         	{
 	            PacketFactory.recycle(request.getPackets());
-	            AttributeFactory.recycle(request.getConfigItems());
+	            request.getConfigItems().clear();
         	}
         }
     }

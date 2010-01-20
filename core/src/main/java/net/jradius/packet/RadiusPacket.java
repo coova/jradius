@@ -49,7 +49,9 @@ public abstract class RadiusPacket implements Serializable
     protected byte[] authenticator;
     
     protected final AttributeList attributes = new AttributeList();
+
     protected boolean recyclable;
+    protected boolean recycled;
     
     /**
      * Default Constructor
@@ -65,7 +67,9 @@ public abstract class RadiusPacket implements Serializable
     public RadiusPacket(AttributeList list)
     {
     	if (list != null)
+    	{
     		attributes.add(list);
+    	}
     }
 
     /**
@@ -91,7 +95,10 @@ public abstract class RadiusPacket implements Serializable
      */
     public void addAttribute(RadiusAttribute attribute) 
     {
-        if (null != attribute) attributes.add(attribute, false);
+        if (null != attribute) 
+        {
+        	attributes.add(attribute, false);
+        }
     }
     
     /**
@@ -100,7 +107,10 @@ public abstract class RadiusPacket implements Serializable
      */
     public void overwriteAttribute(RadiusAttribute attribute) 
     {
-        if (null != attribute) attributes.add(attribute, true);
+        if (null != attribute) 
+        {
+        	attributes.add(attribute, true);
+        }
     }
     
     /**

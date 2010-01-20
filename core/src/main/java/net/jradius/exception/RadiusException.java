@@ -27,7 +27,12 @@ package net.jradius.exception;
  */
 public class RadiusException extends Exception 
 {
-    public RadiusException(String message)
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public RadiusException(String message)
     {
         super(message);
     }

@@ -39,5 +39,4 @@ public class ComboIPAddrValue extends IPAddrValue
     public ComboIPAddrValue(InetAddress i)
     {
     }
-
 }

@@ -37,7 +37,7 @@ import net.jradius.packet.Format;
 public class IntegerValue extends AttributeValue
 {
     private static final long serialVersionUID = 0L;
-    private int length = 4;
+    protected int length = 4;
     protected Long integerValue;
     
     public IntegerValue() { }
@@ -60,6 +60,13 @@ public class IntegerValue extends AttributeValue
     public IntegerValue(long l)
     {
         setValue(l);
+    }
+
+    public void copy(AttributeValue value)
+    {
+    	IntegerValue iValue = (IntegerValue) value;
+    	this.integerValue = iValue.integerValue;
+    	this.length = iValue.length;
     }
     
     public int getLength()

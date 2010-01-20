@@ -41,6 +41,15 @@ public class TLVValue extends OctetsValue
 		format.packAttributeList(list, buffer, false);
 	}
 
+	
+    @Override
+	public void copy(AttributeValue value) 
+    {
+    	TLVValue tlvValue = (TLVValue) value;
+    	list.clear();
+    	list.add(tlvValue.list);
+	}
+
 	@Override
 	public int getLength() {
 		//XXX
@@ -56,18 +65,27 @@ public class TLVValue extends OctetsValue
 
 	@Override
 	public void setValue(byte[] b) {
-		ByteBuffer bb = ByteBuffer.wrap(b);
-		format.unpackAttributes(list, bb, bb.limit());
+		list.clear();
+		if (b != null && b.length > 0)
+		{
+			ByteBuffer bb = ByteBuffer.wrap(b);
+			format.unpackAttributes(list, bb, bb.limit());
+		}
 	}
 
 	@Override
     public void setValue(byte[] b, int off, int len) {
-		ByteBuffer bb = ByteBuffer.wrap(b, off, len);
-		format.unpackAttributes(list, bb, len);
+		list.clear();
+		if (b != null && len > 0)
+		{
+			ByteBuffer bb = ByteBuffer.wrap(b, off, len);
+			format.unpackAttributes(list, bb, len);
+		}
     }
     
 	@Override
-	public void setValueObject(Serializable o) {
+	public void setValueObject(Serializable o) 
+	{
 		super.setValueObject(o);
 	}
 

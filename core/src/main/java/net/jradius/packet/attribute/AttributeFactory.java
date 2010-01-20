@@ -29,12 +29,14 @@ import java.nio.ByteBuffer;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.exception.UnknownAttributeException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusFormat;
+import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.RadiusAttribute.Operator;
 
 import org.apache.commons.pool.KeyedObjectPool;
@@ -98,30 +100,44 @@ public final class AttributeFactory
     
     private static KeyedObjectPool attributeObjectPool = new GenericKeyedObjectPool(new KeyedPoolableObjectFactory() 
     {
-		public boolean validateObject(Object arg0, Object arg1) {
+		public boolean validateObject(Object arg0, Object arg1) 
+		{
 			return true;
 		}
 		
-		public void passivateObject(Object arg0, Object arg1) throws Exception {
+		public void passivateObject(Object arg0, Object arg1) throws Exception 
+		{
+			RadiusAttribute a = (RadiusAttribute) arg1;
+			a.recycled = true;
 		}
 		
-		public Object makeObject(Object arg0) throws Exception {
-			return newAttribute((Long) arg0);
+		public Object makeObject(Object arg0) throws Exception 
+		{
+			RadiusAttribute a = newAttribute((Long) arg0);
+			a.recycled = false;
+			return a;
 		}
 		
-		public void destroyObject(Object arg0, Object arg1) throws Exception {
+		public void destroyObject(Object arg0, Object arg1) throws Exception 
+		{
 		}
 		
-		public void activateObject(Object arg0, Object arg1) throws Exception {
+		public void activateObject(Object arg0, Object arg1) throws Exception 
+		{
+			RadiusAttribute a = (RadiusAttribute) arg1;
+			a.recycled = false;
 		}
+		
 	}, -1);
 
     public static RadiusAttribute newAttribute(Long key) throws Exception
     {
 		RadiusAttribute a = null;
+
 		long val = key.longValue();
 		long vendor = val >> 16;
 		long type = val & 0xFFFF;
+
 		if (vendor != 0)
 		{
 			a = vsa(vendor, type);
@@ -130,7 +146,11 @@ public final class AttributeFactory
 		{
 			a = attr(type);
 		}
+
 		a.recyclable = true;
+		
+		// System.err.println("Created "+a.toString() + " " + key + " " + a.getFormattedType());
+		
 		return a;
     }
     
@@ -140,13 +160,11 @@ public final class AttributeFactory
     	
     	try
     	{
-	        if (attributeObjectPool != null)
+    		attr = borrow(key);
+
+    		if (attr == null)
 	        {
-	        	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
-	        }
-	        else 
-	        {
-	        	attr = newAttribute(key);
+    			attr = newAttribute(key);
 	        }
     	}
     	catch (Exception e)
@@ -156,6 +174,43 @@ public final class AttributeFactory
     	
     	attr.getValue().setValueObject(value);
         
+        return attr;
+    }
+
+    public static RadiusAttribute copyAttribute(RadiusAttribute a)
+    {
+    	Long key = new Long(a.getFormattedType());
+    	RadiusAttribute attr = null;
+    	
+    	try
+    	{
+    		attr = borrow(key);
+
+    		if (attr == null)
+	        {
+    			attr = newAttribute(key);
+	        }
+    	}
+    	catch (Exception e)
+    	{
+    		e.printStackTrace();
+    	}
+    	
+    	attr.getValue().copy(a.getValue());
+        
+        return attr;
+    }
+    
+    public static RadiusAttribute borrow(Long key) throws NoSuchElementException, IllegalStateException, Exception
+    {
+    	RadiusAttribute attr = null;
+    	
+        if (attributeObjectPool != null)
+        {
+        	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
+        	// System.err.println("Borrowed "+attr.toString() + " " + key + " " + attr.getFormattedType());
+        }
+
         return attr;
     }
     
@@ -235,10 +290,10 @@ public final class AttributeFactory
      * @throws RadiusException
      * @throws UnknownAttributeException
      */
-    public static RadiusAttribute attributeFromString(String src) 
-        throws RadiusException, UnknownAttributeException
+    public static RadiusAttribute attributeFromString(String src) throws RadiusException, UnknownAttributeException
     {
         String parts[] = src.split("=", 2);
+
         if (parts.length == 2)
         {
             String attribute = parts[0].trim();
@@ -252,6 +307,7 @@ public final class AttributeFactory
             
             return newAttribute(attribute, value, "=");
         }
+
         throw new RadiusException("Syntax error for attributes: " + src);
     }
 
@@ -304,11 +360,9 @@ public final class AttributeFactory
 
                 Long key = new Long(vendor << 16 | type);
                 
-                if (attributeObjectPool != null)
-                {
-                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
-                }
-                else 
+                attr = borrow(key);
+
+                if (attr == null)
                 {
                 	attr = vsa(vendor, type);
                 }
@@ -345,12 +399,10 @@ public final class AttributeFactory
             }
             else 
             {
-                if (attributeObjectPool != null)
-                {
-                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(type);
-                }
-                else
-                {
+            	attr = borrow(type);
+
+            	if (attr == null)
+            	{
                 	attr = attr(type);
                 }
             }
@@ -358,18 +410,6 @@ public final class AttributeFactory
             if (value != null) attr.setValue(value);
             else attr.setValue(new byte[] { });
             if (op > -1) attr.setAttributeOp(op);
-        }
-        catch (InstantiationException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IllegalAccessException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
         }
         catch (Exception e)
         {
@@ -381,7 +421,7 @@ public final class AttributeFactory
 
     public static RadiusAttribute newAttribute(long vendor, long type, long len, int op, ByteBuffer buffer)
     {
-        RadiusAttribute attr = null;
+    	RadiusAttribute attr = null;
         
         int valueLength = (int) len;
         
@@ -402,11 +442,9 @@ public final class AttributeFactory
 
                 Long key = new Long(vendor << 16 | type);
                 
-                if (attributeObjectPool != null)
-                {
-                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(key);
-                }
-                else 
+                attr = borrow(key);
+                
+                if (attr == null) 
                 {
                 	attr = vsa(vendor, type);
                 }
@@ -416,6 +454,7 @@ public final class AttributeFactory
                 	VSAttribute vsa = (VSAttribute) attr;
                     int vsaLength = 0;
                     int vsaHeaderLen = 2;
+
                     switch (vsa.getLengthLength())
                     {
 	                    case 1:
@@ -430,21 +469,21 @@ public final class AttributeFactory
 	                    	vsaHeaderLen += 3;
 	                        break;
                     }
+
                     if (vsa.hasContinuationByte)
                     {
                     	vsa.continuation = (short) RadiusFormat.getUnsignedByte(buffer);
                     	vsaHeaderLen ++;
                     }
+
                     valueLength = vsaLength - vsaHeaderLen;
                 }
             }
             else 
             {
-                if (attributeObjectPool != null)
-                {
-                	attr = (RadiusAttribute) attributeObjectPool.borrowObject(type);
-                }
-                else
+            	attr = borrow(type);
+
+            	if (attr == null)
                 {
                 	attr = attr(type);
                 }
@@ -460,19 +499,10 @@ public final class AttributeFactory
             	attr.setValue(null, 0, 0);
             }
             
-            if (op > -1) attr.setAttributeOp(op);
-        }
-        catch (InstantiationException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IllegalAccessException e)
-        {
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            e.printStackTrace();
+            if (op > -1) 
+            {
+            	attr.setAttributeOp(op);
+            }
         }
         catch (Exception e)
         {
@@ -541,8 +571,7 @@ public final class AttributeFactory
      * @return Returns the newly created RadiusAttribute
      * @throws UnknownAttributeException
      */
-    public static RadiusAttribute newAttribute(String aName)
-    	throws UnknownAttributeException
+    public static RadiusAttribute newAttribute(String aName) throws UnknownAttributeException
     {
         Class<?> c = attributeNameMap.get(aName);
         RadiusAttribute attr = null;
@@ -570,8 +599,7 @@ public final class AttributeFactory
      * @return Returns the newly created RadiusAttribute
      * @throws UnknownAttributeException
      */
-    public static RadiusAttribute newAttribute(AttributeDescription desc)
-    	throws UnknownAttributeException
+    public static RadiusAttribute newAttribute(AttributeDescription desc) throws UnknownAttributeException
     {
         return newAttribute(desc.getName(), desc.getValue(), desc.getOp());
     }
@@ -584,8 +612,7 @@ public final class AttributeFactory
      * @return Returns the newly created RadiusAttribute
      * @throws UnknownAttributeException
      */
-    public static RadiusAttribute newAttribute(String aName, String aValue, String aOp)
-    	throws UnknownAttributeException
+    public static RadiusAttribute newAttribute(String aName, String aValue, String aOp) throws UnknownAttributeException
     {
         RadiusAttribute attr = newAttribute(aName);
         attr.setAttributeOp(aOp);
@@ -599,10 +626,9 @@ public final class AttributeFactory
      * @return Returns the integer type of the attribute
      * @throws UnknownAttributeException
      */
-    public static long getTypeByName(String aName)
-    	throws UnknownAttributeException
+    public static long getTypeByName(String aName) throws UnknownAttributeException
     {
-        Class<?> c = attributeNameMap.get(aName);
+    	Class<?> c = attributeNameMap.get(aName);
         RadiusAttribute attr = null;
 
         if (c == null) 
@@ -663,7 +689,16 @@ public final class AttributeFactory
     
 	public static void recycle(RadiusAttribute a) 
 	{
-		if (attributeObjectPool == null || !a.recyclable) return;
+		if (attributeObjectPool == null || !a.recyclable) 
+		{
+			// System.err.println("Did not recycle " + a.toString());
+			return;
+		}
+
+		if (a.recycled)
+		{
+			System.err.println("PROBLEM: Recycling " + a.toString() + " " + a.getFormattedType());
+		}
 		
 		a.setOverflow(false);
 		
@@ -673,11 +708,10 @@ public final class AttributeFactory
 			{
 				VSAWithSubAttributes aa = (VSAWithSubAttributes) a;
 				AttributeList list = aa.getSubAttributes();
-				recycle(list);
 				list.clear();
 			}
 			
-			attributeObjectPool.returnObject(a.getFormattedType(), a);
+			attributeObjectPool.returnObject(new Long(a.getFormattedType()), a);
 		} 
 		catch (Exception e) 
 		{
@@ -691,5 +725,7 @@ public final class AttributeFactory
 		{
 			recycle(a);
 		}
+		
+		// poolStatus();
 	}
 }

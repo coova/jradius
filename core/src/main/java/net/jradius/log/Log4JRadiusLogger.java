@@ -144,7 +144,7 @@ public class Log4JRadiusLogger implements RadiusLogger
                 this.log.debug(message);
             }
         }
-        else if(e != null)
+        else if (e != null)
         {
             this.log.debug("", e);
         }

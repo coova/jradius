@@ -196,39 +196,40 @@ public abstract class Format
     	AttributeParseContext ctx = new AttributeParseContext();
 		int pos = 0;
 
-    	try
-        {
-    		while (pos < length)
-        	{
+		while (pos < length)
+    	{
+	    	try
+	        {
         		pos += unpackAttributeHeader(buffer, ctx);
-                
-        		RadiusAttribute attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeLength, (int) ctx.attributeOp, buffer);
+	        }
+	    	catch (Exception e)
+	        {
+	    		RadiusLog.error(e.getMessage(), e);
+	            return;
+	        }
 
-                if (attribute == null)
-                {
-                	RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
-                }
-                else
-                {
-                    attrs._add(attribute, false);
-                }
-
-                if (ctx.padding > 0) 
-                { 
-                    pos += ctx.padding; 
-                    while (ctx.padding-- > 0) 
-                    {
-                    	getUnsignedByte(buffer);
-                    }
-                }
-                
-                pos += ctx.attributeLength;
+	    	RadiusAttribute attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeLength, (int) ctx.attributeOp, buffer);
+    		
+            if (attribute == null)
+            {
+            	RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
             }
-        }
-        catch (IOException e)
-        {
-            RadiusLog.warn(e.getMessage(), e);
-        }
+            else
+            {
+                attrs._add(attribute, false);
+            }
+
+            if (ctx.padding > 0) 
+            { 
+                pos += ctx.padding; 
+                while (ctx.padding-- > 0) 
+                {
+                	getUnsignedByte(buffer);
+                }
+            }
+            
+            pos += ctx.attributeLength;
+    	}
     }
 
     public static long readUnsignedInt(InputStream in) throws IOException

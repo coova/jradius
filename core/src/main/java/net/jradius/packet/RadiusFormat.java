@@ -276,7 +276,10 @@ public class RadiusFormat extends Format
         int vsaHeader = 6;
         vsaHeader += a.getTypeLength();
         vsaHeader += a.getLengthLength();
-        if (a.hasContinuationByte()) vsaHeader ++;
+        if (a.hasContinuationByte()) 
+        {
+        	vsaHeader ++;
+        }
         return vsaHeader;
     }
 
@@ -312,7 +315,10 @@ public class RadiusFormat extends Format
         putUnsignedByte(buffer, (int)a.getVsaAttributeType());
         
         len += 2;
-        if (a.hasContinuationByte()) len ++;
+        if (a.hasContinuationByte()) 
+        {
+        	len ++;
+        }
 
         switch(a.getLengthLength())
         {

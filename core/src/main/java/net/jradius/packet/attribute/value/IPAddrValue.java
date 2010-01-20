@@ -56,6 +56,12 @@ public class IPAddrValue extends AttributeValue
         setValue(bytes);
     }
 
+    public void copy(AttributeValue value)
+    {
+    	IPAddrValue ipValue = (IPAddrValue) value;
+    	this.inetAddressValue = ipValue.inetAddressValue;
+    }
+    
     public void setValue(String s)
     {
         try

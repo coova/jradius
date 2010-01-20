@@ -101,7 +101,7 @@ public final class LogConsole extends JComponent implements AdjustmentListener {
         return console.getText();
     }
 
-    public void append(String category, String s) {
+    public synchronized void append(String category, String s) {
         SimpleAttributeSet sas = new SimpleAttributeSet();
 
         if (s == null)
@@ -110,46 +110,48 @@ public final class LogConsole extends JComponent implements AdjustmentListener {
             return;
 
         Document doc = getDocument();
-        synchronized (doc) {
 
-            StyleConstants.setFontFamily(sas, getFont().getFamily());
-            StyleConstants.setFontSize(sas, getFont().getSize());
-            StyleConstants.setBold(sas, getFont().isBold());
-            StyleConstants.setItalic(sas, getFont().isItalic());
-            StyleConstants.setBackground(sas, getBackground());
+        StyleConstants.setFontFamily(sas, getFont().getFamily());
+        StyleConstants.setFontSize(sas, getFont().getSize());
+        StyleConstants.setBold(sas, getFont().isBold());
+        StyleConstants.setItalic(sas, getFont().isItalic());
+        StyleConstants.setBackground(sas, getBackground());
 
-            if (TSPattern != null && sdf != null
-                    && !s.equalsIgnoreCase(defaultText)) {
-                String ts = sdf.format(new Date());
-                StyleConstants.setForeground(sas, getForeground());
-                ts = ts.concat(" ");
-                try {
-                    doc.insertString(doc.getLength(), ts, sas);
-                } catch (Exception e) {
-                }
-            }
-
-            if (CATEGORY_PACKETS_SENT.equalsIgnoreCase(category)) {
-                StyleConstants.setForeground(sas, (clrSent == null ? getForeground() : clrSent));
-            } else if (CATEGORY_PACKETS_RECV.equalsIgnoreCase(category)) {
-                StyleConstants.setForeground(sas, (clrRecv == null ? getForeground() : clrRecv));
-            } else if (CATEGORY_ERROR.equalsIgnoreCase(category)) {
-                StyleConstants.setForeground(sas, (clrError == null ? getForeground() : clrError));
-            }
-
+        if (TSPattern != null && sdf != null
+                && !s.equalsIgnoreCase(defaultText)) {
+            String ts = sdf.format(new Date());
+            StyleConstants.setForeground(sas, getForeground());
+            ts = ts.concat(" ");
             try {
-                doc.insertString(doc.getLength(), s, sas);
+                doc.insertString(doc.getLength(), ts, sas);
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
 
-        if (autoScroll) {
-            try {
+        if (CATEGORY_PACKETS_SENT.equalsIgnoreCase(category)) {
+            StyleConstants.setForeground(sas, (clrSent == null ? getForeground() : clrSent));
+        } else if (CATEGORY_PACKETS_RECV.equalsIgnoreCase(category)) {
+            StyleConstants.setForeground(sas, (clrRecv == null ? getForeground() : clrRecv));
+        } else if (CATEGORY_ERROR.equalsIgnoreCase(category)) {
+            StyleConstants.setForeground(sas, (clrError == null ? getForeground() : clrError));
+        }
+
+        try {
+            doc.insertString(doc.getLength(), s, sas);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (autoScroll) 
+        {
+            try 
+            {
                 int length = doc.getLength();
                 console.setCaretPosition(length);
                 scrollRectToVisible(console.modelToView(length - 1));
-            } catch (Exception e) {
+            } 
+            catch (Exception e) 
+            {
                 e.printStackTrace();
             }
 

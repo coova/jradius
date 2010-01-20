@@ -39,7 +39,9 @@ import java.io.PrintStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -97,6 +99,7 @@ import net.jradius.packet.AccessRequest;
 import net.jradius.packet.AccountingRequest;
 import net.jradius.packet.CoARequest;
 import net.jradius.packet.DisconnectRequest;
+import net.jradius.packet.PacketFactory;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.RadiusRequest;
 import net.jradius.packet.attribute.AttributeFactory;
@@ -129,6 +132,8 @@ public class JRadiusSimulator extends JFrame
     private String[] transportTypes = { "UDP", "RadSec" };
     private Properties properties;
     private Thread[] simulationThreads = null;
+    private SimulationRunner[] simulationRunners = null;
+    private Thread simulationMonitor = null;
     boolean interactiveSession = false;
     private final HashMap namedValueComponentCache = new HashMap();
     private NumberFormatter numberFormatter;
@@ -156,6 +161,12 @@ public class JRadiusSimulator extends JFrame
     private JPanel mainContentPane = null;
     private JButton clearLogButton = null;
     private JButton saveLogButton = null;
+    private JPanel runStatsPanel = null;
+    private JLabel runStatsSent = null;
+    private JLabel runStatsRecv = null;
+    private JLabel runStatsTime = null;
+    private JLabel runStatsRPS = null;
+    private JLabel runStatsThreads = null;
     private JToggleButton runButton = null;
     private JScrollPane attributesTableScrollPane = null;
     private JTable attributesTable = null;
@@ -199,6 +210,7 @@ public class JRadiusSimulator extends JFrame
     private JFormattedTextField radiusInterimIntervalTextField = null;
     private JFormattedTextField sessionTimeTextField = null;
     private JCheckBox generateAcctSessionIdCheckBox = null;
+    private JCheckBox doLogCheckBox = null;
     private JCheckBox notStopOnRejectCheckBox = null;
     private JCheckBox notSendClassAttribute = null;
     private JDialog openUrlDialog = null;
@@ -317,6 +329,9 @@ public class JRadiusSimulator extends JFrame
         s = this.properties.getProperty("GenerateAcctSessionId");
         if (s != null) try { generateAcctSessionIdCheckBox.setSelected(new Boolean(s).booleanValue()); } catch (Exception e) { }
 
+        s = this.properties.getProperty("DoLog");
+        if (s != null) try { doLogCheckBox.setSelected(new Boolean(s).booleanValue()); } catch (Exception e) { }
+
         s = this.properties.getProperty("StopOnReject");
         if (s != null) try { notStopOnRejectCheckBox.setSelected(new Boolean(s).booleanValue()); } catch (Exception e) { }
 
@@ -366,6 +381,7 @@ public class JRadiusSimulator extends JFrame
             this.properties.setProperty("Requesters", ((Integer)requestersTextField.getValue()).toString());
             this.properties.setProperty("Requests", ((Integer)requestsTextField.getValue()).toString());
             this.properties.setProperty("GenerateAcctSessionId", Boolean.toString(generateAcctSessionIdCheckBox.isSelected()));
+            this.properties.setProperty("DoLog", Boolean.toString(doLogCheckBox.isSelected()));
             this.properties.setProperty("StopOnReject", Boolean.toString(notStopOnRejectCheckBox.isSelected()));
             this.properties.setProperty("SendClassAttr", Boolean.toString(notSendClassAttribute.isSelected()));
             this.properties.setProperty("TLSKeyFile", tlsKeyFileTextField.getText());
@@ -464,10 +480,10 @@ public class JRadiusSimulator extends JFrame
             aboutMenuItem.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     JOptionPane.showMessageDialog(JRadiusSimulator.this, 
-                            "Version 1.2.0\n\n" +
-                            "For help, go to http://www.coova.com/JRadius\n" +
-                            "Licensed under the GNU Public License (GPL).\n" + 
-                            "Copyright (c) 2007-2009 Coova Technologies, LLC\n",
+                            "Version 1.3.0\n\n" +
+                            "For help, go to http://www.coova.org/JRadius\n" +
+                            "Licensed under the GNU General Public License (GPL).\n" + 
+                            "Copyright (c) 2007-2010 Coova Technologies, LLC\n",
                             "Copyright (c) 2006 PicoPoint B.V.\n" +
                             "About JRadiusSimulator", JOptionPane.INFORMATION_MESSAGE, null);
                 }
@@ -662,6 +678,7 @@ public class JRadiusSimulator extends JFrame
             statusLabel.setText("Initializing...");
             runStatusPanel = new JPanel();
             runStatusPanel.setLayout(new BorderLayout());
+            runStatusPanel.add(getRunStatsPanel(), java.awt.BorderLayout.NORTH);
             runStatusPanel.add(getRunButton(), java.awt.BorderLayout.EAST);
             runStatusPanel.add(statusLabel, java.awt.BorderLayout.CENTER);
         }
@@ -766,20 +783,28 @@ public class JRadiusSimulator extends JFrame
      */
     private JToggleButton getRunButton() {
         if (runButton == null) {
-            runButton = new JToggleButton();
+        	runButton = new JToggleButton();
             runButton.setText("Start");
             
-            runButton.addActionListener(new java.awt.event.ActionListener() { 
-            	public void actionPerformed(java.awt.event.ActionEvent e) {    
+            runButton.addActionListener(new java.awt.event.ActionListener() 
+            { 
+            	public void actionPerformed(java.awt.event.ActionEvent e) 
+            	{    
                     AbstractButton ab = (AbstractButton)e.getSource();
                     if (ab.isSelected())
                     {
-                        simulationThreads = new Thread[(Integer)requestersTextField.getValue()];
-                        for (int i=0; i < simulationThreads.length; i++)
+                        simulationMonitor = new Thread(new SimulationMonitor());
+                    	simulationThreads = new Thread[(Integer) requestersTextField.getValue()];
+                    	simulationRunners = new SimulationRunner[(Integer) requestersTextField.getValue()];
+
+                    	for (int i=0; i < simulationThreads.length; i++)
                         {
-                            simulationThreads[i] = new Thread(new SimulationRunner());
+                            simulationThreads[i] = new Thread(simulationRunners[i] = new SimulationRunner());
                             simulationThreads[i].start();
                         }
+
+                        simulationMonitor.start();
+                        
                         runButton.setText("Stop");
                     }
                     else
@@ -791,7 +816,12 @@ public class JRadiusSimulator extends JFrame
                                 simulationThreads[i].interrupt();
                             }
                         }
+                        
+                        simulationMonitor.interrupt();
+
+                        simulationRunners = null;
                         simulationThreads = null;
+                        simulationMonitor = null;
                         statusLabel.setText("Ready");
                         runButton.setText("Start");
                     }
@@ -921,6 +951,39 @@ public class JRadiusSimulator extends JFrame
         catch (Exception e) { e.printStackTrace(); }
         return comboBox;
     }
+
+    private JPanel getRunStatsPanel()
+    {
+    	if (runStatsPanel == null) {
+            GridBagConstraints gridBagConstraints = new GridBagConstraints();
+            gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
+            gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 5);
+
+            GridBagConstraints gridBagConstraints1 = new GridBagConstraints();
+            gridBagConstraints1.gridwidth = java.awt.GridBagConstraints.REMAINDER;
+            gridBagConstraints1.fill = java.awt.GridBagConstraints.HORIZONTAL;
+            gridBagConstraints1.insets = new java.awt.Insets(0, 0, 0, 10);
+            gridBagConstraints1.weightx = 1.0;
+
+            GridBagLayout gridBagLayout = new GridBagLayout();
+
+            runStatsPanel = new JPanel();
+            runStatsPanel.setLayout(gridBagLayout);
+            runStatsPanel.add(new JLabel("Threads"), gridBagConstraints);
+            runStatsPanel.add(runStatsThreads = new JLabel("n/a"), gridBagConstraints1);
+            runStatsPanel.add(new JLabel("Sent"), gridBagConstraints);
+            runStatsPanel.add(runStatsSent = new JLabel("n/a"), gridBagConstraints1);
+            runStatsPanel.add(new JLabel("Received"), gridBagConstraints);
+            runStatsPanel.add(runStatsRecv = new JLabel("n/a"), gridBagConstraints1);
+            runStatsPanel.add(new JLabel("Time"), gridBagConstraints);
+            runStatsPanel.add(runStatsTime = new JLabel("n/a"), gridBagConstraints1);
+            runStatsPanel.add(new JLabel("Throughput"), gridBagConstraints);
+            runStatsPanel.add(runStatsRPS = new JLabel("n/a"), gridBagConstraints1);
+    	}
+
+    	return runStatsPanel;
+    }
+
 
     /**
      * This method initializes sendOptionsPanel
@@ -1091,6 +1154,7 @@ public class JRadiusSimulator extends JFrame
             sendOptionsPanel.add(getGenerateAcctSessionIdCheckBox(), gridBagConstraints15);
             sendOptionsPanel.add(getNotStopOnRejectCheckBox(), gridBagConstraints16);
             sendOptionsPanel.add(getSendClassAttributeCheckBox(), gridBagConstraints16);
+            sendOptionsPanel.add(getDoLogCheckBox(), gridBagConstraints16);
         }
         return sendOptionsPanel;
     }
@@ -1752,6 +1816,14 @@ public class JRadiusSimulator extends JFrame
         return generateAcctSessionIdCheckBox;
     }
 
+    private JCheckBox getDoLogCheckBox() {
+        if (doLogCheckBox == null) {
+        	doLogCheckBox = new JCheckBox();
+        	doLogCheckBox.setText("Log RADIUS to Log tab");
+        }
+        return doLogCheckBox;
+    }
+
     /**
      * This method initializes tlsUseJavaRootCA 
      *  
@@ -1973,7 +2045,8 @@ public class JRadiusSimulator extends JFrame
      * @return javax.swing.JPanel	
      */    
     private JPanel getOpenUrlContentPane() {
-    	if (openUrlContentPane == null) {
+    	if (openUrlContentPane == null)
+    	{
     	    GridBagConstraints gridBagConstraints = new GridBagConstraints();
     	    gridBagConstraints.fill = java.awt.GridBagConstraints.HORIZONTAL;
     	    gridBagConstraints.gridwidth = java.awt.GridBagConstraints.REMAINDER;
@@ -2119,14 +2192,62 @@ public class JRadiusSimulator extends JFrame
 	    return bArray;
 	}
 
+	class SimulationMonitor implements Runnable
+	{
+    	long startTime = System.currentTimeMillis();
+    	
+	    public void run()
+	    {
+	    	for (Thread t : simulationThreads)
+	    	{
+	    		try 
+	    		{
+					t.join();
+				} 
+	    		catch (InterruptedException e) 
+				{
+					e.printStackTrace();
+					break;
+				}
+	    	}
+
+	    	long overallTime = System.currentTimeMillis() - startTime;
+	    	int threads = simulationRunners.length;
+	    	int sent = 0;
+	    	int recd = 0;
+	    	
+	    	for (SimulationRunner r : simulationRunners)
+	    	{
+	    		sent += r.sent;
+	    		recd += r.recd;
+	    	}
+
+            double time = (double)overallTime / 1000;
+            double rps = (double)recd / time;
+            
+	    	NumberFormat dfmt = new DecimalFormat("#.##");
+	    	
+	    	runStatsThreads.setText(""+threads);
+	    	runStatsSent.setText(""+sent);
+	    	runStatsRecv.setText(""+recd);
+	    	runStatsTime.setText(""+overallTime+" ms");
+	    	runStatsRPS.setText(""+dfmt.format(rps)+" req/sec");
+	    }
+	}
+	
     class SimulationRunner implements Runnable
     {
-        int sent=0;
-        int recd=0;
+    	protected int sent = 0;
+    	protected int recd = 0;
+    	protected int accepts = 0;
+    	protected double requestPerSecond = 0;
         
 	    public void run()
 	    {
 	    	long startTime = System.currentTimeMillis();
+
+	    	final boolean doLog = doLogCheckBox.isSelected();
+
 	        String radiusServer = radiusServerTextField.getText();
 	        String sharedSecret = sharedSecretTextField.getText();
 	
@@ -2136,8 +2257,6 @@ public class JRadiusSimulator extends JFrame
 	        Integer retries  = (Integer)radiusRetriesTextField.getValue();
 	        Integer requests = (Integer)requestsTextField.getValue();
 	        
-	        byte[] bClass = null;
-	
 	        if (radiusServer == null || sharedSecret == null || "".equals(radiusServer) || "".equals(sharedSecret))
 	        {
 	            statusLabel.setText("The RADIUS Server and Shared Secret are required");
@@ -2150,7 +2269,7 @@ public class JRadiusSimulator extends JFrame
 	            return;
 	        }
 	
-	        for (int r=0; r<requests; r++)
+	        for (int r=0; r < requests; r++)
 	        {
 	            // Default is Auth Only
 	            boolean sendPackets[] = { true, false, false, false };
@@ -2171,12 +2290,6 @@ public class JRadiusSimulator extends JFrame
 	                //case 3: sendPackets[1] = true; interactiveSession = true; break;
 	            }
 	    
-	            Attr_AcctSessionId generatedAcctSessionId = null;
-	            if (generateAcctSessionIdCheckBox.isSelected())
-	            {
-	                generatedAcctSessionId = new Attr_AcctSessionId("JRadius-" + RadiusRandom.getRandomString(16));
-	            }
-	            
 	            try
 	            {
 	                // Run the Simulation
@@ -2190,11 +2303,11 @@ public class JRadiusSimulator extends JFrame
 	                    RadiusAttribute attribute = AttributeFactory.newAttribute(entry.getAttributeName(), entry.getAttributeValue(), "=");
 	                    Boolean bool;
 	                    
-	                    if ((bool = entry.getAccessRequest()) != null     && bool.booleanValue()) authAttributes[0].add(attribute,false);
-	                    if ((bool = entry.getTunnelRequest()) != null     && bool.booleanValue()) authAttributes[1].add(attribute,false);
-	                    if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(attribute,false);
-	                    if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(attribute,false);
-	                    if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(attribute,false);
+	                    if ((bool = entry.getAccessRequest()) != null     && bool.booleanValue()) authAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
+	                    if ((bool = entry.getTunnelRequest()) != null     && bool.booleanValue()) authAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
+	                    if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
+	                    if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
+	                    if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(AttributeFactory.copyAttribute(attribute), false);
 	                }
 	                
 	                RadiusClientTransport transport;
@@ -2238,13 +2351,16 @@ public class JRadiusSimulator extends JFrame
 						public void onAfterReceive(RadiusClientTransport transport, RadiusPacket packet)
 						{
 	                        statusLabel.setText("Received RADIUS Packet " + packet.getClass().getName());
-	                	    
-	                        logRecv.println("Received RADIUS Packet:");
-	                        logRecv.println(logSepLine);
-	                        logRecv.println(packet.toString());
-	                        logRecv.flush();
-	    
-	                        checkStandard(getRadiusStandard(), packet);
+
+	                        if (doLog)
+	                        {
+		                        logRecv.println("Received RADIUS Packet:");
+		                        logRecv.println(logSepLine);
+		                        logRecv.println(packet.toString());
+		                        logRecv.flush();
+		                        checkStandard(getRadiusStandard(), packet);
+	                        }
+	                        
 	                        recd++;
 						}
 
@@ -2259,12 +2375,14 @@ public class JRadiusSimulator extends JFrame
 
 						public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) 
 						{
-	                        logSent.println("Sending RADIUS Packet:");
-	                        logSent.println(logSepLine);
-	                        logSent.println(packet.toString());
-	                        logSent.flush();
-	    
-	                        checkStandard(getRadiusStandard(), packet);
+							if (doLog)
+							{
+		                        logSent.println("Sending RADIUS Packet:");
+		                        logSent.println(logSepLine);
+		                        logSent.println(packet.toString());
+		                        logSent.flush();
+		                        checkStandard(getRadiusStandard(), packet);
+							}
 	                        
 	                        sent++;
 	                        statusLabel.setText("Sending RADIUS Packet " + packet.getClass().getName());
@@ -2274,47 +2392,61 @@ public class JRadiusSimulator extends JFrame
 	                
 	                RadiusClient radiusClient = new RadiusClient(transport);
 
+	                String sessionId = "JRadius-" + RadiusRandom.getRandomString(16);
+	                
+	    	        byte[] bClass = null;
+	    	    	
 	                for (int i = 0; i < sendPackets.length; i++)
 	                {
 	                    if (!sendPackets[i]) continue;
 	                    RadiusRequest request;
+	                    
 	                    if (i == 0) 
 	                    {
 	                        if (sendDisconnectRequest)
 	                        {
-	                            request = new DisconnectRequest(radiusClient, authAttributes[0]);
+	                        	request = PacketFactory.newPacket(DisconnectRequest.CODE, radiusClient, authAttributes[0]);
 	                        }
 	                        else if (sendCoARequest)
 	                        {
-	                            request = new CoARequest(radiusClient, authAttributes[0]);
+	                        	request = PacketFactory.newPacket(CoARequest.CODE, radiusClient, authAttributes[0]);
 	                        }
 	                        else
 	                        {
-	                            request = new AccessRequest(radiusClient, authAttributes[0]);
+	                        	request = PacketFactory.newPacket(AccessRequest.CODE, radiusClient, authAttributes[0]);
 	                        }
 	                    }
 	                    else 
 	                    {
-	                        request = new AccountingRequest(radiusClient, acctAttributes[i - 1]);
+	                    	request = PacketFactory.newPacket(AccountingRequest.CODE, radiusClient, acctAttributes[i - 1]);
+	                    	
 	                        if (request.findAttribute(Attr_AcctStatusType.TYPE) == null)
 	                        {
 	                            switch(i)
 	                            {
-	                            case 1: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.Start)); break;
-	                            case 2: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.InterimUpdate)); break;
-	                            case 3: request.addAttribute(new Attr_AcctStatusType(Attr_AcctStatusType.Stop)); break;
+	                            case 1: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Start)); break;
+	                            case 2: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.InterimUpdate)); break;
+	                            case 3: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Stop)); break;
 	                            }
 	                        }
 	                    }
 	                    
-	                    if (bClass != null) request.addAttribute(new Attr_Class(bClass));
-	    
-	                    if (generatedAcctSessionId != null && request.findAttribute(Attr_AcctSessionId.TYPE) != null)
+	                    if (bClass != null) 
 	                    {
-	                        request.overwriteAttribute(generatedAcctSessionId);
+	                    	request.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, bClass));
 	                    }
 	    
-	                    RadiusPacket reply;
+	    	            if (generateAcctSessionIdCheckBox.isSelected())
+	    	            {
+	    	            	Attr_AcctSessionId generatedAcctSessionId = (Attr_AcctSessionId) AttributeFactory.newAttribute(Attr_AcctSessionId.TYPE, sessionId);
+		                    if (generatedAcctSessionId != null && request.findAttribute(Attr_AcctSessionId.TYPE) != null)
+		                    {
+		                        request.overwriteAttribute(generatedAcctSessionId);
+		                    }
+	    	            }
+	    
+	                    RadiusPacket reply = null;
+	                    
 	                    if (i == 0) 
 	                    {
 	                        if (request instanceof AccessRequest)
@@ -2327,6 +2459,7 @@ public class JRadiusSimulator extends JFrame
 	                            reply = radiusClient.authenticate((AccessRequest)request, auth, retries.intValue());
 	                            if (reply == null)
 	                            {
+	        	                    PacketFactory.recycle(request);
 	                            	throw new TimeoutException("timeout waiting for reply");
 	                            }
 	                            if (!notStopOnRejectCheckBox.isSelected())
@@ -2358,9 +2491,28 @@ public class JRadiusSimulator extends JFrame
 	                    {
 	                        reply = radiusClient.accounting((AccountingRequest)request, retries.intValue());
 	                    }
+
+	                    PacketFactory.recycle(request);
+
+	                    if (reply != null)
+	                    {
+	                    	PacketFactory.recycle(reply);
+	                    }
 	                }
+
+	                authAttributes[0].clear();
+	                authAttributes[1].clear();
+
+	                acctAttributes[0].clear();
+	                acctAttributes[1].clear();
+	                acctAttributes[2].clear();
 	                
-	                if (simulationSuccess) statusLabel.setText("Simulation complete");
+	                radiusClient.close();
+	                
+	                if (simulationSuccess) 
+	                {
+	                	statusLabel.setText("Simulation complete");
+	                }
 	            }
 	            catch (Exception e)
 	            {
@@ -2368,6 +2520,7 @@ public class JRadiusSimulator extends JFrame
 	                e.printStackTrace();
 	            }
 	        }
+
 	        runButton.setSelected(false);
 	        runButton.setText("Start");
 

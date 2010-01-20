@@ -39,7 +39,10 @@ public abstract class RadiusAttribute implements Serializable
     protected int attributeOp = Operator.SET;
     protected AttributeValue attributeValue = null;
     protected String attributeName = "Unknown Attribute";
+
     protected boolean recyclable;
+    protected boolean recycled;
+
     protected boolean overflow;
 
     public RadiusAttribute() 

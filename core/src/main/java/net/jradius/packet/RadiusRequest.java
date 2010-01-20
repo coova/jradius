@@ -74,4 +74,9 @@ public abstract class RadiusRequest extends RadiusPacket
         super(attributes);
         this.client = client;
     }
+
+	public void setRadiusClient(RadiusClient client) 
+	{
+		this.client = client;
+	}
 }

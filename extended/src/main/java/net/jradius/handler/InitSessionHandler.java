@@ -26,6 +26,7 @@ import net.jradius.dictionary.vsa_jradius.Attr_JRadiusSessionId;
 import net.jradius.exception.RadiusException;
 import net.jradius.log.JRadiusLogEntry;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusRequest;
 import net.jradius.session.JRadiusSession;
@@ -55,10 +56,14 @@ public class InitSessionHandler extends RadiusSessionHandler
         // easy processing of JRadius reuqests/sessions.
         
         if (ci.get(Attr_JRadiusSessionId.TYPE) == null)
-            ci.add(new Attr_JRadiusSessionId(session.getSessionKey()));
+        {
+            ci.add(AttributeFactory.newAttribute(Attr_JRadiusSessionId.TYPE, session.getSessionKey()));
+        }
         
         if (ci.get(Attr_JRadiusRequestId.TYPE) == null)
-            ci.add(new Attr_JRadiusRequestId(Integer.toString(req.getIdentifier())));
+        {
+            ci.add(AttributeFactory.newAttribute(Attr_JRadiusRequestId.TYPE, Integer.toString(req.getIdentifier())));
+        }
 
         return session.onPreProcessing(request);
     }

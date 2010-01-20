@@ -42,6 +42,14 @@ public class DateValue extends IntegerValue
         dateValue = d;
     }
     
+    public void copy(AttributeValue value)
+    {
+    	DateValue dValue = (DateValue) value;
+    	this.integerValue = dValue.integerValue;
+    	this.length = dValue.length;
+    	this.dateValue = dValue.dateValue;
+    }
+    
     public void getBytes(OutputStream out) throws IOException
     {
         integerValue = new Long(dateValue.getTime() / 1000);

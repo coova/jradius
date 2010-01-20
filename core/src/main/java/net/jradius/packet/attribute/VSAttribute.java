@@ -49,7 +49,9 @@ public abstract class VSAttribute extends RadiusAttribute
     		typeLength = Short.parseShort(s[0]);
     		
     		if (s.length > 1) 
+    		{
     			lengthLength = Short.parseShort(s[1]);
+    		}
     		
     		if (s.length > 2)
     		{

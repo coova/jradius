@@ -61,8 +61,10 @@ public class AttributeList implements Serializable
     { 
         if (list != null) 
         {
-            attributeMap.putAll(list.getMap()); 
-            attributeOrderList.addAll(list.getAttributeList());
+        	for (RadiusAttribute a : list.getAttributeList())
+        	{
+        		_add(AttributeFactory.copyAttribute(a), false);
+        	}
         }
     }
     
@@ -80,17 +82,22 @@ public class AttributeList implements Serializable
 	public void _add(RadiusAttribute a, boolean overwrite)
     {
         Long key = new Long(a.getFormattedType());
+        
         Object o = attributeMap.get(key);
         attributeOrderList.add(a);
+
         if (o == null || overwrite)
         {
-        		if (o != null) removeFromList(o);
-        		attributeMap.put(key, a);
+        	if (o != null) 
+        	{
+        		removeFromList(o);
+        	}
+        	attributeMap.put(key, a);
         }
         else
         {
             // If we already have this attribute and are not
-            // overwriting, then we create a list of attribtues.
+            // overwriting, then we create a list of attributes.
             if (o instanceof LinkedList)
             {
                 ((LinkedList)o).add(a);
@@ -98,7 +105,8 @@ public class AttributeList implements Serializable
             else
             {
                 LinkedList l = new LinkedList();
-                l.add(o); l.add(a);
+                l.add(o); 
+                l.add(a);
                 attributeMap.put(key, l);
             }
         }
@@ -116,6 +124,7 @@ public class AttributeList implements Serializable
     	if (a instanceof SubAttribute)
     	{
     		SubAttribute subAttribute = (SubAttribute) a;
+    		
     		try 
     		{
     			RadiusAttribute _pAttribute = (RadiusAttribute) subAttribute.getParentClass().newInstance();
@@ -164,12 +173,15 @@ public class AttributeList implements Serializable
         		removeFromList(i.next());
         	}
         }
-        else removeFromList(o);
+        else 
+        {
+        	removeFromList(o);
+        }
     }
     
     public void clear()
     {
-		AttributeFactory.recycle(this);
+    	AttributeFactory.recycle(this);
 
 		attributeMap.clear();
     	attributeOrderList.clear();
@@ -183,6 +195,10 @@ public class AttributeList implements Serializable
     		if (ol[i] == o)
     		{
     			attributeOrderList.remove(i);
+    			if (ol[i] instanceof RadiusAttribute)
+    			{
+    				AttributeFactory.recycle((RadiusAttribute) ol[i]);
+    			}
     			return;
     		}
     	}
@@ -193,7 +209,7 @@ public class AttributeList implements Serializable
      */
     public int getSize()
     {
-        return attributeOrderList.size();
+    	return attributeOrderList.size();
     }
     
     /**

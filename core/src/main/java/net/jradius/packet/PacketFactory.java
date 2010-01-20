@@ -25,9 +25,11 @@ import java.net.DatagramPacket;
 import java.nio.ByteBuffer;
 import java.util.LinkedHashMap;
 
+import net.jradius.client.RadiusClient;
 import net.jradius.exception.RadiusException;
 import net.jradius.freeradius.FreeRadiusFormat;
 import net.jradius.log.RadiusLog;
+import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 
 import org.apache.commons.pool.KeyedObjectPool;
@@ -79,25 +81,34 @@ public class PacketFactory
 
     private static KeyedObjectPool pktObjectPool = new GenericKeyedObjectPool(new KeyedPoolableObjectFactory() 
     {
-		public boolean validateObject(Object arg0, Object arg1) {
+		public boolean validateObject(Object arg0, Object arg1) 
+		{
 			return true;
 		}
 		
-		public void passivateObject(Object arg0, Object arg1) throws Exception {
+		public void passivateObject(Object arg0, Object arg1) throws Exception 
+		{
+			RadiusPacket p = (RadiusPacket) arg1;
+			p.recycled = true;
 		}
 		
-		public Object makeObject(Object arg0) throws Exception {
+		public Object makeObject(Object arg0) throws Exception 
+		{
 			RadiusPacket p = createPacket((Integer) arg0);
 			p.recyclable = true;
+			p.recycled = false;
 			return p;
 		}
 		
-		public void destroyObject(Object arg0, Object arg1) throws Exception {
+		public void destroyObject(Object arg0, Object arg1) throws Exception 
+		{
 		}
 		
-		public void activateObject(Object arg0, Object arg1) throws Exception {
+		public void activateObject(Object arg0, Object arg1) throws Exception 
+		{
 			RadiusPacket p = (RadiusPacket) arg1;
 			p.setAuthenticator(null);
+			p.recycled = false;
 		}
 		
 	}, -1);
@@ -109,7 +120,9 @@ public class PacketFactory
         {
             throw new RadiusException("bad radius code");
         }
-        return (RadiusPacket) c.newInstance();
+        RadiusPacket p = (RadiusPacket) c.newInstance();
+        // System.err.println("Created packet " + p.toString());
+        return p;
     }
     
     public static RadiusPacket newPacket(Integer code)
@@ -118,7 +131,9 @@ public class PacketFactory
     	{
             if (pktObjectPool != null)
             {
-            	return (RadiusPacket) pktObjectPool.borrowObject(code);
+            	RadiusPacket p = (RadiusPacket) pktObjectPool.borrowObject(code);
+            	// System.err.println("Borrowed packet " + p.toString());
+            	return p;
             }
           
             return createPacket(code);
@@ -148,6 +163,22 @@ public class PacketFactory
     	p.getAttributes().add(list);
     	return p;
     }
+
+    public static RadiusPacket newPacket(byte b, AttributeList list)
+    {
+    	RadiusPacket p = newPacket(new Integer(b));
+    	p.getAttributes().add(list);
+    	return p;
+    }
+
+    public static RadiusRequest newPacket(byte b, RadiusClient client, AttributeList list)
+    {
+    	RadiusRequest p = (RadiusRequest) newPacket(new Integer(b));
+    	p.setRadiusClient(client);
+    	p.getAttributes().add(list);
+    	return p;
+    }
+
 
     /**
      * Parse a UDP RADIUS message
@@ -387,27 +418,36 @@ public class PacketFactory
 		System.err.println("PacketPool: active="+pktObjectPool.getNumActive()+" idle="+pktObjectPool.getNumIdle());
     }
     
-	public static void recycle(RadiusPacket[] rp) 
+	public static void recycle(RadiusPacket p) 
 	{
-		for (RadiusPacket p : rp)
+		AttributeList list = p.getAttributes();
+		list.clear();
+		
+		if (pktObjectPool != null && p.recyclable)
 		{
-			AttributeList list = p.getAttributes();
-			list.clear();
-			
-			if (pktObjectPool != null && p.recyclable)
+			try
 			{
-				try
-				{
-					pktObjectPool.returnObject(new Integer(p.getCode()), p);
-				}
-				catch (Exception e)
-				{
-					e.printStackTrace();
-				}
+				pktObjectPool.returnObject(new Integer(p.getCode()), p);
+				// System.err.print("Recycled packet "+p.toString());
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
 			}
 		}
 		
-		//poolStatus();
-		//AttributeFactory.poolStatus();
+		// poolStatus();
+		// AttributeFactory.poolStatus();
+	}
+
+	public static void recycle(RadiusPacket[] rp) 
+	{
+		if (rp != null)
+		{
+			for (RadiusPacket p : rp)
+			{
+				recycle(p);
+			}
+		}
 	}
 }

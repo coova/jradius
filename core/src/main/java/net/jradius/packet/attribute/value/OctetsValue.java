@@ -34,7 +34,7 @@ import net.jradius.util.Hex;
  */
 public class OctetsValue extends AttributeValue
 {
-    private static final long serialVersionUID = 0L;
+	private static final long serialVersionUID = 0L;
     
     protected byte[] byteValue;
     protected int byteValueOffset;
@@ -47,6 +47,15 @@ public class OctetsValue extends AttributeValue
         byteValue = b;
     }
     
+    @Override
+	public void copy(AttributeValue value) 
+    {
+    	OctetsValue cValue = (OctetsValue) value;
+    	this.byteValue = cValue.byteValue;
+    	this.byteValueLength = cValue.byteValueLength;
+    	this.byteValueOffset = cValue.byteValueOffset;
+	}
+
     public void getBytes(OutputStream out) throws IOException
     {
         if (byteValue != null)

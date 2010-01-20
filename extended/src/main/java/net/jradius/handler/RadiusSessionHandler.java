@@ -32,6 +32,7 @@ import net.jradius.dictionary.Attr_UserPassword;
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusRequest;
 
@@ -76,20 +77,20 @@ public abstract class RadiusSessionHandler extends PacketHandlerChain
         
         if (octetsIn != null && octetsOut != null)
         {
-            req.overwriteAttribute(new Attr_AcctInputOctets(octetsOut));
-            req.overwriteAttribute(new Attr_AcctOutputOctets(octetsIn));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputOctets.TYPE, octetsOut));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputOctets.TYPE, octetsIn));
         }
         
         if (gigaIn != null && gigaOut != null)
         {
-            req.overwriteAttribute(new Attr_AcctInputGigawords(gigaOut));
-            req.overwriteAttribute(new Attr_AcctOutputGigawords(gigaIn));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputGigawords.TYPE, gigaOut));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputGigawords.TYPE, gigaIn));
         }
         
         if (packetsIn != null && packetsOut != null)
         {
-            req.overwriteAttribute(new Attr_AcctInputPackets(packetsOut));
-            req.overwriteAttribute(new Attr_AcctOutputPackets(packetsIn));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputPackets.TYPE, packetsOut));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputPackets.TYPE, packetsIn));
         }
     }
 }
