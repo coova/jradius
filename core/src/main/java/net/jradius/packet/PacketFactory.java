@@ -415,7 +415,13 @@ public class PacketFactory
     public static void poolStatus()
     {
 		if (pktObjectPool == null) return;
-		System.err.println("PacketPool: active="+pktObjectPool.getNumActive()+" idle="+pktObjectPool.getNumIdle());
+		System.err.println("PacketPool: "+getPoolStatus());
+    }
+    
+    public static String getPoolStatus()
+    {
+		if (pktObjectPool == null) return "";
+		return "active="+pktObjectPool.getNumActive()+", idle="+pktObjectPool.getNumIdle();
     }
     
 	public static void recycle(RadiusPacket p) 

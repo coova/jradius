@@ -21,13 +21,13 @@
 
 package net.jradius.util;
 
-import edu.emory.mathcs.backport.java.util.Arrays;
 import gnu.crypto.cipher.CipherFactory;
 import gnu.crypto.cipher.IBlockCipher;
 import gnu.crypto.cipher.WeakKeyException;
 import gnu.crypto.hash.HashFactory;
 import gnu.crypto.hash.IMessageDigest;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 

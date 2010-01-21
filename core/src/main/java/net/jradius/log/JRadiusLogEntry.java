@@ -20,6 +20,7 @@
 
 package net.jradius.log;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import net.jradius.exception.RadiusException;
@@ -32,7 +33,7 @@ import net.jradius.session.JRadiusSession;
  * The JRadius Log Entry Object (bean).
  * @author David Bird
  */
-public interface JRadiusLogEntry
+public interface JRadiusLogEntry extends Serializable
 {
 	public void init(JRadiusRequest request, JRadiusSession session) throws RadiusException;
 	

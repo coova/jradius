@@ -163,7 +163,7 @@ public class RadiusDictionary
                 String parts[] = line.split("[\t ]+");
                 String file = parts[1];
                 if ("dictionary.jradius".equals(file)) haveSeenJRadius = true;
-                RadiusLog.error("Including file: " + file);
+                RadiusLog.info("Including file: " + file);
                 readFile(new BufferedReader(new FileReader(ddir + "/" + file)));
             }
             else if (upperLine.startsWith("BEGIN-TLV"))

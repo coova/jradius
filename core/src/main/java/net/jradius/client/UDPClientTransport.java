@@ -61,14 +61,20 @@ public class UDPClientTransport extends RadiusClientTransport
 
 	public void close()
 	{
-		socket.close();
 		if (channel != null)
 		{
-			try {
+			try 
+			{
 				channel.close();
-			} catch (IOException e) {
+			}
+			catch (IOException e) 
+			{
 				e.printStackTrace();
 			}
+		}
+		if (socket != null)
+		{
+			socket.close();
 		}
 	}
 	

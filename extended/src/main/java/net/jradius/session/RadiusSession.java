@@ -85,7 +85,7 @@ public class RadiusSession implements JRadiusSession, Serializable
     
     private JRadiusRequest lastRadiusRequest;
     private Map<String, JRadiusLogEntry> logEntryMap = new HashMap<String, JRadiusLogEntry>();
-    private Map<String, Object> attributeMap = new HashMap<String, Object>();
+    private Map<String, Serializable> attributeMap = new HashMap<String, Serializable>();
 
     // Basic Session Configuration
     private String username;
@@ -189,11 +189,11 @@ public class RadiusSession implements JRadiusSession, Serializable
 		return false;
 	}
 
-	public void setAttribute(String name, Object value) {
+	public void setAttribute(String name, Serializable value) {
 		attributeMap.put(name, value);
 	}
 
-	public Object getAttribute(String name) {
+	public Serializable getAttribute(String name) {
 		return attributeMap.get(name);
 	}
 

@@ -24,6 +24,7 @@ package net.jradius.client.gui;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Event;
+import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -37,11 +38,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.ConnectException;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -94,6 +95,7 @@ import net.jradius.dictionary.Attr_Class;
 import net.jradius.dictionary.Attr_ReplyMessage;
 import net.jradius.exception.StandardViolatedException;
 import net.jradius.exception.TimeoutException;
+import net.jradius.exception.UnknownAttributeException;
 import net.jradius.packet.AccessReject;
 import net.jradius.packet.AccessRequest;
 import net.jradius.packet.AccountingRequest;
@@ -166,6 +168,11 @@ public class JRadiusSimulator extends JFrame
     private JLabel runStatsRecv = null;
     private JLabel runStatsTime = null;
     private JLabel runStatsRPS = null;
+    private JLabel runStatsTime1 = null;
+    private JLabel runStatsTime2 = null;
+    private JLabel runStatsTime3 = null;
+    private JLabel runStatsTime4 = null;
+    private JLabel runStatsTime5 = null;
     private JLabel runStatsThreads = null;
     private JToggleButton runButton = null;
     private JScrollPane attributesTableScrollPane = null;
@@ -255,7 +262,7 @@ public class JRadiusSimulator extends JFrame
     private void initialize() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setJMenuBar(getJJMenuBar());
-        this.setSize(650, 500);
+        this.setSize(650, 550);
         this.setContentPane(getMainContentPane());
         this.setTitle("JRadiusSimulator");
         this.setVisible(true);
@@ -809,6 +816,8 @@ public class JRadiusSimulator extends JFrame
                     }
                     else
                     {
+                        simulationRunners = null;
+
                         if (simulationThreads != null)
                         {
                             for (int i=0; i < simulationThreads.length; i++)
@@ -819,7 +828,6 @@ public class JRadiusSimulator extends JFrame
                         
                         simulationMonitor.interrupt();
 
-                        simulationRunners = null;
                         simulationThreads = null;
                         simulationMonitor = null;
                         statusLabel.setText("Ready");
@@ -914,12 +922,15 @@ public class JRadiusSimulator extends JFrame
      * 
      * @return javax.swing.JTable
      */
-    private JTable getAttributesTable() {
-        if (attributesTable == null) {
+    private JTable getAttributesTable() 
+    {
+        if (attributesTable == null) 
+        {
             attributesTable = new JTable(attributesTableModel);
             TableColumn col = attributesTable.getColumnModel().getColumn(6);
             col.setCellEditor(new ValueTableCellEditor());
-            for (int i = 0; i < attributesTableModel.getColumnCount(); i++) {
+            for (int i = 0; i < attributesTableModel.getColumnCount(); i++) 
+            {
                 col = attributesTable.getColumnModel().getColumn(i);
                 if (i == 0 || i == 6) {
                     col.setPreferredWidth(120); 
@@ -954,7 +965,11 @@ public class JRadiusSimulator extends JFrame
 
     private JPanel getRunStatsPanel()
     {
-    	if (runStatsPanel == null) {
+    	if (runStatsPanel == null) 
+    	{
+            runStatsPanel = new JPanel();
+            runStatsPanel.setLayout(new FlowLayout());
+
             GridBagConstraints gridBagConstraints = new GridBagConstraints();
             gridBagConstraints.anchor = java.awt.GridBagConstraints.EAST;
             gridBagConstraints.insets = new java.awt.Insets(0, 10, 0, 5);
@@ -965,20 +980,36 @@ public class JRadiusSimulator extends JFrame
             gridBagConstraints1.insets = new java.awt.Insets(0, 0, 0, 10);
             gridBagConstraints1.weightx = 1.0;
 
-            GridBagLayout gridBagLayout = new GridBagLayout();
+            JPanel runStatsPanel1 = new JPanel();
+            runStatsPanel1.setLayout(new GridBagLayout());
+            runStatsPanel1.add(new JLabel("Threads:"), gridBagConstraints);
+            runStatsPanel1.add(runStatsThreads = new JLabel(), gridBagConstraints1);
+            runStatsPanel1.add(new JLabel("Sent:"), gridBagConstraints);
+            runStatsPanel1.add(runStatsSent = new JLabel(), gridBagConstraints1);
+            runStatsPanel1.add(new JLabel("Received:"), gridBagConstraints);
+            runStatsPanel1.add(runStatsRecv = new JLabel(), gridBagConstraints1);
+            runStatsPanel1.add(new JLabel("Time:"), gridBagConstraints);
+            runStatsPanel1.add(runStatsTime = new JLabel(), gridBagConstraints1);
+            runStatsPanel1.add(new JLabel("Throughput:"), gridBagConstraints);
+            runStatsPanel1.add(runStatsRPS = new JLabel(), gridBagConstraints1);
+            
+            JPanel runStatsPanel2 = new JPanel();
+            runStatsPanel2.setLayout(new GridBagLayout());
+            runStatsPanel2.add(new JLabel("1 ms or less:"), gridBagConstraints);
+            runStatsPanel2.add(runStatsTime1 = new JLabel(), gridBagConstraints1);
+            runStatsPanel2.add(new JLabel("10 ms or less:"), gridBagConstraints);
+            runStatsPanel2.add(runStatsTime2 = new JLabel(), gridBagConstraints1);
+            runStatsPanel2.add(new JLabel("100 ms or less:"), gridBagConstraints);
+            runStatsPanel2.add(runStatsTime3 = new JLabel(), gridBagConstraints1);
+            runStatsPanel2.add(new JLabel("1000 ms or less:"), gridBagConstraints);
+            runStatsPanel2.add(runStatsTime4 = new JLabel(), gridBagConstraints1);
+            runStatsPanel2.add(new JLabel("10000 ms or less:"), gridBagConstraints);
+            runStatsPanel2.add(runStatsTime5 = new JLabel(), gridBagConstraints1);
 
-            runStatsPanel = new JPanel();
-            runStatsPanel.setLayout(gridBagLayout);
-            runStatsPanel.add(new JLabel("Threads"), gridBagConstraints);
-            runStatsPanel.add(runStatsThreads = new JLabel("n/a"), gridBagConstraints1);
-            runStatsPanel.add(new JLabel("Sent"), gridBagConstraints);
-            runStatsPanel.add(runStatsSent = new JLabel("n/a"), gridBagConstraints1);
-            runStatsPanel.add(new JLabel("Received"), gridBagConstraints);
-            runStatsPanel.add(runStatsRecv = new JLabel("n/a"), gridBagConstraints1);
-            runStatsPanel.add(new JLabel("Time"), gridBagConstraints);
-            runStatsPanel.add(runStatsTime = new JLabel("n/a"), gridBagConstraints1);
-            runStatsPanel.add(new JLabel("Throughput"), gridBagConstraints);
-            runStatsPanel.add(runStatsRPS = new JLabel("n/a"), gridBagConstraints1);
+	    	clearStats();
+
+            runStatsPanel.add(runStatsPanel1);
+            runStatsPanel.add(runStatsPanel2);
     	}
 
     	return runStatsPanel;
@@ -2192,12 +2223,30 @@ public class JRadiusSimulator extends JFrame
 	    return bArray;
 	}
 
+	public void clearStats()
+	{
+    	runStatsThreads.setText("-");
+    	runStatsSent.setText("-");
+    	runStatsRecv.setText("-");
+    	runStatsTime.setText("-");
+    	runStatsRPS.setText("-");
+
+    	runStatsTime1.setText("-");
+    	runStatsTime2.setText("-");
+    	runStatsTime3.setText("-");
+    	runStatsTime4.setText("-");
+    	runStatsTime5.setText("-");
+	}
+	
 	class SimulationMonitor implements Runnable
 	{
     	long startTime = System.currentTimeMillis();
     	
 	    public void run()
 	    {
+	    	clearStats();
+	    	statusLabel.setText("Simulation Running...");
+
 	    	for (Thread t : simulationThreads)
 	    	{
 	    		try 
@@ -2206,32 +2255,57 @@ public class JRadiusSimulator extends JFrame
 				} 
 	    		catch (InterruptedException e) 
 				{
-					e.printStackTrace();
-					break;
+	    	    	statusLabel.setText(statusLabel.getText()+ " Stopped.");
+	    	        runButton.setSelected(false);
+	    	        runButton.setText("Start");
+					return;
 				}
 	    	}
 
+	    	if (simulationRunners == null) return;
+	    	
+	    	statusLabel.setText(statusLabel.getText()+ " Done.");
+
 	    	long overallTime = System.currentTimeMillis() - startTime;
 	    	int threads = simulationRunners.length;
+	    	
 	    	int sent = 0;
 	    	int recd = 0;
+	    	
+	    	long pktTimes[] = new long[10];
 	    	
 	    	for (SimulationRunner r : simulationRunners)
 	    	{
 	    		sent += r.sent;
 	    		recd += r.recd;
+	    		for (int i = 0; i < pktTimes.length; i++)
+	    		{
+	    			pktTimes[i] += r.pkts[i];
+	    		}
 	    	}
 
             double time = (double)overallTime / 1000;
-            double rps = (double)recd / time;
+            double rps = (double)recd;
+
+            rps /= time;
             
 	    	NumberFormat dfmt = new DecimalFormat("#.##");
+	    	NumberFormat ifmt = NumberFormat.getInstance();
 	    	
-	    	runStatsThreads.setText(""+threads);
-	    	runStatsSent.setText(""+sent);
-	    	runStatsRecv.setText(""+recd);
-	    	runStatsTime.setText(""+overallTime+" ms");
-	    	runStatsRPS.setText(""+dfmt.format(rps)+" req/sec");
+	    	runStatsThreads.setText(ifmt.format(threads));
+	    	runStatsSent.setText(ifmt.format(sent));
+	    	runStatsRecv.setText(ifmt.format(recd));
+	    	runStatsTime.setText(dfmt.format(time)+" sec");
+	    	runStatsRPS.setText(dfmt.format(rps)+" req/sec");
+
+	    	runStatsTime1.setText(ifmt.format(pktTimes[0]));
+	    	runStatsTime2.setText(ifmt.format(pktTimes[1]));
+	    	runStatsTime3.setText(ifmt.format(pktTimes[2]));
+	    	runStatsTime4.setText(ifmt.format(pktTimes[3]));
+	    	runStatsTime5.setText(ifmt.format(pktTimes[4]));
+	    	
+	        runButton.setSelected(false);
+	        runButton.setText("Start");
 	    }
 	}
 	
@@ -2241,11 +2315,10 @@ public class JRadiusSimulator extends JFrame
     	protected int recd = 0;
     	protected int accepts = 0;
     	protected double requestPerSecond = 0;
-        
+        protected long pkts[] = new long[10];
+    	
 	    public void run()
 	    {
-	    	long startTime = System.currentTimeMillis();
-
 	    	final boolean doLog = doLogCheckBox.isSelected();
 
 	        String radiusServer = radiusServerTextField.getText();
@@ -2268,49 +2341,60 @@ public class JRadiusSimulator extends JFrame
 	            statusLabel.setText("The Auth Port and Acct Port must be set");
 	            return;
 	        }
-	
+
+            AttributeList[] authAttributes = { new AttributeList(), new AttributeList() };
+            AttributeList[] acctAttributes = { new AttributeList(), new AttributeList(), new AttributeList() };
+
+            Object[] entries = attributesTableModel.getEntries().toArray();
+            for (int i = 0; i < entries.length; i++)
+            {
+                AttributesTableEntry entry = (AttributesTableEntry)entries[i];
+				try 
+				{
+					RadiusAttribute attribute = AttributeFactory.newAttribute(entry.getAttributeName(), entry.getAttributeValue(), "=");
+
+					Boolean bool;
+	                
+	                if ((bool = entry.getAccessRequest()) != null     && bool.booleanValue()) authAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
+	                if ((bool = entry.getTunnelRequest()) != null     && bool.booleanValue()) authAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
+	                if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
+	                if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
+	                if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(AttributeFactory.copyAttribute(attribute), false);
+				} 
+				catch (UnknownAttributeException e) 
+				{
+					e.printStackTrace();
+				}
+            }
+            
+            boolean sendPackets[] = { true, false, false, false };
+            boolean sendDisconnectRequest = false;
+            boolean sendCoARequest = false;
+            boolean simulationSuccess = true;
+            interactiveSession = false; 
+            
+            switch (simulationTypeComboBox.getSelectedIndex())
+            {
+                case 1: sendPackets[1] = sendPackets[2] = sendPackets[3] = true; break;
+                case 2: sendPackets[1] = sendPackets[3] = true; break;
+                case 3: sendPackets[1] = true; break;
+                case 4: sendPackets = new boolean[]{ false, true, true, true }; break;
+                case 5: sendPackets = new boolean[]{ false, false, false, true }; break;
+                case 6: sendDisconnectRequest = true; break;
+                case 7: sendCoARequest = true; break;
+                //case 3: sendPackets[1] = true; interactiveSession = true; break;
+            }
+    
+	    	long startTime = System.currentTimeMillis();
+
 	        for (int r=0; r < requests; r++)
 	        {
-	            // Default is Auth Only
-	            boolean sendPackets[] = { true, false, false, false };
-	            boolean sendDisconnectRequest = false;
-	            boolean sendCoARequest = false;
-	            boolean simulationSuccess = true;
-	            interactiveSession = false; 
-	            
-	            switch (simulationTypeComboBox.getSelectedIndex())
-	            {
-	                case 1: sendPackets[1] = sendPackets[2] = sendPackets[3] = true; break;
-	                case 2: sendPackets[1] = sendPackets[3] = true; break;
-	                case 3: sendPackets[1] = true; break;
-	                case 4: sendPackets = new boolean[]{ false, true, true, true }; break;
-	                case 5: sendPackets = new boolean[]{ false, false, false, true }; break;
-	                case 6: sendDisconnectRequest = true; break;
-	                case 7: sendCoARequest = true; break;
-	                //case 3: sendPackets[1] = true; interactiveSession = true; break;
-	            }
-	    
+                RadiusClientTransport transport = null;
+	        	RadiusClient radiusClient = null;
+	        	
 	            try
 	            {
 	                // Run the Simulation
-	                AttributeList[] authAttributes = { new AttributeList(), new AttributeList() };
-	                AttributeList[] acctAttributes = { new AttributeList(), new AttributeList(), new AttributeList() };
-	    
-	                Object[] entries = attributesTableModel.getEntries().toArray();
-	                for (int i = 0; i < entries.length; i++)
-	                {
-	                    AttributesTableEntry entry = (AttributesTableEntry)entries[i];
-	                    RadiusAttribute attribute = AttributeFactory.newAttribute(entry.getAttributeName(), entry.getAttributeValue(), "=");
-	                    Boolean bool;
-	                    
-	                    if ((bool = entry.getAccessRequest()) != null     && bool.booleanValue()) authAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
-	                    if ((bool = entry.getTunnelRequest()) != null     && bool.booleanValue()) authAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
-	                    if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
-	                    if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
-	                    if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(AttributeFactory.copyAttribute(attribute), false);
-	                }
-	                
-	                RadiusClientTransport transport;
 	                
 	                if ("RadSec".equals(transportTypeComboBox.getSelectedItem()))
 	                {
@@ -2348,18 +2432,32 @@ public class JRadiusSimulator extends JFrame
 	                
 	                transport.setStatusListener(new TransportStatusListener() 
 	                {
+	                	long t = 0;
+	                	
 						public void onAfterReceive(RadiusClientTransport transport, RadiusPacket packet)
 						{
-	                        statusLabel.setText("Received RADIUS Packet " + packet.getClass().getName());
 
 	                        if (doLog)
 	                        {
-		                        logRecv.println("Received RADIUS Packet:");
+	                        	statusLabel.setText("Received RADIUS Packet " + packet.getClass().getName());
+		                        
+	                        	logRecv.println("Received RADIUS Packet:");
 		                        logRecv.println(logSepLine);
 		                        logRecv.println(packet.toString());
 		                        logRecv.flush();
+		                        
 		                        checkStandard(getRadiusStandard(), packet);
 	                        }
+
+	                        long d = System.currentTimeMillis() - t;
+
+	                        if      (d <= 1)   		pkts[0]++;
+	                        else if (d <= 10) 		pkts[1]++;
+	                        else if (d <= 100) 		pkts[2]++;
+	                        else if (d <= 1000) 	pkts[3]++;
+	                        else if (d <= 10000) 	pkts[4]++;
+	                        else if (d <= 100000) 	pkts[5]++;
+	                        else if (d <= 1000000) 	pkts[6]++;
 	                        
 	                        recd++;
 						}
@@ -2370,7 +2468,8 @@ public class JRadiusSimulator extends JFrame
 
 						public void onBeforeReceive(RadiusClientTransport transport)
 						{
-	                        statusLabel.setText("Waiting for response...");
+							if (doLog)
+								statusLabel.setText("Waiting for response...");
 						}
 
 						public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) 
@@ -2382,15 +2481,15 @@ public class JRadiusSimulator extends JFrame
 		                        logSent.println(packet.toString());
 		                        logSent.flush();
 		                        checkStandard(getRadiusStandard(), packet);
+		                        statusLabel.setText("Sending RADIUS Packet " + packet.getClass().getName());
 							}
-	                        
+
+							t = System.currentTimeMillis();
 	                        sent++;
-	                        statusLabel.setText("Sending RADIUS Packet " + packet.getClass().getName());
 						}
-	                	
 	                });
 	                
-	                RadiusClient radiusClient = new RadiusClient(transport);
+	                radiusClient = new RadiusClient(transport);
 
 	                String sessionId = "JRadius-" + RadiusRandom.getRandomString(16);
 	                
@@ -2492,26 +2591,17 @@ public class JRadiusSimulator extends JFrame
 	                        reply = radiusClient.accounting((AccountingRequest)request, retries.intValue());
 	                    }
 
-	                    PacketFactory.recycle(request);
-
 	                    if (reply != null)
 	                    {
 	                    	PacketFactory.recycle(reply);
 	                    }
+
+	                    PacketFactory.recycle(request);
 	                }
 
-	                authAttributes[0].clear();
-	                authAttributes[1].clear();
-
-	                acctAttributes[0].clear();
-	                acctAttributes[1].clear();
-	                acctAttributes[2].clear();
-	                
-	                radiusClient.close();
-	                
 	                if (simulationSuccess) 
 	                {
-	                	statusLabel.setText("Simulation complete");
+	                	//statusLabel.setText("Simulation complete");
 	                }
 	            }
 	            catch (Exception e)
@@ -2519,11 +2609,26 @@ public class JRadiusSimulator extends JFrame
 	                statusLabel.setText("Problem: " + e.getMessage());
 	                e.printStackTrace();
 	            }
+	            finally
+	            {
+	            	if (radiusClient != null)
+	            	{
+	            		radiusClient.close();
+	            	}
+	            	else if (transport != null)
+	            	{
+	            		transport.close();
+	            	}
+	            }
 	        }
 
-	        runButton.setSelected(false);
-	        runButton.setText("Start");
+            authAttributes[0].clear();
+            authAttributes[1].clear();
 
+            acctAttributes[0].clear();
+            acctAttributes[1].clear();
+            acctAttributes[2].clear();
+            
 	        System.out.println("Sent: "+sent+" Recd: "+recd+" in "+((System.currentTimeMillis() - startTime))+"ms");
 	    }
     }

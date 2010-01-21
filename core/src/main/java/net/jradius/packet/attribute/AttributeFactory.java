@@ -687,6 +687,12 @@ public final class AttributeFactory
 		System.err.println("AttributePool: active="+attributeObjectPool.getNumActive()+" idle="+attributeObjectPool.getNumIdle());
     }
     
+    public static String getPoolStatus()
+    {
+		if (attributeObjectPool == null) return "";
+		return "active="+attributeObjectPool.getNumActive()+", idle="+attributeObjectPool.getNumIdle();
+    }
+    
 	public static void recycle(RadiusAttribute a) 
 	{
 		if (attributeObjectPool == null || !a.recyclable) 

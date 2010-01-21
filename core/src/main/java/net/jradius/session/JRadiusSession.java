@@ -83,9 +83,9 @@ public interface JRadiusSession extends Serializable
      */
     public void initSession(JRadiusRequest request) throws RadiusException;
     
-    public void setAttribute(String name, Object value);
+    public void setAttribute(String name, Serializable value);
 
-    public Object getAttribute(String name);
+    public Serializable getAttribute(String name);
 
     public void onPostProcessing(JRadiusRequest request) throws RadiusException;
 

@@ -28,9 +28,7 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
@@ -162,16 +160,18 @@ public class WebServiceListener extends TCPListener implements InitializingBean,
     public WebServiceRequestObject get(String username)
     {
         if (requestMap != null)
+        {
             return (WebServiceRequestObject)requestMap.get(username);
+        }
         Element e = requestCache.get(username);
         return e == null ? null : (WebServiceRequestObject)e.getValue();
     }
 
     private void deleteElement(Element e)
     {
-        if (e==null) return;
+    	if (e == null) return;
         WebServiceRequestObject o = (WebServiceRequestObject)e.getValue();
-        if (o==null) return;
+        if (o == null) return;
         o.delete();
     }
     
@@ -209,9 +209,12 @@ public class WebServiceListener extends TCPListener implements InitializingBean,
 
     public void notifyRemoveAll(Ehcache cache)
     {
-        List keys = cache.getKeys();
-        for (Iterator i=keys.iterator(); i.hasNext();)
-            deleteElement(cache.get(i.next()));
+    	// -- Potentially thread unsafe -- just don't call removeAll()
+    	//List keys = cache.getKeys();
+    	//for (Iterator i=keys.iterator(); i.hasNext();)
+    	//{
+    	//deleteElement(cache.get(i.next()));
+    	//}
     }
 
     public void afterPropertiesSet() throws Exception
@@ -219,16 +222,23 @@ public class WebServiceListener extends TCPListener implements InitializingBean,
         if (idleTime == null) idleTime = new Integer(120);
         if (timeToLive == null) timeToLive = new Integer(180);
         if (requestMap != null) return;
-        if (requestCache == null) {
+        
+        if (requestCache == null) 
+        {
             if (cacheManager == null) 
-                cacheManager = CacheManager.create();
+            {
+            	throw new RuntimeException("cacheManager required");
+            }
+
             requestCache = cacheManager.getCache(cacheName);
+        
             if (requestCache == null)
             {
-                requestCache = new Cache(cacheName, 1000000, true, true, timeToLive.intValue(), idleTime.intValue());
+                requestCache = new Cache(cacheName, 2000, true, false, timeToLive.intValue(), idleTime.intValue());
                 cacheManager.addCache(requestCache);
             }
         }
+
         requestCache.getCacheEventNotificationService().registerListener(this);
     }
 
@@ -236,38 +246,47 @@ public class WebServiceListener extends TCPListener implements InitializingBean,
     {
         return cacheManager;
     }
+
     public void setCacheManager(CacheManager cacheManager)
     {
         this.cacheManager = cacheManager;
     }
+    
     public String getCacheName()
     {
         return cacheName;
     }
+    
     public void setCacheName(String cacheName)
     {
         this.cacheName = cacheName;
     }
+    
     public Integer getIdleTime()
     {
         return idleTime;
     }
+    
     public void setIdleTime(Integer idleTime)
     {
         this.idleTime = idleTime;
     }
+    
     public Ehcache getRequestCache()
     {
         return requestCache;
     }
+    
     public void setRequestCache(Ehcache requestCache)
     {
         this.requestCache = requestCache;
     }
+    
     public Integer getTimeToLive()
     {
         return timeToLive;
     }
+    
     public void setTimeToLive(Integer timeToLive)
     {
         this.timeToLive = timeToLive;

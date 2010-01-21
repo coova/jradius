@@ -82,7 +82,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
      
         if (name != null)
         {
-            manager = (JRadiusSessionManager)managers.get(name);
+            manager = (JRadiusSessionManager) managers.get(name);
         }
 
         if (manager == null) 
@@ -174,9 +174,9 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
     
     public void afterPropertiesSet() throws Exception
     {
-        if (cacheManager == null) 
+    	if ((sessionCache == null || logCache == null) && cacheManager == null) 
         {
-            cacheManager = CacheManager.create();
+        	throw new RuntimeException("cacheManager required");
         }
 
         if (sessionCache == null) 
@@ -185,7 +185,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
             if (sessionCache == null)
             {
-                sessionCache = new Cache(cacheName, 1000000, true, false, 0, maxInactiveInterval);
+            	sessionCache = new Cache(cacheName, 50000, false, false, maxInactiveInterval, maxInactiveInterval);
                 cacheManager.addCache(sessionCache);
             }
         }
@@ -196,7 +196,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
             if (logCache == null)
             {
-                logCache = new Cache(logCacheName, 1000000, true, false, 0, maxInactiveInterval);
+                logCache = new Cache(logCacheName, 20000, false, false, maxInactiveInterval, maxInactiveInterval);
                 cacheManager.addCache(logCache);
             }
         }
@@ -372,7 +372,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
         if (element != null)
         {
-            session = (JRadiusSession)element.getValue();
+        	session = (JRadiusSession) element.getValue();
         }
         
         if (session == null && request != null)

@@ -22,6 +22,8 @@ package net.jradius.handler.dhcp;
 
 import java.net.InetAddress;
 
+import org.springframework.beans.factory.InitializingBean;
+
 import net.jradius.dictionary.vsa_dhcp.Attr_DHCPClientHardwareAddress;
 import net.jradius.dictionary.vsa_dhcp.Attr_DHCPClientIPAddress;
 import net.jradius.dictionary.vsa_dhcp.Attr_DHCPDHCPServerIdentifier;
@@ -52,8 +54,10 @@ import net.sf.ehcache.CacheManager;
  * 
  * @author David Bird
  */
-public class DHCPPoolHandler extends PacketHandlerChain
+public class DHCPPoolHandler extends PacketHandlerChain implements InitializingBean
 {
+	private CacheManager cacheManager;
+	private Cache cache;
 
     public DHCPPoolHandler()
     {
@@ -75,11 +79,14 @@ public class DHCPPoolHandler extends PacketHandlerChain
             _pool.setRouter(InetAddress.getByName("10.1.0.1"));
             _pool.setLeaseTime(900);
             _pool.setDns(dns);
+
+            if (cache == null)
+            {
+            	cache = new Cache("ippool", 10000, true, false, _pool.getLeaseTime() + 60, _pool.getLeaseTime() + 30);
+	            cacheManager.addCache(cache);
+            }
             
-            CacheManager cacheManager = CacheManager.create();
-            Cache _leases = new Cache("ippool", 10000, true, false, 0, _pool.getLeaseTime() + 30);
-            cacheManager.addCache(_leases);
-            _pool.setLeases(_leases);
+            _pool.setLeases(cache);
 
             //pool.addOption(Attr_DHCPProxyAutoDiscovery.VSA_TYPE, wpadURL);
             return _pool;
@@ -194,4 +201,20 @@ public class DHCPPoolHandler extends PacketHandlerChain
 
         return true; // do not continue in chain!
     }
+
+	public void afterPropertiesSet() throws Exception 
+	{
+		if (cacheManager == null)
+		{
+			throw new RuntimeException("cacheManager required");
+		}
+	}
+
+	public void setCacheManager(CacheManager cacheManager) {
+		this.cacheManager = cacheManager;
+	}
+
+	public void setCache(Cache cache) {
+		this.cache = cache;
+	}
 }
