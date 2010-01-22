@@ -197,6 +197,11 @@ public class RadiusSession implements JRadiusSession, Serializable
 		return attributeMap.get(name);
 	}
 
+	public boolean isLogging()
+	{
+		return true;
+	}
+	
 	public JRadiusLogEntry getLogEntry(JRadiusEvent event, String key)
     {
         JRadiusLogEntry entry = logEntryMap.get(key);

@@ -194,15 +194,17 @@ public abstract class RadiusProcessor extends Processor
             }
            
             // Send a log-event to the event-dispatcher
-
-            HandlerLogEvent log = new HandlerLogEvent(request, request.getSessionKey(), result);
-            getEventDispatcher().post(log);
+            if (session != null && session.isLogging())
+            {
+	            HandlerLogEvent log = new HandlerLogEvent(request, request.getSessionKey(), result);
+	            getEventDispatcher().post(log);
+            }
         }
         finally
         {
         	if (session != null)
         	{
-        		sessionManager.unlock(session);
+        		sessionManager.unlock(session, true);
         	}
         }
         

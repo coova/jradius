@@ -50,8 +50,11 @@ public class InitSessionHandler extends RadiusSessionHandler
         
         // We set the type at every stage... the function, in fact,
         // only really sets the type when appropriate.
-        logEntry.init(request, session);
-
+        if (logEntry != null)
+        {
+        	logEntry.init(request, session);
+        }
+        
         // Put some internal values into the ConfigItems for
         // easy processing of JRadius reuqests/sessions.
         

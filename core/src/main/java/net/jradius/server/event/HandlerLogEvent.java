@@ -28,7 +28,8 @@ import net.jradius.server.JRadiusRequest;
  */
 public class HandlerLogEvent extends ServerEvent
 {
-    private int result;
+	private static final long serialVersionUID = 1L;
+	private int result;
     
     public HandlerLogEvent(JRadiusRequest request, String sessionKey, int result)
     {

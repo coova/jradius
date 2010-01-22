@@ -155,7 +155,7 @@ public class EventDispatcher extends JRadiusThread
             {
                 if (session != null)
                 {
-                    sessionManager.unlock(session);
+                    sessionManager.unlock(session, false);
                 }
             }
         }

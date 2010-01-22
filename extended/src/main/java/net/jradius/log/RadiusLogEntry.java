@@ -41,7 +41,7 @@ import net.jradius.session.JRadiusSession;
 public class RadiusLogEntry implements JRadiusLogEntry
 {
 	private static final long serialVersionUID = 1L;
-	protected JRadiusSession session;
+	protected transient JRadiusSession session;
     protected Integer code;
     protected String type;
     protected String message;

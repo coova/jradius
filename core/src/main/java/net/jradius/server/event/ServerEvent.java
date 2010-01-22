@@ -29,7 +29,8 @@ import net.jradius.server.JRadiusRequest;
  */
 public abstract class ServerEvent extends JRadiusEvent
 {
-    private JRadiusRequest request;
+	private static final long serialVersionUID = 1L;
+	private JRadiusRequest request;
     private String sessionKey;
 
     public JRadiusRequest getRequest()

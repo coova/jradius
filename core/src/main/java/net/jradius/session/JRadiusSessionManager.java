@@ -48,10 +48,10 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 {
     private static JRadiusSessionManager defaultManager;
 
-    private static HashMap<String,JRadiusSessionManager> managers = new HashMap<String,JRadiusSessionManager>();
+    private static HashMap<String, JRadiusSessionManager> managers = new HashMap<String, JRadiusSessionManager>();
 
-    private HashMap<String,SessionKeyProvider> providers = new HashMap<String,SessionKeyProvider>();
-    private HashMap<String,SessionFactory> factories = new HashMap<String,SessionFactory>();
+    private HashMap<String, SessionKeyProvider> providers = new HashMap<String, SessionKeyProvider>();
+    private HashMap<String, SessionFactory> factories = new HashMap<String, SessionFactory>();
 
     private ApplicationContext applicationContext;
 
@@ -127,7 +127,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
             defaultManager.shutdown();
         }
         
-        for (Iterator i = managers.values().iterator(); i.hasNext();)
+        for (Iterator<?> i = managers.values().iterator(); i.hasNext();)
         {
             JRadiusSessionManager manager = (JRadiusSessionManager)i.next();
             manager.shutdown();
@@ -151,7 +151,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         {
             // If we can find the extended JRadius classes, configure
             // the default RadiusSessionKeyProvider and RadiusSessionFactory
-            Class c;
+            Class<?> c;
             c = Class.forName("net.jradius.session.RadiusSessionKeyProvider");
             providers.put(null, (SessionKeyProvider) c.newInstance());
             c = Class.forName("net.jradius.session.RadiusSessionFactory");
@@ -196,7 +196,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
             if (logCache == null)
             {
-                logCache = new Cache(logCacheName, 20000, false, false, maxInactiveInterval, maxInactiveInterval);
+            	logCache = new Cache(logCacheName, 20000, false, false, maxInactiveInterval, maxInactiveInterval);
                 cacheManager.addCache(logCache);
             }
         }
@@ -358,7 +358,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
     public JRadiusSession newSession(JRadiusRequest request, Object key) throws RadiusException
     {
-        JRadiusSession session = (JRadiusSession)getSessionFactory(request.getSender()).newSession(request);
+        JRadiusSession session = (JRadiusSession) getSessionFactory(request.getSender()).newSession(request);
         session.setJRadiusKey((String)key);
         put(session.getJRadiusKey(), session);
         put(session.getSessionKey(), session);
@@ -397,7 +397,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         //RadiusLog.error("Appropriate session locking must be implemented");
     }
 
-    public void unlock(JRadiusSession session)
+    public void unlock(JRadiusSession session, boolean save)
     {
         session.unlock();
         //RadiusLog.error("Appropriate session locking must be implemented");
