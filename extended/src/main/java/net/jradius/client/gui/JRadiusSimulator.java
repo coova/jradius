@@ -218,6 +218,7 @@ public class JRadiusSimulator extends JFrame
     private JFormattedTextField sessionTimeTextField = null;
     private JCheckBox generateAcctSessionIdCheckBox = null;
     private JCheckBox doLogCheckBox = null;
+    private JCheckBox floodCheckBox = null;
     private JCheckBox notStopOnRejectCheckBox = null;
     private JCheckBox notSendClassAttribute = null;
     private JDialog openUrlDialog = null;
@@ -1186,6 +1187,7 @@ public class JRadiusSimulator extends JFrame
             sendOptionsPanel.add(getNotStopOnRejectCheckBox(), gridBagConstraints16);
             sendOptionsPanel.add(getSendClassAttributeCheckBox(), gridBagConstraints16);
             sendOptionsPanel.add(getDoLogCheckBox(), gridBagConstraints16);
+            sendOptionsPanel.add(getFloodCheckBox(), gridBagConstraints16);
         }
         return sendOptionsPanel;
     }
@@ -1853,6 +1855,14 @@ public class JRadiusSimulator extends JFrame
         	doLogCheckBox.setText("Log RADIUS to Log tab");
         }
         return doLogCheckBox;
+    }
+
+    private JCheckBox getFloodCheckBox() {
+        if (floodCheckBox == null) {
+        	floodCheckBox = new JCheckBox();
+        	floodCheckBox.setText("Flood (don't wait for reply)");
+        }
+        return floodCheckBox;
     }
 
     /**
@@ -2545,8 +2555,12 @@ public class JRadiusSimulator extends JFrame
 	    	            }
 	    
 	                    RadiusPacket reply = null;
-	                    
-	                    if (i == 0) 
+
+	                    if (floodCheckBox.isSelected())
+	                    {
+	                    	radiusClient.send(request);
+	                    }
+	                    else if (i == 0) 
 	                    {
 	                        if (request instanceof AccessRequest)
 	                        {

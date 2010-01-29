@@ -312,6 +312,11 @@ public class RadiusClient
     	return transport.sendReceive(p, retries);
 	}
 
+    public void send(RadiusRequest p) throws Exception
+    {
+    	transport.send(p, 0);
+	}
+
     /**
      * Authenicates using the specified method. For all methods, it is assumed
      * that the user's password can be found in the User-Password attribute. All

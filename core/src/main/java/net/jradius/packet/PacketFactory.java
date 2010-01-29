@@ -450,9 +450,12 @@ public class PacketFactory
 	{
 		if (rp != null)
 		{
-			for (RadiusPacket p : rp)
+			for (int i = 0; i < rp.length; i++)
 			{
-				recycle(p);
+				if (rp[i] != null)
+				{
+					recycle(rp[i]);
+				}
 			}
 		}
 	}
