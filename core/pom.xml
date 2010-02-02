@@ -5,13 +5,13 @@
   <groupId>net.jradius</groupId>
   <artifactId>jradius-core</artifactId>
   <name>${project.artifactId}-${project.version}</name>
-  <version>1.1.1</version>
+  <version>1.1.2-SNAPSHOT</version>
   <description>JRadius Core</description>
   
   <parent>
     <groupId>net.jradius</groupId>
     <artifactId>jradius</artifactId>
-    <version>1.1.1</version>
+    <version>1.1.2-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
