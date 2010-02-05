@@ -23,6 +23,8 @@ package net.jradius.radsec;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+import net.jradius.packet.NullResponse;
+import net.jradius.packet.PacketFactory;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.server.JRadiusNativeRequest;
@@ -43,6 +45,9 @@ public class RadSecRequest extends JRadiusNativeRequest
 
 	private RadiusPacket packets[];
     private AttributeList configItems;
+
+    protected RadiusPacket nullResponse = new NullResponse();
+    
     private int returnValue = JRadiusServer.RLM_MODULE_UPDATED;
 
     protected final ByteBuffer buffer_in;
@@ -56,6 +61,23 @@ public class RadSecRequest extends JRadiusNativeRequest
     	buffer_out = ByteBuffer.allocate(25000);
     	buffer_out.order(ByteOrder.BIG_ENDIAN);
     }
+    
+	public void recycle()
+	{
+		configItems.clear();
+		nullResponse.getAttributes().clear();
+
+		PacketFactory.recycle(packets);
+
+		for (int i=0; i < packets.length; i++)
+		{
+			packets[i] = nullResponse;
+		}
+		
+		buffer_in.clear();
+		buffer_out.clear();
+	}
+	
     
     /**
      * @return the "config_items" of the request (FreeRADIUS "control" attributes)

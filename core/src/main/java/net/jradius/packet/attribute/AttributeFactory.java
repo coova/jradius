@@ -520,7 +520,7 @@ public final class AttributeFactory
      */
     public static RadiusAttribute newAttribute(long type, byte[] value)
     {
-        return newAttribute((type >> 16), type & 0xFF, value, -1);
+        return newAttribute((type >> 16), type & 0xFFFF, value, -1);
     }
 
     /**

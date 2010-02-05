@@ -65,7 +65,8 @@ public class RadSecProcessor extends RadiusProcessor
         try
         {
         	OutputStream out = listenerRequest.getOutputStream();
-        	synchronized (out) {
+        	synchronized (out)
+        	{
                 this.writeResponse(request, request.buffer_out, out);
 			}
         }
