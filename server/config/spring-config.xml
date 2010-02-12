@@ -19,6 +19,10 @@
     <property name="cacheName"><value>otpRequests</value></property>
   </bean>
   
+  <bean id="webServiceListener" class="net.jradius.webservice.WebServiceListener" singleton="false">
+    <property name="cacheManager"><ref bean="cacheManager"/></property>
+  </bean>
+  
   <bean id="otpProcessor" class="net.jradius.webservice.OTPProxyProcessor" singleton="false" />
   
   <bean id="sessionFactory" class="net.jradius.session.RadiusSessionFactory">

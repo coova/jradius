@@ -60,8 +60,8 @@ public abstract class RadiusSessionHandler extends PacketHandlerChain
     protected void setPlainTextPassword(JRadiusRequest request, String password, boolean overwrite)
     {
         AttributeList ci = request.getConfigItems();
-        ci.add(new Attr_CleartextPassword(password), overwrite);
-        ci.add(new Attr_UserPassword(password), overwrite);
+        ci.add(AttributeFactory.newAttribute(Attr_CleartextPassword.TYPE, password), overwrite);
+        ci.add(AttributeFactory.newAttribute(Attr_UserPassword.TYPE, password), overwrite);
     }
 
     protected void reverseAccounting(RadiusPacket req) throws RadiusException

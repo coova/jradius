@@ -91,7 +91,7 @@
     
     <listener name="OTPProxyListener">
       <description>JRadius OTP Proxy Listener</description>
-      <class>net.jradius.webservice.WebServiceListener</class>
+      <class>bean:webServiceListener</class>
       <processor-class>net.jradius.webservice.OTPProxyProcessor</processor-class>
       <processor-threads>2</processor-threads>
       <property name="port" value="1810"/>
@@ -102,7 +102,7 @@
     
     <listener name="GenericWebSerices">
       <description>JRadius WebServices Listener</description>
-      <class>net.jradius.webservice.WebServiceListener</class>
+      <class>bean:webServiceListener</class>
       <processor-class>net.jradius.webservice.WebServiceProcessor</processor-class>
       <processor-threads>2</processor-threads>
       <property name="port" value="1812"/>
