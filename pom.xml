@@ -5,7 +5,7 @@
   <artifactId>jradius</artifactId>
   <packaging>pom</packaging>
   <name>${project.artifactId}-${project.version}</name>
-  <version>1.1.2</version>
+  <version>1.1.3-SNAPSHOT</version>
   <description>JRadius Client/Server Project</description>
   <url>http://jradius.net/</url>
 
@@ -34,9 +34,9 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:https://dev.coova.org/svn/cjradius/tags/jradius-1.1.2</connection>
-    <developerConnection>scm:svn:https://dev.coova.org/svn/cjradius/tags/jradius-1.1.2</developerConnection>
-    <url>http://dev.coova.org/svn/cjradius/tags/jradius-1.1.2</url>
+    <connection>scm:svn:https://dev.coova.org/svn/cjradius</connection>
+    <developerConnection>scm:svn:https://dev.coova.org/svn/cjradius</developerConnection>
+    <url>http://dev.coova.org/svn/cjradius</url>
   </scm>
 
   <distributionManagement>
