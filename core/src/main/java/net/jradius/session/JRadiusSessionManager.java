@@ -278,6 +278,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         if (key != null) 
         {
             RadiusLog.debug("** Looking for session: " + key);
+            
             session = getSession(request, key);
             if (session == null)
             {
@@ -293,6 +294,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
             if (key != null) 
             {
                 RadiusLog.debug("** Looking for session: " + key);
+                
                 session = getSession(request, key);
                 if (session == null)
                 {

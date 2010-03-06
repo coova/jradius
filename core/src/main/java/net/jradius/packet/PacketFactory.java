@@ -179,6 +179,14 @@ public class PacketFactory
     	return p;
     }
 
+	public static RadiusPacket copyPacket(RadiusPacket req)
+	{
+		RadiusPacket p = newPacket(req.code);
+		p.setIdentifier(req.getIdentifier());
+		p.setAuthenticator(req.getAuthenticator());
+		p.getAttributes().add(req.getAttributes());
+		return p;
+	}
 
     /**
      * Parse a UDP RADIUS message

@@ -2331,14 +2331,16 @@ public class JRadiusSimulator extends JFrame
 	    {
 	    	final boolean doLog = doLogCheckBox.isSelected();
 
+	    	int id = 0;
+	    	
 	        String radiusServer = radiusServerTextField.getText();
 	        String sharedSecret = sharedSecretTextField.getText();
 	
-	        Integer authPort = (Integer)radiusAuthPortTextField.getValue();
-	        Integer acctPort = (Integer)radiusAcctPortTextField.getValue();
-	        Integer timeout  = (Integer)radiusTimeoutTextField.getValue();
-	        Integer retries  = (Integer)radiusRetriesTextField.getValue();
-	        Integer requests = (Integer)requestsTextField.getValue();
+	        Integer authPort = (Integer) radiusAuthPortTextField.getValue();
+	        Integer acctPort = (Integer) radiusAcctPortTextField.getValue();
+	        Integer timeout  = (Integer) radiusTimeoutTextField.getValue();
+	        Integer retries  = (Integer) radiusRetriesTextField.getValue();
+	        Integer requests = (Integer) requestsTextField.getValue();
 	        
 	        if (radiusServer == null || sharedSecret == null || "".equals(radiusServer) || "".equals(sharedSecret))
 	        {
@@ -2539,6 +2541,8 @@ public class JRadiusSimulator extends JFrame
 	                            }
 	                        }
 	                    }
+
+	                    request.setIdentifier(request.getIdentifier() + id++);
 	                    
 	                    if (bClass != null) 
 	                    {

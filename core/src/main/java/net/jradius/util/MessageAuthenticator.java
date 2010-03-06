@@ -55,9 +55,8 @@ public class MessageAuthenticator
         return new Boolean(Arrays.equals(pval, hash));
     }
 
-    public static Boolean verifyReply(RadiusPacket request, RadiusPacket reply, String sharedSecret) throws IOException
+    public static Boolean verifyReply(byte[] requestAuth, RadiusPacket reply, String sharedSecret) throws IOException
     {
-        byte[] requestAuth = request.getAuthenticator();
         byte[] replyAuth = reply.getAuthenticator();
         byte[] hash = new byte[16];
 

@@ -141,11 +141,21 @@ public abstract class RadiusClientTransport
      * @param required Whether or not the Message-Authenticator is required (as for EAP)
      * @return Returns true if there is no Message-Authenticator or if it present and correct
      */
-    protected boolean verifyMessageAuthenticator(RadiusRequest request, RadiusResponse reply, boolean required)
+    public boolean verifyMessageAuthenticator(RadiusRequest request, RadiusResponse reply, boolean required)
+    {
+    	return verifyMessageAuthenticator(request, reply, sharedSecret, required);
+	}
+
+    public static boolean verifyMessageAuthenticator(RadiusRequest request, RadiusResponse reply, String sharedSecret, boolean required)
+    {
+    	return verifyMessageAuthenticator(request.getAuthenticator(), reply, sharedSecret, required);
+	}
+    
+    public static boolean verifyMessageAuthenticator(byte[] requestAuth, RadiusResponse reply, String sharedSecret, boolean required)
     {
 		try
 		{
-			Boolean verified = MessageAuthenticator.verifyReply(request, reply, sharedSecret);
+			Boolean verified = MessageAuthenticator.verifyReply(requestAuth, reply, sharedSecret);
 			if (verified == null && required) return false;
 			if (verified == null) return true;
 			return verified.booleanValue();
@@ -156,17 +166,28 @@ public abstract class RadiusClientTransport
 		}
 	}
     
+    
     /**
      * Verify the RADIUS Authenticator
      * @param request The RADIUS request send
      * @param reply The RADIUS reply received
      * @return Returns true if there is no Authenticator is correct
      */
-    protected boolean verifyAuthenticator(RadiusRequest request, RadiusResponse reply)
+    public boolean verifyAuthenticator(RadiusRequest request, RadiusResponse reply)
     {
     	return reply.verifyAuthenticator(request.getAuthenticator(), getSharedSecret());
     }
 
+    public static boolean verifyAuthenticator(RadiusRequest request, RadiusResponse reply, String sharedSecret)
+    {
+    	return reply.verifyAuthenticator(request.getAuthenticator(), sharedSecret);
+    }
+    
+    public static boolean verifyAuthenticator(byte[] requestAuth, RadiusResponse reply, String sharedSecret)
+    {
+    	return reply.verifyAuthenticator(requestAuth, sharedSecret);
+    }
+    
 	public InetAddress getRemoteInetAddress() {
 		return remoteInetAddress;
 	}
