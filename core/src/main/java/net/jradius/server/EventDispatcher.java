@@ -51,7 +51,7 @@ public class EventDispatcher extends JRadiusThread
 
     public void post(JRadiusEvent event)
     {
-        while(true)
+        while(getActive())
         {
             try
             {
@@ -68,7 +68,7 @@ public class EventDispatcher extends JRadiusThread
     {
         this.active = true;
 
-        while (this.active)
+        while (getActive())
         {
             try
             {
@@ -92,7 +92,7 @@ public class EventDispatcher extends JRadiusThread
     {
         this.active = active;
 
-        if(active == false)
+        if (active == false)
         {
             try
             {
@@ -106,9 +106,9 @@ public class EventDispatcher extends JRadiusThread
 
     private void dispatchEvent()
     {
-        JRadiusEvent event;
+        JRadiusEvent event = null;
 
-        while(true)
+        while (getActive())
         {
             try
             {

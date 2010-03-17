@@ -53,7 +53,7 @@ public class KeyStoreUtil
 	{
 		loadBC();
 		
-		final char[] pwd = (password == null || password.isEmpty()) ? null : password.toCharArray();
+		final char[] pwd = (password == null || password.length() == 0) ? null : password.toCharArray();
 
 		if (type.equalsIgnoreCase("pem"))
 		{
@@ -150,7 +150,7 @@ public class KeyStoreUtil
 	{
 		loadBC();
 
-		char[] pwd = (password == null || password.isEmpty()) ? null : password.toCharArray();
+		char[] pwd = (password == null || password.length() == 0) ? null : password.toCharArray();
 
 		if (type.equalsIgnoreCase("pem"))
 		{

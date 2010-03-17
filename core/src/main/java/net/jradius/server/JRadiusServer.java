@@ -152,15 +152,8 @@ public class JRadiusServer implements InitializingBean
     
     public void stop()
     {
-        if(this.running)
+        if (this.running)
         {
-            for (Iterator i = processors.iterator(); i.hasNext();)
-            {
-                Processor processor = (Processor) i.next();
-                processor.setActive(false);
-                RadiusLog.info("Stopping processor " + processor.getName());
-            }
-
             for (Iterator i = listeners.iterator(); i.hasNext();)
             {
                 Listener listener = (Listener) i.next();
@@ -168,9 +161,18 @@ public class JRadiusServer implements InitializingBean
                 RadiusLog.info("Stopping listener " + listener.getName());
             }
 
+            for (Iterator i = processors.iterator(); i.hasNext();)
+            {
+                Processor processor = (Processor) i.next();
+                processor.setActive(false);
+                RadiusLog.info("Stopping processor " + processor.getName());
+                processor.interrupt();
+            }
+
             JRadiusSessionManager.shutdownManagers();
 
             this.eventDispatcher.setActive(false);
+            this.eventDispatcher.interrupt();
 
             this.running = false;
         }

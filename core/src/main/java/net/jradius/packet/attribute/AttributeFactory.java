@@ -662,7 +662,7 @@ public final class AttributeFactory
      */
     public static LinkedHashMap<String, Class<?>> getAttributeNameMap() 
     {
-        return attributeNameMap;
+    	return attributeNameMap;
     }
 
     /**

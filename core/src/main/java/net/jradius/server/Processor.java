@@ -114,19 +114,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
 
     public void process() throws Exception
     {
-        Object queueElement = null;
-
-        while (queueElement == null)
-        {
-            try
-            {
-                queueElement = this.queue.take();
-                break;
-            }
-            catch (InterruptedException e)
-            {
-            }
-        }
+        Object queueElement = this.queue.take();
 
 		if (!(queueElement instanceof ListenerRequest))
         {

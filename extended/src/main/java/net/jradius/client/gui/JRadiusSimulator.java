@@ -108,6 +108,7 @@ import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.packet.attribute.VSADictionary;
+import net.jradius.packet.attribute.VSAttribute;
 import net.jradius.packet.attribute.AttributeFactory.VendorValue;
 import net.jradius.packet.attribute.value.IntegerValue;
 import net.jradius.packet.attribute.value.NamedValue;
@@ -263,7 +264,7 @@ public class JRadiusSimulator extends JFrame
     private void initialize() {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setJMenuBar(getJJMenuBar());
-        this.setSize(650, 550);
+        this.setSize(650, 600);
         this.setContentPane(getMainContentPane());
         this.setTitle("JRadiusSimulator");
         this.setVisible(true);
@@ -1311,7 +1312,7 @@ public class JRadiusSimulator extends JFrame
             try
             {
                 RadiusAttribute attribute = (RadiusAttribute)clazz.newInstance();
-                if (attribute.getType() <= 255)
+                if (!(attribute instanceof VSAttribute) && attribute.getType() <= 255)
                 {
                     String attributeName = attribute.getAttributeName();
                     if (attributeName.equals("Vendor-Specific")) continue;
@@ -1687,24 +1688,24 @@ public class JRadiusSimulator extends JFrame
     		addButton.addActionListener(new java.awt.event.ActionListener() { 
     			public void actionPerformed(java.awt.event.ActionEvent e) {    
     				int rows[] = attributeTree.getSelectionRows();
-                 if (rows != null)
-                 {
-                     for (int i = 0; i < rows.length; i++)
-                     {
-                         TreePath path = attributeTree.getPathForRow(rows[i]);
-                         DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getPathComponent(path.getPathCount() - 1);
-                         String attr = (String)node.getUserObject();
-                         try
-                         {
-                             attributesTableModel.addAttribute(AttributeFactory.newAttribute(attr));
-                         } 
-                         catch (Exception ex) 
-                         {  
-                             ex.printStackTrace();
-                         }
-                     }
-                     attributesTableModel.fireTableDataChanged();
-                 }
+    				if (rows != null)
+    				{
+    					for (int i = 0; i < rows.length; i++)
+    					{
+    						TreePath path = attributeTree.getPathForRow(rows[i]);
+    						DefaultMutableTreeNode node = (DefaultMutableTreeNode)path.getPathComponent(path.getPathCount() - 1);
+    						String attr = (String)node.getUserObject();
+    						try
+    						{
+    							attributesTableModel.addAttribute(AttributeFactory.newAttribute(attr));
+    						} 	
+    						catch (Exception ex) 
+    						{  
+    							ex.printStackTrace();
+    						}
+    					}
+    					attributesTableModel.fireTableDataChanged();
+    				}
     			}
     		});
     	}

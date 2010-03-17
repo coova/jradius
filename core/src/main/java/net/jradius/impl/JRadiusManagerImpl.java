@@ -26,6 +26,11 @@ public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, D
     private JRadiusServer jRadiusServer;
     private String configFile;
     
+    public JRadiusManagerImpl()
+    {
+    	System.err.println(this.getClass().toString());
+    }
+    
     public void start()
     {
     	jRadiusServer.start();

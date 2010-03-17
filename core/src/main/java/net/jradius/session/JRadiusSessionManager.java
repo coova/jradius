@@ -166,7 +166,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
     public void shutdown()
     {
-        if (cacheManager.getStatus() == Status.STATUS_ALIVE)
+    	if (cacheManager != null && cacheManager.getStatus() == Status.STATUS_ALIVE)
         {
             cacheManager.shutdown();
         }

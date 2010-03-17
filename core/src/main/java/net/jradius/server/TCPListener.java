@@ -153,7 +153,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
             
             String keyManager = (String) props.get("keyManager");
             
-            if (keyManager != null && !keyManager.isEmpty())
+            if (keyManager != null && keyManager.length() > 0)
             {
     			try {
     				KeyManager manager = (KeyManager) Configuration.getBean(keyManager);
@@ -184,7 +184,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
             
             String trustManager = (String) props.get("trustManager");
 
-            if (trustManager != null && !trustManager.isEmpty())
+            if (trustManager != null && trustManager.length() > 0)
             {
     			try {
     	        	TrustManager manager = (TrustManager) Configuration.getBean(trustManager);
