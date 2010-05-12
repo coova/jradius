@@ -128,6 +128,7 @@
     <module>core</module>
     <module>dictionary</module>
     <module>extended</module>
+    <module>extras</module>
     <module>example</module>
     <module>client</module>
     <module>applet</module>
