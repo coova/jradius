@@ -93,6 +93,7 @@ public class WebServiceProcessor extends Processor
             request = (WebServiceRequest) listenerRequest.getRequestEvent();
             request.setServerVariableMap(listenerRequest.getServerVariables());
             request.setCertificate(x509);
+            request.setApplicationContext(getApplicationContext());
             processRequest(request);
 
             os = socket.getOutputStream();

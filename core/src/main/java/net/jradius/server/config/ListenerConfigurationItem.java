@@ -125,13 +125,20 @@ public class ListenerConfigurationItem extends ConfigurationItem
                 }
             }
             
-            if (preCfg != null) command.setConfig(preCfg);
-            command.setConfig(cfg);
-            
-            if (requestHandlers == null)
-                requestHandlers = new LinkedList();
+            if (command == null)
+            {
+            	RadiusLog.error("No command found for "+cfg.getHandlerName()+ " "+ cfg.getClassName());
+            }
+            else
+            {
+                if (preCfg != null) command.setConfig(preCfg);
+                command.setConfig(cfg);
+                
+                if (requestHandlers == null)
+                    requestHandlers = new LinkedList();
 
-            requestHandlers.add(command);
+                requestHandlers.add(command);
+            }            
         }
 
         if (requestHandlers == null)
