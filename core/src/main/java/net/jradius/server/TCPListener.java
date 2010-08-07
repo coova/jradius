@@ -306,7 +306,7 @@ public abstract class TCPListener extends JRadiusThread implements Listener
         {
         	TCPListenerRequest lr = (TCPListenerRequest) requestObjectPool.borrowObject();
         	lr.setBorrowedFromPool(requestObjectPool);
-        	lr.accept(socket, this, false);
+        	lr.accept(socket, this, false, false);
 
             while(true)
             {

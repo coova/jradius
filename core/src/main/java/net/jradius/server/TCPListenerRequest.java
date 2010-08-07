@@ -38,32 +38,34 @@ public class TCPListenerRequest extends ListenerRequest
     private Socket socket;
     private InputStream bin;
     private OutputStream bout;
+    boolean keepAlive;
 
     public TCPListenerRequest()
     {
     }
     
-    public TCPListenerRequest(Socket socket, Listener listener, boolean getEvent) throws Exception
+    public TCPListenerRequest(Socket socket, Listener listener, boolean getEvent, boolean keepAlive) throws Exception
     {
-    	accept(socket, listener, getEvent);
+    	accept(socket, listener, getEvent, keepAlive);
     }
     
-    public TCPListenerRequest(Socket socket, InputStream bin, OutputStream bout, Listener listener, boolean getEvent) throws Exception
+    public TCPListenerRequest(Socket socket, InputStream bin, OutputStream bout, Listener listener, boolean getEvent, boolean keepAlive) throws Exception
     {
-    	accept(socket, bin, bout, listener, getEvent);
+    	accept(socket, bin, bout, listener, getEvent, keepAlive);
     }
     
-    public void accept(Socket socket, Listener listener, boolean getEvent) throws Exception
+    public void accept(Socket socket, Listener listener, boolean getEvent, boolean keepAlive) throws Exception
     {
-    	accept(socket, new BufferedInputStream(socket.getInputStream(), 4096), new BufferedOutputStream(socket.getOutputStream(), 4096), listener, getEvent);
+    	accept(socket, new BufferedInputStream(socket.getInputStream(), 4096), new BufferedOutputStream(socket.getOutputStream(), 4096), listener, getEvent, keepAlive);
     }
     
-    public void accept(Socket socket, InputStream bin, OutputStream bout, Listener listener, boolean getEvent) throws Exception
+    public void accept(Socket socket, InputStream bin, OutputStream bout, Listener listener, boolean getEvent, boolean keepAlive) throws Exception
     {
     	this.listener = listener;
     	this.socket = socket;
     	this.bin = bin;
     	this.bout = bout;
+    	this.keepAlive = keepAlive;
         
         if (getEvent)
         {
@@ -92,4 +94,9 @@ public class TCPListenerRequest extends ListenerRequest
     {
         return socket;
     }
+
+	public boolean isKeepAlive() 
+	{
+		return this.keepAlive;
+	}
 }

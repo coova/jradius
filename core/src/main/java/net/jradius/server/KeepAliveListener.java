@@ -58,7 +58,7 @@ public class KeepAliveListener extends JRadiusThread
             {
             	TCPListenerRequest lr = (TCPListenerRequest) listener.requestObjectPool.borrowObject();
             	lr.setBorrowedFromPool(listener.requestObjectPool);
-            	lr.accept(this.socket, this.bin, this.bout, this.listener, true);
+            	lr.accept(this.socket, this.bin, this.bout, this.listener, true, true);
 
                 if (lr == null || lr.event == null)
                 {

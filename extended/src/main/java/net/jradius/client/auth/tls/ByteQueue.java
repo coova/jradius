@@ -1,24 +1,18 @@
 package net.jradius.client.auth.tls;
 
 /**
- * A queue for bytes.
- * <p/>
- * This file could be more optimized.
- * </p>
+ * A queue for bytes. This file could be more optimized.
  */
 public class ByteQueue
 {
-
     /**
-     * @return The smallest number which can be written as 2^x which is
-     *         bigger than i.
+     * @return The smallest number which can be written as 2^x which is bigger than i.
      */
     public static final int nextTwoPow(int i)
     {
         /*
-         * This code is based of a lot of code I found on the Internet
-         * which mostly referenced a book called "Hacking delight".
-         * 
+         * This code is based of a lot of code I found on the Internet which mostly
+         * referenced a book called "Hacking delight".
          */
         i |= (i >> 1);
         i |= (i >> 2);
@@ -50,11 +44,11 @@ public class ByteQueue
 
     /**
      * Read data from the buffer.
-     *
-     * @param buf    The buffer where the read data will be copied to.
+     * 
+     * @param buf The buffer where the read data will be copied to.
      * @param offset How many bytes to skip at the beginning of buf.
-     * @param len    How many bytes to read at all.
-     * @param skip   How many bytes from our data to skip.
+     * @param len How many bytes to read at all.
+     * @param skip How many bytes from our data to skip.
      */
     public void read(byte[] buf, int offset, int len, int skip)
     {
@@ -64,19 +58,19 @@ public class ByteQueue
         }
         if ((buf.length - offset) < len)
         {
-            throw new TlsRuntimeException("Buffer size of " + buf.length + " is too small for a read of " + len + " bytes");
+            throw new TlsRuntimeException("Buffer size of " + buf.length
+                + " is too small for a read of " + len + " bytes");
         }
         System.arraycopy(databuf, skipped + skip, buf, offset, len);
         return;
     }
 
-
     /**
      * Add some data to our buffer.
-     *
-     * @param data   A byte-array to read data from.
+     * 
+     * @param data A byte-array to read data from.
      * @param offset How many bytes to skip at the beginning of the array.
-     * @param len    How many bytes to read from the array.
+     * @param len How many bytes to read from the array.
      */
     public void addData(byte[] data, int offset, int len)
     {
@@ -93,7 +87,7 @@ public class ByteQueue
 
     /**
      * Remove some bytes from our data from the beginning.
-     *
+     * 
      * @param i How many bytes to remove.
      */
     public void removeData(int i)
@@ -104,15 +98,14 @@ public class ByteQueue
         }
 
         /*
-        * Skip the data.
-        */
+         * Skip the data.
+         */
         available -= i;
         skipped += i;
 
         /*
-        * If more than half of our data is skipped, we will move the data
-        * in the buffer.
-        */
+         * If more than half of our data is skipped, we will move the data in the buffer.
+         */
         if (skipped > (databuf.length / 2))
         {
             System.arraycopy(databuf, skipped, databuf, 0, available);
@@ -127,5 +120,4 @@ public class ByteQueue
     {
         return available;
     }
-
 }

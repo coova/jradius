@@ -3,8 +3,8 @@ package net.jradius.client.auth.tls;
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
 
 /**
- * This should be implemented by any class which can find out, if a given
- * certificate chain is beeing accepted by an client.
+ * This should be implemented by any class which can find out, if a given certificate
+ * chain is being accepted by an client.
  */
 public interface CertificateVerifyer
 {

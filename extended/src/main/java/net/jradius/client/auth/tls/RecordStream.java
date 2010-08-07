@@ -9,36 +9,51 @@ import java.io.OutputStream;
 /**
  * An implementation of the TLS 1.0 record layer.
  */
-public class RecordStream
+class RecordStream
 {
-
     private TlsProtocolHandler handler;
     private InputStream is;
     private OutputStream os;
-    protected CombinedHash hash1;
-    protected CombinedHash hash2;
-    protected TlsCipherSuite readSuite = null;
-    protected TlsCipherSuite writeSuite = null;
+    private CombinedHash hash;
+    private TlsCipher readCipher = null;
+    private TlsCipher writeCipher = null;
 
-
-    protected RecordStream(TlsProtocolHandler handler)
-    {
-        this.handler = handler;
-        hash1 = new CombinedHash();
-        hash2 = new CombinedHash();
-        this.readSuite = new TlsNullCipherSuite();
-        this.writeSuite = this.readSuite;
-    }
-
-    protected RecordStream(TlsProtocolHandler handler, InputStream is, OutputStream os)
+    RecordStream(TlsProtocolHandler handler, InputStream is, OutputStream os)
     {
         this.handler = handler;
         this.is = is;
         this.os = os;
-        hash1 = new CombinedHash();
-        hash2 = new CombinedHash();
-        this.readSuite = new TlsNullCipherSuite();
-        this.writeSuite = this.readSuite;
+        this.hash = new CombinedHash();
+        this.readCipher = new TlsNullCipher();
+        this.writeCipher = this.readCipher;
+    }
+
+    public RecordStream(TlsProtocolHandler handler)
+    {
+        this.handler = handler;
+        this.hash = new CombinedHash();
+        this.readCipher = new TlsNullCipher();
+        this.writeCipher = this.readCipher;
+	}
+
+	void clientCipherSpecDecided(TlsCipher tlsCipher)
+    {
+        this.writeCipher = tlsCipher;
+    }
+
+    void serverClientSpecReceived()
+    {
+        this.readCipher = this.writeCipher;
+    }
+
+    public void setInputStream(ByteArrayInputStream stream)
+    {
+    	this.is = stream;
+    }
+
+    public void setOutputStream(ByteArrayOutputStream stream)
+    {
+    	this.os = stream;
     }
 
     public void readData() throws IOException
@@ -48,25 +63,22 @@ public class RecordStream
         int size = TlsUtils.readUint16(is);
         byte[] buf = decodeAndVerify(type, is, size);
         handler.processData(type, buf, 0, buf.length);
-
     }
 
     protected byte[] decodeAndVerify(short type, InputStream is, int len) throws IOException
     {
         byte[] buf = new byte[len];
         TlsUtils.readFully(buf, is);
-        byte[] result = readSuite.decodeCiphertext(type, buf, 0, buf.length, handler);
-        return result;
+        return readCipher.decodeCiphertext(type, buf, 0, buf.length);
     }
 
     protected void writeMessage(short type, byte[] message, int offset, int len) throws IOException
     {
         if (type == 22) // TlsProtocolHandler.RL_HANDSHAKE
         {
-            hash1.update(message, offset, len);
-            hash2.update(message, offset, len);
+            updateHandshakeData(message, offset, len);
         }
-        byte[] ciphertext = writeSuite.encodePlaintext(type, message, offset, len);
+        byte[] ciphertext = writeCipher.encodePlaintext(type, message, offset, len);
         byte[] writeMessage = new byte[ciphertext.length + 5];
         TlsUtils.writeUint8(type, writeMessage, 0);
         TlsUtils.writeUint8((short)3, writeMessage, 1);
@@ -76,20 +88,20 @@ public class RecordStream
         os.write(writeMessage);
         os.flush();
     }
-    
-    public void setInputStream(ByteArrayInputStream stream)
-    {
-    	is = stream;
-    }
-   
-    public void setOutputStream(ByteArrayOutputStream stream)
-    {
-    	os = stream;
-    }
-	  
+
     public boolean hasMore() throws IOException
     {
     	return (is.available() > 0);
+    }
+
+    void updateHandshakeData(byte[] message, int offset, int len)
+    {
+        hash.update(message, offset, len);
+    }
+
+    byte[] getCurrentHash()
+    {
+        return doFinal(new CombinedHash(hash));
     }
 
     protected void close() throws IOException
@@ -122,4 +134,10 @@ public class RecordStream
         os.flush();
     }
 
+    private static byte[] doFinal(CombinedHash ch)
+    {
+        byte[] bs = new byte[ch.getDigestSize()];
+        ch.doFinal(bs, 0);
+        return bs;
+    }
 }

@@ -591,5 +591,4 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     {
         this.trustAll = trustAll;
     }
-
 }

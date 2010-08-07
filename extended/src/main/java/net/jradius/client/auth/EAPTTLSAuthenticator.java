@@ -76,6 +76,11 @@ public class EAPTTLSAuthenticator extends EAPTLS2Authenticator implements Tunnel
         }
     }
 
+    protected boolean isCertificateRequired() 
+    {
+		return false;
+	}
+
     /**
      * @see net.jradius.client.auth.RadiusAuthenticator#getAuthName()
      */
@@ -109,7 +114,7 @@ public class EAPTTLSAuthenticator extends EAPTLS2Authenticator implements Tunnel
         }
     }
     
-    protected void doTunnelAuthentication(byte id, byte[] in) throws RadiusException, SSLException
+    protected boolean doTunnelAuthentication(byte id, byte[] in) throws RadiusException, SSLException
     {
         if (tunnelChallenge != null && in != null)
         {
@@ -131,6 +136,7 @@ public class EAPTTLSAuthenticator extends EAPTLS2Authenticator implements Tunnel
 
         putAppBuffer(buffer.array(), 0, buffer.position());
         RadiusLog.debug("Tunnel Request:\n" + tunnelRequest.toString());
+        return true;
     }
 
     public String getInnerProtocol()

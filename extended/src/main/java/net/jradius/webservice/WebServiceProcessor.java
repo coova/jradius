@@ -60,7 +60,8 @@ public class WebServiceProcessor extends Processor
     
 	protected void processRequest(ListenerRequest listenerRequest) throws Exception
 	{
-		Socket socket = ((TCPListenerRequest)listenerRequest).getSocket();
+		TCPListenerRequest tcpListenerRequest = (TCPListenerRequest)listenerRequest;
+		Socket socket = tcpListenerRequest.getSocket();
 		socket.setSoTimeout(15000); // 15 second read timeout
         
 		X509Certificate x509 = null;
@@ -104,9 +105,16 @@ public class WebServiceProcessor extends Processor
             if (os != null)
             {
                 os.flush();
-                os.close();
             }
-            socket.close();
+
+            if (!tcpListenerRequest.isKeepAlive())
+            {
+	            if (os != null)
+	            {
+	                os.close();
+	            }
+	            socket.close();
+            }
         }
     }
  

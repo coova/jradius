@@ -1,7 +1,6 @@
 package net.jradius.client.auth.tls;
 
-public class TlsRuntimeException
-    extends RuntimeException
+public class TlsRuntimeException extends RuntimeException
 {
     Throwable e;
 

@@ -64,6 +64,11 @@ public class PEAPAuthenticator extends EAPTLS2Authenticator
         return NAME;
     }
     
+    protected boolean isCertificateRequired() 
+    {
+		return false;
+	}
+
     /**
      * @see net.jradius.client.auth.RadiusAuthenticator#setupRequest(net.jradius.client.RadiusClient, net.jradius.packet.RadiusPacket)
      */
@@ -78,7 +83,7 @@ public class PEAPAuthenticator extends EAPTLS2Authenticator
         tunnelAuth.processRequest(tunnelRequest);
     }
     
-    protected void doTunnelAuthentication(byte id, byte[] in) throws RadiusException, SSLException
+    protected boolean doTunnelAuthentication(byte id, byte[] in) throws RadiusException, SSLException
     {
         byte []out;
 
@@ -92,5 +97,6 @@ public class PEAPAuthenticator extends EAPTLS2Authenticator
         }
         
         putAppBuffer(out);
+        return true;
     }
 }

@@ -9,8 +9,20 @@ import org.bouncycastle.crypto.digests.SHA1Digest;
  */
 public class CombinedHash implements Digest
 {
-    private Digest md5 = new MD5Digest();
-    private Digest sha1 = new SHA1Digest();
+    private MD5Digest md5;
+    private SHA1Digest sha1;
+
+    CombinedHash()
+    {
+        this.md5 = new MD5Digest();
+        this.sha1 = new SHA1Digest();
+    }
+
+    CombinedHash(CombinedHash t)
+    {
+        this.md5 = new MD5Digest(t.md5);
+        this.sha1 = new SHA1Digest(t.sha1);
+    }
 
     /**
      * @see org.bouncycastle.crypto.Digest#getAlgorithmName()
