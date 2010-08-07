@@ -1,4 +1,4 @@
-package net.jradius.client.auth.tls;
+package net.jradius.tls;
 
 import java.io.IOException;
 import java.util.Hashtable;

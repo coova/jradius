@@ -1,4 +1,4 @@
-package net.jradius.client.auth.tls;
+package net.jradius.tls;
 
 /**
  * A queue for bytes. This file could be more optimized.

@@ -1,4 +1,4 @@
-package net.jradius.client.auth.tls;
+package net.jradius.tls;
 
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
 

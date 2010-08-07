@@ -1,4 +1,4 @@
-package net.jradius.client.auth.tls;
+package net.jradius.tls;
 
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.MD5Digest;

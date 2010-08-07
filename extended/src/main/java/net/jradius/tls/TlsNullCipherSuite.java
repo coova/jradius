@@ -1,4 +1,4 @@
-package net.jradius.client.auth.tls;
+package net.jradius.tls;
 
 /**
  * A NULL CipherSuite in java, this should only be used during handshake.

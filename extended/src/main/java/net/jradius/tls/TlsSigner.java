@@ -1,4 +1,4 @@
-package net.jradius.client.auth.tls;
+package net.jradius.tls;
 
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.Signer;
