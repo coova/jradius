@@ -1,7 +1,6 @@
 /**
  * JRadius - A RADIUS Server Java Adapter
- * Copyright (c) 2006-2009 Coova Technologies, LLC <support@coova.com>
- * Copyright (C) 2004-2005 PicoPoint, B.V.
+ * Copyright (c) 2006-2007 David Bird <david@coova.com>
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -21,25 +20,66 @@
 
 package net.jradius.client.auth;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
+import java.util.Vector;
 
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLEngineResult;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509KeyManager;
 
 import net.jradius.client.RadiusClient;
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusPacket;
-import net.jradius.packet.attribute.AttributeDictionary;
+import net.jradius.tls.AlwaysValidVerifyer;
+import net.jradius.tls.Certificate;
+import net.jradius.tls.DefaultTlsClient;
+import net.jradius.tls.TlsProtocolHandler;
 import net.jradius.util.KeyStoreUtil;
+
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DEREncodable;
+import org.bouncycastle.asn1.DERInteger;
+import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.DERObjectIdentifier;
+import org.bouncycastle.asn1.nist.NISTNamedCurves;
+import org.bouncycastle.asn1.oiw.ElGamalParameter;
+import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.DHParameter;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;
+import org.bouncycastle.asn1.sec.ECPrivateKeyStructure;
+import org.bouncycastle.asn1.sec.SECNamedCurves;
+import org.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.DSAParameter;
+import org.bouncycastle.asn1.x509.X509CertificateStructure;
+import org.bouncycastle.asn1.x9.X962NamedCurves;
+import org.bouncycastle.asn1.x9.X962Parameters;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.crypto.params.DHParameters;
+import org.bouncycastle.crypto.params.DHPrivateKeyParameters;
+import org.bouncycastle.crypto.params.DSAParameters;
+import org.bouncycastle.crypto.params.DSAPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ECDomainParameters;
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
+import org.bouncycastle.crypto.params.ElGamalParameters;
+import org.bouncycastle.crypto.params.ElGamalPrivateKeyParameters;
+import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
 
 
 /**
@@ -51,19 +91,6 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 {
     public static final String NAME = "eap-tls";
 
-    private SSLContext sslContext;
-    private SSLEngine sslEngine;
-    private SSLSession sslSession;
-    
-    private ByteBuffer appInBuffer;
-    private ByteBuffer appOutBuffer;
-    private ByteBuffer packetInBuffer;
-    private ByteBuffer packetOutBuffer;
-    
-    private ByteArrayOutputStream packetInput = new ByteArrayOutputStream();
-    private ByteArrayOutputStream packetOutput = new ByteArrayOutputStream();
-    private ByteArrayOutputStream appOutput = new ByteArrayOutputStream();
-    
     private String keyFileType;
     private String keyFile;
     private String keyPassword;
@@ -74,6 +101,16 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     
     private Boolean trustAll = Boolean.FALSE;
 
+    private ByteArrayOutputStream bout;
+    private ByteArrayInputStream bin;
+
+    private TlsProtocolHandler handler = new TlsProtocolHandler();
+    private AlwaysValidVerifyer verifyer = new AlwaysValidVerifyer();
+    
+    private DefaultTlsClient tlsClient = null;
+    
+    private ByteBuffer receivedEAP = ByteBuffer.allocate(10000000);
+    
     public EAPTLSAuthenticator()
     {
         setEAPType(EAP_TLS);
@@ -82,9 +119,6 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         keyPassword = "";
         caFileType = "pkcs12";
         caPassword = "";
-        
-        if (java.security.Security.getProvider("BC") == null)
-        	java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
     
     /* (non-Javadoc)
@@ -92,18 +126,83 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
      */
     public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException
     {
-        client = c;
-        username = p.findAttribute(AttributeDictionary.USER_NAME);
-        password = p.findAttribute(AttributeDictionary.USER_PASSWORD);
+        super.setupRequest(c, p);
         init();
     }
 
     /**
      * Initializs the SSL layer.
-     * @throws RadiusException
+     * @throws Exception 
+     * @throws FileNotFoundException 
      */
     protected void init() throws RadiusException
     {
+    	try
+    	{
+	        KeyManager keyManagers[] = null;
+	        TrustManager trustManagers[] = null;
+	        
+	        if (getKeyFile() != null)
+	        {
+	        	keyManagers = KeyStoreUtil.loadKeyManager(getKeyFileType(), new FileInputStream(getKeyFile()), getKeyPassword());
+	        }
+	
+	        if (getTrustAll().booleanValue()) 
+	        {
+	        	trustManagers = KeyStoreUtil.trustAllManager();
+	        }
+	        else if (getCaFile() != null)
+	        {
+	        	trustManagers = KeyStoreUtil.loadTrustManager(getCaFileType(), new FileInputStream(getCaFile()), getCaPassword());
+	        }
+	        
+			tlsClient = new DefaultTlsClient(verifyer);
+
+			try
+			{
+				if (keyManagers != null && keyManagers.length > 0)
+				{
+					X509CertificateStructure[] certs = null;
+					X509Certificate[] certChain = ((X509KeyManager)keyManagers[0]).getCertificateChain("");
+					PrivateKey key = ((X509KeyManager)keyManagers[0]).getPrivateKey("");
+					Vector tmp = new Vector();
+
+					for (X509Certificate cert : certChain)
+					{
+			            ByteArrayInputStream bis = new ByteArrayInputStream(cert.getEncoded());
+			            ASN1InputStream ais = new ASN1InputStream(bis);
+			            DERObject o = ais.readObject();
+			            tmp.addElement(X509CertificateStructure.getInstance(o));
+			            if (bis.available() > 0)
+			            {
+			                throw new IllegalArgumentException(
+			                    "Sorry, there is garbage data left after the certificate");
+			            }
+			        }
+			        certs = new X509CertificateStructure[tmp.size()];
+			        for (int i = 0; i < tmp.size(); i++)
+			        {
+			            certs[i] = (X509CertificateStructure)tmp.elementAt(i);
+			        }
+
+					tlsClient.enableClientAuthentication(new Certificate(certs), createKey(key.getEncoded()));
+		        }
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+			}
+
+			handler.setSendCertificate(isCertificateRequired());
+	        handler.setKeyManagers(keyManagers);
+	        handler.setTrustManagers(trustManagers);
+    	}
+    	catch (Exception e)
+    	{
+    		e.printStackTrace();
+    	}
+
+    	/*
         try
         {
             KeyManager keyManagers[] = null;
@@ -111,60 +210,39 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
             
             if (getKeyFile() != null)
             {
-            	keyManagers = KeyStoreUtil.loadKeyManager(getKeyFileType(), new FileInputStream(getKeyFile()), getKeyPassword());
+                KeyStore ksKeys = KeyStore.getInstance(getKeyFileType());
+                ksKeys.load(new FileInputStream(getKeyFile()), getKeyPassword().toCharArray());
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
+                kmf.init(ksKeys, getKeyPassword().toCharArray());
+                
+                keyManagers = kmf.getKeyManagers();
             }
 
-            if (getTrustAll().booleanValue()) 
+            if (getCaFile() != null)
             {
-            	trustManagers = KeyStoreUtil.trustAllManager();
+                KeyStore caKeys = KeyStore.getInstance(getCaFileType());
+                caKeys.load(new FileInputStream(getCaFile()), getCaPassword().toCharArray());
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
+                tmf.init(caKeys);
+                
+                trustManagers = tmf.getTrustManagers();
             }
-            else if (getCaFile() != null)
+            else 
             {
-            	trustManagers = KeyStoreUtil.loadTrustManager(getCaFileType(), new FileInputStream(getCaFile()), getCaPassword());
+                if (getTrustAll().booleanValue()) 
+                {
+                    trustManagers = new TrustManager[]{ new NoopX509TrustManager() };
+                }
             }
-            
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(keyManagers, trustManagers, null);
-            
-            sslEngine = sslContext.createSSLEngine();
-
-            /*
-            String[] cs = sslEngine.getSupportedCipherSuites();
-            for (int i=0; i<cs.length; i++)
-                RadiusLog.debug(cs[i]);
-            */
-
-            sslEngine.setEnableSessionCreation(true);
-            sslEngine.setUseClientMode(true);
-            sslEngine.setWantClientAuth(true);
-            sslEngine.setNeedClientAuth(true);
-            sslEngine.setEnabledProtocols(new String[] { "TLSv1" });
-            sslEngine.setEnabledCipherSuites(new String[] { 
-                    "TLS_RSA_WITH_AES_128_CBC_SHA",
-                    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-                    "TLS_DHE_DSS_WITH_AES_128_CBC_SHA" });
-  
-            sslSession = sslEngine.getSession();
-            
-            appInBuffer = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
-            appOutBuffer = ByteBuffer.allocate(sslSession.getApplicationBufferSize());
-            packetInBuffer = ByteBuffer.allocate(sslSession.getPacketBufferSize());
-            packetOutBuffer = ByteBuffer.allocate(sslSession.getPacketBufferSize());
-            
-            /*
-            appInBuffer 	= ByteBuffer.allocate(200000);
-            appOutBuffer 	= ByteBuffer.allocate(2000000);
-            packetInBuffer 	= ByteBuffer.allocate(200000);
-            packetOutBuffer	= ByteBuffer.allocate(2000000);
-            */
         }
         catch (Exception e)
         {
             throw new RadiusException(e);
         }
+        */
     }
 
-    /**
+	/**
      * @see net.jradius.client.auth.RadiusAuthenticator#getAuthName()
      */
     public String getAuthName()
@@ -172,229 +250,56 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         return NAME;
     }
 
-    protected int None = 0;
-    protected int Handshaking = 1;
-    protected int Finished = 2;
-    private int tlsState = None;
+    int state = 0;
+    protected static final short TLS_START 			 = 0x20;
+    protected static final short TLS_MORE_FRAGMENTS  = 0x40;
+    protected static final short TLS_HAS_LENGTH  	 = 0x80;
 
-    protected int tlsHandshake() throws SSLException
+    protected static final int TLS_CLIENT_HELLO = 0;
+    protected static final int TLS_SERVER_HELLO = 1;
+    protected static final int TLS_APP_DATA = 2;
+    
+    protected byte[] eapFragmentedReply = null;
+    protected int eapFragmentedOffset = 0;
+    
+    ByteArrayOutputStream appOutput = new ByteArrayOutputStream();
+    
+    public void setServerMode()
     {
-        SSLEngineResult result = null;
-        SSLEngineResult.HandshakeStatus hsStatus = null;
-        Runnable task;
-        boolean didWrap = false;
-        
-        if (tlsState == Finished)
-        {
-            return tlsState;
-        }
-        
-        if (tlsState == None)
-        {
-            tlsState = Handshaking;
-            sslEngine.beginHandshake();
-        }
-        
-        while (true)
-        {
-            hsStatus = sslEngine.getHandshakeStatus();
-            
-            RadiusLog.debug(hsStatus.toString());
-            
-            if (hsStatus == SSLEngineResult.HandshakeStatus.FINISHED ||
-                    hsStatus == SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING)
-            {
-                tlsState = Finished;
-                return tlsState;
-            }
-            else if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_TASK)
-            {
-                while ((task = sslEngine.getDelegatedTask()) != null) task.run();
-            }
-            else if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_WRAP)
-            {
-                result = sslEngine.wrap(appOutBuffer, packetOutBuffer);
-                packetOutBuffer.flip();
-                if (packetOutBuffer.hasRemaining())
-                {
-                    packetOutput.write(
-                            packetOutBuffer.array(), 
-                            packetOutBuffer.arrayOffset(), 
-                            packetOutBuffer.remaining());
-                }
-                packetOutBuffer.clear();
-                didWrap = true;
-            }
-            else if (hsStatus == SSLEngineResult.HandshakeStatus.NEED_UNWRAP)
-            {
-                if (didWrap) return tlsState;
-                packetInBuffer.flip();
-                
-                while (packetInBuffer.hasRemaining())
-                { 
-                    result = sslEngine.unwrap(packetInBuffer, appInBuffer);
-                    if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_TASK)
-                    {
-                        while ((task = sslEngine.getDelegatedTask()) != null) task.run();
-                    }
-                }
-
-                packetInBuffer.clear();
-            }
-            else
-            {
-                return tlsState;
-            }
-        }
+    	state = TLS_SERVER_HELLO;
     }
-
-    protected void updatePacketBuffer(byte[] b)
+    
+    public void putAppBuffer(byte []b)
     {
         try
         {
-            if (tlsState == Finished)
-            {
-                packetInput.write(b);
-            }
-            else
-            {
-                putPacketBuffer(b);
-            }
+            appOutput.write(b);
         }
-        catch (IOException e) { }
-    }
-    
-    protected void putPacketBuffer(byte[] d) throws SSLException
-    {
-        Runnable task;
-        
-        int chunk = packetInBuffer.capacity();
-        int left = d.length;
-        
-        for (int offset = 0; left > 0; offset += chunk)
+        catch (Exception e)
         {
-            if (left < chunk) chunk = left;
-            left -= chunk;
-            
-            packetInBuffer.put(d, offset, chunk);
-            
-            if (tlsState == Finished)
-            {
-            packetInBuffer.flip();
-            
-            SSLEngineResult result = null;
-
-            while ((result == null || result.getStatus() == SSLEngineResult.Status.OK) && 
-                    packetInBuffer.hasRemaining())
-            { 
-                result = sslEngine.unwrap(packetInBuffer, appInBuffer);
-
-                if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_TASK)
-                {
-                    while ((task = sslEngine.getDelegatedTask()) != null) task.run();
-                }
-
-                appInBuffer.flip();
-                
-                if (appInBuffer.hasRemaining())
-                {
-                    appOutput.write(
-                            appInBuffer.array(), 
-                            appInBuffer.arrayOffset(), 
-                            appInBuffer.remaining());
-                }
-                
-                appInBuffer.clear();
-            }
-            packetInBuffer.clear();
-        }    
+            RadiusLog.error(e.getMessage(), e);
         }
     }
 
-    protected byte[] getPacketInputBuffer()
+    public void putAppBuffer(byte []b, int off, int len)
     {
-        byte b[] = packetInput.toByteArray();
-        packetInput = new ByteArrayOutputStream();
-        return b;
-    }
-
-    protected byte[] getPacketOutputBuffer()
-    {
-        packetOutBuffer.flip();
-        if (packetOutBuffer.hasRemaining())
+        try
         {
-            packetOutput.write(
-                    packetOutBuffer.array(), 
-                    packetOutBuffer.arrayOffset(), 
-                    packetOutBuffer.remaining());
+            appOutput.write(b, off, len);
         }
-        packetOutBuffer.clear();
-        byte b[] = packetOutput.toByteArray();
-        packetOutput = new ByteArrayOutputStream();
-        return b;
-    }
-
-    protected void putAppBuffer(byte[] d, int length) throws SSLException
-    {
-        SSLEngineResult result = null;
-        Runnable task;
-        
-        int chunk = appOutBuffer.capacity();
-        int left = length;
-        
-        for (int offset = 0; left > 0; offset += chunk)
+        catch (Exception e)
         {
-            if (left < chunk) chunk = left;
-            left -= chunk;
-            
-            appOutBuffer.clear();
-            appOutBuffer.put(d, offset, chunk);
-            appOutBuffer.flip();
-        
-            while (appOutBuffer.hasRemaining())
-            { 
-                result = sslEngine.wrap(appOutBuffer, packetOutBuffer);
-
-                if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_TASK)
-                {
-                    while ((task = sslEngine.getDelegatedTask()) != null) task.run();
-                }
-
-                if (tlsState == Finished)
-                {
-                    packetOutBuffer.flip();
-                    if (packetOutBuffer.hasRemaining())
-                    {
-                        packetOutput.write(
-                                packetOutBuffer.array(), 
-                                packetOutBuffer.arrayOffset(), 
-                                packetOutBuffer.remaining());
-                    }
-                    packetOutBuffer.clear();
-                }
-                else 
-                {
-                }
-            }
-
-            packetInBuffer.clear();
+            RadiusLog.error(e.getMessage(), e);
         }
     }
 
-    protected byte[] getAppBuffer() throws SSLException
+    protected byte[] getAppBuffer() 
     {
         byte b[] = appOutput.toByteArray();
         appOutput = new ByteArrayOutputStream();
         return b;
     }
-    
-    protected static final short TLS_START 			 = 0x20;
-    protected static final short TLS_MORE_FRAGMENTS  = 0x40;
-    protected static final short TLS_HAS_LENGTH  	 = 0x80;
-    
-    protected byte[] eapFragmentedReply = null;
-    protected int eapFragmentedOffset = 0;
-    
+
     public byte[] doEAPType(byte id, byte[] data) throws RadiusException
     {
         ByteBuffer bb = ByteBuffer.wrap(data);
@@ -412,9 +317,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
             if (bb.hasRemaining())
             {
-                byte b[] = new byte[bb.remaining()];
-                bb.get(b, 0, b.length);
-                updatePacketBuffer(b);
+                receivedEAP.put(bb.array(), bb.position(), bb.remaining());
             }
             else
             {
@@ -430,28 +333,64 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                 return tlsResponse(flags, null);
             }
 
-            if (tlsHandshake() == Finished)
+            switch (state)
             {
-                try
+                case 0:
                 {
-                    byte[] in = getAppBuffer();
-
-                    doTunnelAuthentication(id, in);
+                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), receivedEAP.position(), receivedEAP.remaining());
+                	ByteArrayOutputStream os = new ByteArrayOutputStream();
+                	handler.connect(is, os, tlsClient);
+                    data = os.toByteArray();
+                    state = 1;
                 }
-                catch (Throwable e)
+                break;
+
+                case 1:
                 {
-                    e.printStackTrace();
+                    receivedEAP.flip();
+                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), 
+                    		receivedEAP.position(), 
+                    		receivedEAP.remaining());
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    short s = handler.updateConnectState(is, os);
+                    data = os.toByteArray();
+                    receivedEAP.clear();
+                    if (s == TlsProtocolHandler.CS_DONE) 
+                    {
+                    	state = 2;
+                    }
                 }
+                break;
+
+                case 2:
+                {
+                    receivedEAP.flip();
+                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), 
+                    		receivedEAP.position(), 
+                    		receivedEAP.remaining());
+
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+                    byte[] in = handler.readApplicationData(is, os);
+
+                	System.err.println("doTunnelAuth()");
+                    try
+                    {
+                    	if (doTunnelAuthentication(id, in))
+                    	{
+    	                    handler.writeApplicationData(is, os, getAppBuffer());
+                    	}
+                    }
+                    catch(Throwable e)
+                    {
+                        RadiusLog.error(e.getMessage(), e);
+                    }
+                    
+                    data = os.toByteArray();
+                    receivedEAP.clear();
+                }
+                break;
             }
-
-            data = getPacketInputBuffer();
-
-            if (data != null && data.length > 0)
-            {
-                putPacketBuffer(data);
-            }
-
-            data = getPacketOutputBuffer();
             
             if (data != null && data.length > 1024)
             {
@@ -461,7 +400,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
             
             return tlsResponse(flags, data);
         }
-        catch (SSLException e)
+        catch (Exception e)
         {
             throw new RadiusException(e);
         }
@@ -497,8 +436,12 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
         if (data != null && data.length > 0) 
         {
-            length += data.length + 4;
-            flags |= TLS_HAS_LENGTH;
+        	length += data.length;
+        	if (flags != 0) 
+        	{
+        		length += 4;
+        		flags |= TLS_HAS_LENGTH;
+        	}
         }
 
         byte[] response = new byte[length];
@@ -506,20 +449,28 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         
         if (data != null && data.length > 0) 
         {
-            length -= 1;
-            response[1] = (byte) (length >> 24 & 0xFF);
-            response[2] = (byte) (length >> 16 & 0xFF);
-            response[3] = (byte) (length >> 8 & 0xFF);
-            response[4] = (byte) (length & 0xFF);
-            System.arraycopy(data, 0, response, 5, data.length);
+        	if (flags == 0) 
+        	{
+        		System.arraycopy(data, 0, response, 1, data.length);
+        	}
+        	else 
+        	{ 
+        		length -= 1;
+                response[1] = (byte) (length >> 24 & 0xFF);
+                response[2] = (byte) (length >> 16 & 0xFF);
+                response[3] = (byte) (length >> 8 & 0xFF);
+                response[4] = (byte) (length & 0xFF);
+                System.arraycopy(data, 0, response, 5, data.length);
+        	}
         }
 
         return response;
     }
     
-    protected void doTunnelAuthentication(byte id, byte[] in) throws Throwable
+    protected boolean doTunnelAuthentication(byte id, byte[] in) throws Throwable
     {
         // Not needed for EAP-TLS, but dependent protocols (PEAP, EAP-TTLS) implement this
+    	return false;
     }
 
     public String getCaFile()
@@ -591,4 +542,163 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     {
         this.trustAll = trustAll;
     }
+
+    
+    /**
+     * Create a private key parameter from a PKCS8 PrivateKeyInfo encoding.
+     * 
+     * @param privateKeyInfoData the PrivateKeyInfo encoding
+     * @return a suitable private key parameter
+     * @throws IOException on an error decoding the key
+     */
+    public static AsymmetricKeyParameter createKey(
+        byte[] privateKeyInfoData)
+        throws IOException
+    {
+        return createKey(
+            PrivateKeyInfo.getInstance(
+                ASN1Object.fromByteArray(privateKeyInfoData)));
+    }
+
+    /**
+     * Create a private key parameter from a PKCS8 PrivateKeyInfo encoding read from a stream.
+     * 
+     * @param inStr the stream to read the PrivateKeyInfo encoding from
+     * @return a suitable private key parameter
+     * @throws IOException on an error decoding the key
+     */
+    public static AsymmetricKeyParameter createKey(
+        InputStream inStr)
+        throws IOException
+    {
+        return createKey(
+            PrivateKeyInfo.getInstance(
+                new ASN1InputStream(inStr).readObject()));
+    }
+
+    /**
+     * Create a private key parameter from the passed in PKCS8 PrivateKeyInfo object.
+     * 
+     * @param keyInfo the PrivateKeyInfo object containing the key material
+     * @return a suitable private key parameter
+     * @throws IOException on an error decoding the key
+     */
+    public static AsymmetricKeyParameter createKey(
+        PrivateKeyInfo    keyInfo)
+        throws IOException
+    {
+        AlgorithmIdentifier     algId = keyInfo.getAlgorithmId();
+        
+        if (algId.getObjectId().equals(PKCSObjectIdentifiers.rsaEncryption))
+        {
+            RSAPrivateKeyStructure  keyStructure = new RSAPrivateKeyStructure((ASN1Sequence)keyInfo.getPrivateKey());
+
+            return new RSAPrivateCrtKeyParameters(
+                                        keyStructure.getModulus(),
+                                        keyStructure.getPublicExponent(),
+                                        keyStructure.getPrivateExponent(),
+                                        keyStructure.getPrime1(),
+                                        keyStructure.getPrime2(),
+                                        keyStructure.getExponent1(),
+                                        keyStructure.getExponent2(),
+                                        keyStructure.getCoefficient());
+        }
+        else if (algId.getObjectId().equals(PKCSObjectIdentifiers.dhKeyAgreement))
+        {
+            DHParameter     params = new DHParameter((ASN1Sequence)keyInfo.getAlgorithmId().getParameters());
+            DERInteger      derX = (DERInteger)keyInfo.getPrivateKey();
+
+            BigInteger lVal = params.getL();
+            int l = lVal == null ? 0 : lVal.intValue();
+            DHParameters dhParams = new DHParameters(params.getP(), params.getG(), null, l);
+
+            return new DHPrivateKeyParameters(derX.getValue(), dhParams);
+        }
+        else if (algId.getObjectId().equals(OIWObjectIdentifiers.elGamalAlgorithm))
+        {
+            ElGamalParameter    params = new ElGamalParameter((ASN1Sequence)keyInfo.getAlgorithmId().getParameters());
+            DERInteger          derX = (DERInteger)keyInfo.getPrivateKey();
+
+            return new ElGamalPrivateKeyParameters(derX.getValue(), new ElGamalParameters(params.getP(), params.getG()));
+        }
+        else if (algId.getObjectId().equals(X9ObjectIdentifiers.id_dsa))
+        {
+            DERInteger derX = (DERInteger)keyInfo.getPrivateKey();
+            DEREncodable de = keyInfo.getAlgorithmId().getParameters();
+
+            DSAParameters parameters = null;
+            if (de != null)
+            {
+                DSAParameter params = DSAParameter.getInstance(de.getDERObject());
+                parameters = new DSAParameters(params.getP(), params.getQ(), params.getG());
+            }
+
+            return new DSAPrivateKeyParameters(derX.getValue(), parameters);
+        }
+        else if (algId.getObjectId().equals(X9ObjectIdentifiers.id_ecPublicKey))
+        {
+            X962Parameters      params = new X962Parameters((DERObject)keyInfo.getAlgorithmId().getParameters());
+            ECDomainParameters  dParams = null;
+            
+            if (params.isNamedCurve())
+            {
+                DERObjectIdentifier oid = (DERObjectIdentifier)params.getParameters();
+                X9ECParameters      ecP = X962NamedCurves.getByOID(oid);
+
+                if (ecP == null)
+                {
+                    ecP = SECNamedCurves.getByOID(oid);
+
+                    if (ecP == null)
+                    {
+                        ecP = NISTNamedCurves.getByOID(oid);
+
+                        if (ecP == null)
+                        {
+                            ecP = TeleTrusTNamedCurves.getByOID(oid);
+                        }
+                    }
+                }
+
+                dParams = new ECDomainParameters(
+                                            ecP.getCurve(),
+                                            ecP.getG(),
+                                            ecP.getN(),
+                                            ecP.getH(),
+                                            ecP.getSeed());
+            }
+            else
+            {
+                X9ECParameters ecP = new X9ECParameters(
+                            (ASN1Sequence)params.getParameters());
+                dParams = new ECDomainParameters(
+                                            ecP.getCurve(),
+                                            ecP.getG(),
+                                            ecP.getN(),
+                                            ecP.getH(),
+                                            ecP.getSeed());
+            }
+
+            ECPrivateKeyStructure   ec = new ECPrivateKeyStructure((ASN1Sequence)keyInfo.getPrivateKey());
+
+            return new ECPrivateKeyParameters(ec.getKey(), dParams);
+        }
+        else
+        {
+            throw new RuntimeException("algorithm identifier in key not recognised");
+        }
+    }
+    /*
+    private class NoopX509TrustManager implements X509TrustManager
+    {
+        public void checkClientTrusted(X509Certificate[] chain, String authType) { }
+        public void checkServerTrusted(X509Certificate[] chain, String authType) { }
+        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+    }
+    */
+
+	protected boolean isCertificateRequired() 
+	{
+		return true;
+	}
 }

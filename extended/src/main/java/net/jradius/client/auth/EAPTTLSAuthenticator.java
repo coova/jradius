@@ -43,7 +43,7 @@ import net.jradius.packet.attribute.AttributeList;
  * 
  * @author David Bird
  */
-public class EAPTTLSAuthenticator extends EAPTLS2Authenticator implements TunnelAuthenticator
+public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelAuthenticator
 {
     public static final String NAME = "eap-ttls";
     private String innerProtocol = "pap";
