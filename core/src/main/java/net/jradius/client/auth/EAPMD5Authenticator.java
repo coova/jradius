@@ -49,6 +49,7 @@ public class EAPMD5Authenticator extends EAPAuthenticator
     {
         byte md5len = data[0];
         byte[] md5data = new byte[md5len];
+
         System.arraycopy(data, 1, md5data, 0, md5len);
 
         byte[] response = new byte[17];

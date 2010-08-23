@@ -25,6 +25,7 @@ import net.jradius.dictionary.Attr_Class;
 import net.jradius.exception.RadiusException;
 import net.jradius.handler.RadiusSessionHandler;
 import net.jradius.packet.AccessAccept;
+import net.jradius.packet.AccessChallenge;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.server.JRadiusRequest;
@@ -44,7 +45,8 @@ public class PostAuthorizeClassHandler extends RadiusSessionHandler
         
         RadiusPacket rep = request.getReplyPacket();
         
-        if (!(rep instanceof AccessAccept)) return false;
+        if (!(rep instanceof AccessAccept ||
+        		rep instanceof AccessChallenge)) return false;
 
         byte[] spClass = (byte[]) rep.getAttributeValue(Attr_Class.TYPE);
 
