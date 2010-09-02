@@ -36,9 +36,9 @@ import net.jradius.packet.attribute.RadiusAttribute;
  * 
  * @author David Bird
  */
-public abstract class EAPAuthenticator extends RadiusAuthenticator 
+public abstract class EAPAuthenticator extends RadiusAuthenticator
 {
-    protected boolean peap = false;
+	protected boolean peap = false;
     
     private boolean startWithIdentity = true;
 
@@ -57,11 +57,13 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     
     /**
      * EAP requires a challenge/response. The request packet is reset with a new 
-     * RADIUS itentifier and the EAP-Message is encoded.
+     * RADIUS identifier and the EAP-Message is encoded.
      * @see net.jradius.client.auth.RadiusAuthenticator#processChallenge(net.jradius.packet.RadiusPacket, net.jradius.packet.RadiusPacket)
      */
     public void processChallenge(RadiusPacket p, RadiusPacket r)  throws RadiusException
     {
+    	super.processChallenge(p, r);
+    	
         p.setIdentifier(-1);
 
         Object[] aList;
@@ -97,10 +99,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         
         byte[] eapMessage = doEAP(eapReply);
         
-        a = r.findAttribute(AttributeDictionary.STATE);
-        if (a != null) p.overwriteAttribute(a);
-
-        // Encode the EAP-Message into attribtue(s)
+        // Encode the EAP-Message into attribute(s)
         a = p.findAttribute(AttributeDictionary.EAP_MESSAGE);
         if (a != null) p.removeAttribute(a);
         

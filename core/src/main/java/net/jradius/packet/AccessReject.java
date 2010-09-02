@@ -28,7 +28,7 @@ import net.jradius.packet.attribute.AttributeList;
  *
  * @author David Bird
  */
-public class AccessReject extends RadiusResponse
+public class AccessReject extends AccessResponse
 {
     public static final byte CODE = (byte)3;
     private static final long serialVersionUID = (long)CODE;

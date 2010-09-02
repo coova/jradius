@@ -45,9 +45,11 @@ import net.jradius.packet.attribute.AttributeList;
  */
 public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelAuthenticator
 {
-    public static final String NAME = "eap-ttls";
-    private String innerProtocol = "pap";
-    private RadiusAuthenticator tunnelAuth;
+	public static final String NAME = "eap-ttls";
+
+	private String innerProtocol = "pap";
+    
+	private RadiusAuthenticator tunnelAuth;
     private RadiusPacket tunnelRequest;
     private RadiusPacket tunnelChallenge;
     private AttributeList tunneledAttributes;

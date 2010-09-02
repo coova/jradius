@@ -37,6 +37,7 @@ public abstract interface AttributeDictionary
     public static final int USER_NAME 				= 1;	// User-Name
     public static final int USER_PASSWORD 			= 2;	// User-Password
     public static final int STATE					= 24;	// State
+    public static final int CLASS					= 25;   // Class
     public static final int NAS_IDENTIFIER			= 32;	// NAS-Identifier
     public static final int ACCT_STATUS_TYPE 		= 40;	// Acct-Status-Type
     public static final int EAP_MESSAGE				= 79;	// EAP-Message

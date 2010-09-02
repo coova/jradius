@@ -277,7 +277,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         
         if (key != null) 
         {
-            RadiusLog.debug("** Looking for session: " + key);
+            RadiusLog.info("** Looking for session: " + key);
             
             session = getSession(request, key);
             if (session == null)
@@ -293,7 +293,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
             
             if (key != null) 
             {
-                RadiusLog.debug("** Looking for session: " + key);
+                RadiusLog.info("** Looking for session: " + key);
                 
                 session = getSession(request, key);
                 if (session == null)
@@ -324,14 +324,14 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
             {
                 key = ((Serializable[])(keys))[0];
                 nkey = ((Serializable[])(keys))[1];
-                RadiusLog.debug("Rehashing session with key " + key + " under new key " + nkey);
+                RadiusLog.info("Rehashing session with key " + key + " under new key " + nkey);
             }
             else
             {
                 key = keys;
             }
             
-            RadiusLog.debug("** Looking for session: " + key);
+            RadiusLog.info("** Looking for session: " + key);
             session = getSession(request, key);
 
             if (session != null && nkey != null && !nkey.equals(key))

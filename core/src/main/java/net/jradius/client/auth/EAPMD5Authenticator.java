@@ -28,9 +28,9 @@ import net.jradius.util.CHAP;
  * 
  * @author David Bird
  */
-public class EAPMD5Authenticator extends EAPAuthenticator 
+public class EAPMD5Authenticator extends EAPAuthenticator
 {
-    public static final String NAME = "eap-md5";
+	public static final String NAME = "eap-md5";
     
     public EAPMD5Authenticator()
     {

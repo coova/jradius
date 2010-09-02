@@ -30,7 +30,7 @@ import net.jradius.util.MSCHAP;
  */
 public class EAPMSCHAPv2Authenticator extends EAPAuthenticator 
 {
-    public static final String NAME = "eap-mschapv2";
+	public static final String NAME = "eap-mschapv2";
     
     public EAPMSCHAPv2Authenticator() 
     {
@@ -80,7 +80,7 @@ public class EAPMSCHAPv2Authenticator extends EAPAuthenticator
                 int length = 54 + getUsername().length;
                 byte[] response = new byte[length];
                 response[0] = EAP_MSCHAPV2_RESPONSE;        // OpCode
-                response[1] = data[1];                           // MS-CHAPv2-ID
+                response[1] = data[1];                      // MS-CHAPv2-ID
                 response[2] = (byte) (length << 8 & 0xFF);  // MS-Length
                 response[3] = (byte) (length & 0xFF);       // MS-Length
                 response[4] = 49;                           // Value-Size
@@ -110,9 +110,9 @@ public class EAPMSCHAPv2Authenticator extends EAPAuthenticator
         return null;
     }
     
-    private static final byte EAP_MSCHAPV2_ACK          = 0;
-    private static final byte EAP_MSCHAPV2_CHALLENGE    = 1;
-    private static final byte EAP_MSCHAPV2_RESPONSE     = 2;
-    private static final byte EAP_MSCHAPV2_SUCCESS      = 3;
-    private static final byte EAP_MSCHAPV2_FAILURE      = 4; 
+    protected static final byte EAP_MSCHAPV2_ACK          = 0;
+    protected static final byte EAP_MSCHAPV2_CHALLENGE    = 1;
+    protected static final byte EAP_MSCHAPV2_RESPONSE     = 2;
+    protected static final byte EAP_MSCHAPV2_SUCCESS      = 3;
+    protected static final byte EAP_MSCHAPV2_FAILURE      = 4; 
 }

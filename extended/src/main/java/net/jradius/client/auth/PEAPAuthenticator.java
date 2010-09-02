@@ -38,8 +38,9 @@ import net.jradius.packet.attribute.AttributeList;
  */
 public class PEAPAuthenticator extends EAPTLSAuthenticator 
 {
-    public static final String NAME = "peap";
-    private EAPAuthenticator tunnelAuth;
+	public static final String NAME = "peap";
+    
+	private EAPAuthenticator tunnelAuth;
     private RadiusPacket tunnelRequest;
     
     public PEAPAuthenticator()

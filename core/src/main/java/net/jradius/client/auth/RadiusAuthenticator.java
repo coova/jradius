@@ -36,9 +36,18 @@ import net.jradius.packet.attribute.RadiusAttribute;
  */
 public abstract class RadiusAuthenticator 
 {
-    protected RadiusClient client;
+	protected RadiusClient client;
     protected RadiusAttribute username;
     protected RadiusAttribute password;
+    protected RadiusAttribute classAttribute;
+    protected RadiusAttribute stateAttribute;
+
+    protected int state = 0;
+	
+	public static final int STATE_CHALLENGE = 0;
+	public static final int STATE_AUTHENTICATED = 1;
+	public static final int STATE_REJECTED = 2;
+	public static final int STATE_FAILURE = 3;
     
     /**
      * @return Returns the name(s) of the protocol(s) provided.
@@ -60,7 +69,10 @@ public abstract class RadiusAuthenticator
             throw new RadiusException("You must at least have a User-Name attribute in a Access-Request");
         }
         
-        password = p.findAttribute(AttributeDictionary.USER_PASSWORD);
+        if (password == null)
+        {
+        	password = p.findAttribute(AttributeDictionary.USER_PASSWORD);
+        }
     }
 
     /**
@@ -78,9 +90,13 @@ public abstract class RadiusAuthenticator
      */
     public void processChallenge(RadiusPacket request, RadiusPacket challenge)  throws RadiusException
     {
-        throw new RadiusException("A RequestChallenge was returned for a "
-                + getAuthName() + " authentication!\n" 
-                + request.toString() + "\n" + challenge.toString());
+        classAttribute = challenge.findAttribute(AttributeDictionary.CLASS);
+        if (classAttribute != null)
+        	request.overwriteAttribute(classAttribute);
+        
+        stateAttribute = challenge.findAttribute(AttributeDictionary.STATE);
+        if (stateAttribute != null)
+        	request.overwriteAttribute(stateAttribute);
     }
     
     /**
@@ -115,6 +131,35 @@ public abstract class RadiusAuthenticator
         if (password != null)
             return password.getValue().getBytes();
         
-        return null;
+        return "".getBytes();
     }
+
+
+	public void setUsername(RadiusAttribute userName) 
+	{
+		username = userName;
+	}
+
+	public void setPassword(RadiusAttribute cleartextPassword) 
+	{
+		password = cleartextPassword;
+	}
+
+    protected byte[] getClassAttribute()
+    {
+        return classAttribute == null ? null : classAttribute.getValue().getBytes();
+    }
+
+    protected byte[] getStateAttribute()
+    {
+        return stateAttribute == null ? null : stateAttribute.getValue().getBytes();
+    }
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
+	}
 }

@@ -1,6 +1,6 @@
 /**
  * JRadius - A RADIUS Server Java Adapter
- * Copyright (C) 2004-2005 PicoPoint, B.V.
+ * Copyright (C) 2010 Coova Technologies, LLC
  *
  * This library is free software; you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -22,25 +22,18 @@ package net.jradius.packet;
 
 import net.jradius.packet.attribute.AttributeList;
 
+
 /**
- *  The RADIUS Access-Accept Packet.
- *  See http://www.iana.org/assignments/radius-types
- *
  * @author David Bird
  */
-public class AccessAccept extends AccessResponse
+public abstract class AccessResponse extends RadiusResponse
 {
-    public static final byte CODE = (byte)2;
-    private static final long serialVersionUID = (long)CODE;
-    
-    public AccessAccept()
-    {
-        code = CODE;
-    }
-    
-	public AccessAccept(int id, AttributeList attributes) 
-	{
+	private static final long serialVersionUID = 1L;
+
+	public AccessResponse() {
+	}
+	
+	public AccessResponse(int id, AttributeList attributes) {
 		super(id, attributes);
-        code = CODE;
 	}
 }

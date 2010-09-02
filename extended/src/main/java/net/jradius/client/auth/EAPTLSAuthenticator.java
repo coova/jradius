@@ -89,7 +89,7 @@ import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
  */
 public class EAPTLSAuthenticator extends EAPAuthenticator
 {
-    public static final String NAME = "eap-tls";
+	public static final String NAME = "eap-tls";
 
     private String keyFileType;
     private String keyFile;
