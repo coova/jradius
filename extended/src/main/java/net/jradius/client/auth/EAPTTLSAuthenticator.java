@@ -64,7 +64,7 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
     /* (non-Javadoc)
      * @see net.jradius.client.auth.EAPTLSAuthenticator#init()
      */
-    protected void init() throws RadiusException
+    public void init() throws RadiusException
     {
         super.init();
         tunnelAuth = RadiusClient.getAuthProtocol(getInnerProtocol());

@@ -267,16 +267,7 @@ public abstract class RadiusPacket implements Serializable
      */
     public Object getAttributeValue(long type)
     {
-        RadiusAttribute attribute = findAttribute(type);
-        if (attribute != null)
-        {
-            AttributeValue value = attribute.getValue();
-            if (value != null)
-            {
-            	return value.getValueObject();
-            }
-        }
-        return null;
+    	return attributes.getValue(type);
     }
     
     /**

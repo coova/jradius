@@ -345,7 +345,7 @@ public class RadiusFormat extends Format
      * @return Returns the additional offset length for this header
      * @throws IOException
      */
-    public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException
+    public void unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException
     {
     	ctx.attributeOp = 0;
     	ctx.vendorNumber = -1;
@@ -354,11 +354,9 @@ public class RadiusFormat extends Format
         ctx.attributeType = readUnsignedByte(in);
         ctx.attributeLength = readUnsignedByte(in);
         ctx.headerLength = 2;
-        
-        return 0;
     }
 
-    public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
+    public void unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
     {
     	ctx.attributeOp = 0;
     	ctx.vendorNumber = -1;
@@ -367,9 +365,5 @@ public class RadiusFormat extends Format
     	ctx.attributeType = getUnsignedByte(buffer);
         ctx.attributeLength = getUnsignedByte(buffer);
         ctx.headerLength = 2;
-        
-        ctx.attributeLength -= ctx.headerLength;
-        
-        return 2;
     }
 }

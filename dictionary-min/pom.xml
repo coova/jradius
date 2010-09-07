@@ -1,0 +1,62 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>net.jradius</groupId>
+  <artifactId>jradius-dictionary-min</artifactId>
+  <name>${project.artifactId}-${project.version}</name>
+  <version>1.1.3-SNAPSHOT</version>
+  <description>JRadius Dictionary</description>
+  
+  <parent>
+    <groupId>net.jradius</groupId>
+    <artifactId>jradius</artifactId>
+    <version>1.1.3-SNAPSHOT</version>
+    <relativePath>../pom.xml</relativePath>
+  </parent>
+  
+  <dependencies>
+    <dependency>
+      <groupId>net.jradius</groupId>
+      <artifactId>jradius-core</artifactId>
+      <version>1.1.3-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+  
+  <build>
+    <sourceDirectory>target/dictionary-src</sourceDirectory>
+    <plugins>
+      <plugin>
+	<groupId>org.apache.maven.plugins</groupId>
+	<artifactId>maven-compiler-plugin</artifactId>
+	<configuration>
+	  <source>1.5</source>
+	  <target>1.5</target>
+	</configuration>
+      </plugin>
+      <plugin>
+	<artifactId>maven-antrun-plugin</artifactId>
+	<executions>
+	  <execution>
+	    <phase>generate-sources</phase>
+	    <configuration>            
+	      <tasks>
+		<java fork="false" classname="net.jradius.freeradius.RadiusDictionary" maxmemory="800m" failonerror="true"> 
+		  <classpath>
+		    <path refid="maven.compile.classpath" />
+		  </classpath>
+		  <arg value="net.jradius.dictionary" />
+		  <arg value="${basedir}/../freeradius/dict-min" />
+		  <arg value="${basedir}/target/dictionary-src" />
+		</java>
+	      </tasks>
+	    </configuration>
+	    <goals>
+	      <goal>run</goal>
+	    </goals>
+	  </execution>
+	</executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

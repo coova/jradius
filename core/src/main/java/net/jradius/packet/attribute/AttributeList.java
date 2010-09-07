@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.jradius.exception.UnknownAttributeException;
+import net.jradius.packet.attribute.value.AttributeValue;
 
 /**
  * Represents the Attribute List of a packet. Supports singleton
@@ -256,6 +257,20 @@ public class AttributeList implements Serializable
     public RadiusAttribute get(String name) throws UnknownAttributeException
     {
         return (RadiusAttribute)get(AttributeFactory.getTypeByName(name), true);
+    }
+    
+    public Object getValue(long type)
+    {
+        RadiusAttribute attribute = get(type);
+        if (attribute != null)
+        {
+            AttributeValue value = attribute.getValue();
+            if (value != null)
+            {
+            	return value.getValueObject();
+            }
+        }
+        return null;
     }
 
     /**

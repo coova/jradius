@@ -57,16 +57,12 @@ public class TLVFormat extends Format
 	}
 */
 	
-	public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) 
+	public void unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) 
 	{
         ctx.attributeType = (getUnsignedByte(buffer) << 8) | (parentType & 0xFF);
         ctx.attributeLength = getUnsignedByte(buffer);
         ctx.vendorNumber = (int) vendorId;
         ctx.headerLength = 2;
-        
-        ctx.attributeLength -= ctx.headerLength;
-        
-		return 2;
 	}
 
 	@Override

@@ -42,13 +42,6 @@ public abstract class RadiusAuthenticator
     protected RadiusAttribute classAttribute;
     protected RadiusAttribute stateAttribute;
 
-    protected int state = 0;
-	
-	public static final int STATE_CHALLENGE = 0;
-	public static final int STATE_AUTHENTICATED = 1;
-	public static final int STATE_REJECTED = 2;
-	public static final int STATE_FAILURE = 3;
-    
     /**
      * @return Returns the name(s) of the protocol(s) provided.
      */
@@ -154,12 +147,4 @@ public abstract class RadiusAuthenticator
     {
         return stateAttribute == null ? null : stateAttribute.getValue().getBytes();
     }
-
-	public int getState() {
-		return state;
-	}
-
-	public void setState(int state) {
-		this.state = state;
-	}
 }

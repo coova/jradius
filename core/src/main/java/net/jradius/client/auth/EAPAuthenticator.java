@@ -43,6 +43,13 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     private boolean startWithIdentity = true;
 
     private byte eapType;
+
+    protected int state = 0;
+	
+	public static final int STATE_CHALLENGE = 0;
+	public static final int STATE_AUTHENTICATED = 1;
+	public static final int STATE_REJECTED = 2;
+	public static final int STATE_FAILURE = 3;
     
     /**
      * @see net.jradius.client.auth.RadiusAuthenticator#processRequest(net.jradius.packet.RadiusPacket)
@@ -66,41 +73,10 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     	
         p.setIdentifier(-1);
 
-        Object[] aList;
-        RadiusAttribute a;
-        
-        aList = r.findAttributes(AttributeDictionary.EAP_MESSAGE);
-
-        if (aList == null)
-        {
-            throw new RadiusException("No EAP-Message in AccessChallenge");
-        }
-        
-
-        // Count how long the EAP-Message is
-        int eapLength = 0;
-        for (int i=0; i<aList.length; i++)
-        {
-            a = (RadiusAttribute) aList[i];
-            byte[] b = a.getValue().getBytes();
-            if (b != null) eapLength += b.length;
-        }
-
-        byte[] eapReply = new byte[eapLength];
-        
-        int eapOffset = 0;
-        for (int i=0; i<aList.length; i++)
-        {
-            a = (RadiusAttribute) aList[i];
-            byte[] b = a.getValue().getBytes();
-            System.arraycopy(b, 0, eapReply, eapOffset, b.length);
-            eapOffset += b.length;
-        }
-        
+        byte[] eapReply = AttributeFactory.assembleAttributeList(r.getAttributes(), AttributeDictionary.EAP_MESSAGE);
         byte[] eapMessage = doEAP(eapReply);
         
-        // Encode the EAP-Message into attribute(s)
-        a = p.findAttribute(AttributeDictionary.EAP_MESSAGE);
+        RadiusAttribute a = p.findAttribute(AttributeDictionary.EAP_MESSAGE);
         if (a != null) p.removeAttribute(a);
         
         AttributeFactory.addToAttributeList(p.getAttributes(), AttributeDictionary.EAP_MESSAGE, eapMessage);
@@ -342,4 +318,14 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     {
         this.startWithIdentity = startWithIdentity;
     }
+    
+
+	public int getState() {
+		return state;
+	}
+
+	public void setState(int state) {
+		this.state = state;
+	}
+
 }

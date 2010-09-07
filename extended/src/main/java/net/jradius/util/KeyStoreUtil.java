@@ -22,11 +22,10 @@ package net.jradius.util;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.Socket;
 import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.Principal;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Enumeration;
 
@@ -34,7 +33,6 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -76,6 +74,18 @@ public class KeyStoreUtil
 			{
 				final PrivateKey key = keyPair != null ? ((KeyPair)keyPair).getPrivate() : (PrivateKey) keyObj;
 				final X509Certificate cert = (X509Certificate) certObj;
+				
+				KeyStore ksKeys = KeyStore.getInstance("JKS");
+				ksKeys.load(null, pwd == null ? "".toCharArray() : pwd);
+
+				ksKeys.setCertificateEntry("", cert);
+				ksKeys.setKeyEntry("", key, pwd == null ? "".toCharArray() : pwd, new Certificate[]{cert});
+				KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+				kmf.init(ksKeys, pwd == null ? "".toCharArray() : pwd);
+
+				return kmf.getKeyManagers();
+				
+/*
 				return new KeyManager[] { new X509KeyManager()
 			    {
 					public String chooseClientAlias(String[] keyType, Principal[] issuers, Socket socket) {
@@ -102,6 +112,7 @@ public class KeyStoreUtil
 						return new String[] {"a"};
 					}
 			    }};
+    */
 			}
 			else
 			{
@@ -155,12 +166,25 @@ public class KeyStoreUtil
 		if (type.equalsIgnoreCase("pem"))
 		{
 			final X509Certificate cert = loadCertificateFromPEM(in, pwd);
+
+			KeyStore ksKeys = KeyStore.getInstance("JKS");
+			ksKeys.load(null, pwd == null ? "".toCharArray() : pwd);
+
+			ksKeys.setCertificateEntry("", cert);
+
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			tmf.init(ksKeys);
+
+			return tmf.getTrustManagers();
+			
+/*
 			return new TrustManager[] { new X509TrustManager()
 		    {
 		        public void checkClientTrusted(X509Certificate[] chain, String authType) { }
 		        public void checkServerTrusted(X509Certificate[] chain, String authType) { }
 		        public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[] { cert }; }
 		    }};
+*/
 		}
 
 		KeyStore caKeys = KeyStore.getInstance(type);

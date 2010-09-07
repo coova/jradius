@@ -64,16 +64,24 @@ public class RadSecListener extends TCPListener
         int code = RadiusFormat.readUnsignedByte(inputStream);
         int identifier = RadiusFormat.readUnsignedByte(inputStream);
         int length = RadiusFormat.readUnsignedShort(inputStream);
+        
+        length -= 4;
 
+        if (length <= 0)
+        	return null;
+        
         buffer.clear();
         buffer.limit(inputStream.read(buffer.array(), 0, length));
         
+        if (buffer.limit() != length)
+        	return null;
+        
         RadiusRequest req = (RadiusRequest) PacketFactory.parseUDP(code, identifier, length, buffer);
 
+        System.err.println(req);
+        
         if (req == null) 
-        {
-            throw new RadiusException("RadSec connection has been closed");
-        }
+        	return null;
         
         if (req instanceof AccountingRequest)
         {

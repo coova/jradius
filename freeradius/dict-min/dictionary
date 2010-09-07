@@ -1,0 +1,26 @@
+$INCLUDE ../dict/dictionary.compat
+
+#	Include the RFC dictionaries next.
+#	For a complete list of the standard attributes and values,
+#	see:
+#		http://www.iana.org/assignments/radius-types
+#
+$INCLUDE ../dict/dictionary.rfc2865
+$INCLUDE ../dict/dictionary.rfc2866
+$INCLUDE ../dict/dictionary.rfc2867
+$INCLUDE ../dict/dictionary.rfc2868
+$INCLUDE ../dict/dictionary.rfc2869
+$INCLUDE ../dict/dictionary.rfc3162
+$INCLUDE ../dict/dictionary.rfc3576
+$INCLUDE ../dict/dictionary.rfc3580
+$INCLUDE ../dict/dictionary.rfc4072
+$INCLUDE ../dict/dictionary.rfc4372
+$INCLUDE ../dict/dictionary.rfc4675
+$INCLUDE ../dict/dictionary.rfc4679
+$INCLUDE ../dict/dictionary.rfc4818
+$INCLUDE ../dict/dictionary.rfc4849
+$INCLUDE ../dict/dictionary.rfc5176
+$INCLUDE ../dict/dictionary.rfc5580
+
+$INCLUDE ../dict/dictionary.coova
+$INCLUDE ../dict/dictionary.chillispot

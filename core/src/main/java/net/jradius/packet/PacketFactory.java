@@ -29,7 +29,6 @@ import net.jradius.client.RadiusClient;
 import net.jradius.exception.RadiusException;
 import net.jradius.freeradius.FreeRadiusFormat;
 import net.jradius.log.RadiusLog;
-import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 
 import org.apache.commons.pool.KeyedObjectPool;
@@ -243,7 +242,7 @@ public class PacketFactory
 	     
 	        if (c == null)
 	        {
-	            throw new RadiusException("bad radius code");
+	            throw new RadiusException("bad radius code - " + key);
 	        }
 
 	        try

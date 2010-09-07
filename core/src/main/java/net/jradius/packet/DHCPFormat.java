@@ -69,11 +69,10 @@ public class DHCPFormat extends Format
         return 0;
     }
 
-    public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
+    public void unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
     {
         ctx.attributeType = getUnsignedByte(buffer);
         ctx.attributeLength = getUnsignedByte(buffer);
         ctx.headerLength = 2;
-        return 0;
     }
 }

@@ -44,7 +44,7 @@ public abstract class Format
 
     //abstract public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException;
     
-    abstract public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException;
+    abstract public void unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException;
     
     /**
      * Packs an AttributeList into a byte array
@@ -134,6 +134,7 @@ public abstract class Format
         public long attributeType = 0;
         public long attributeLength = 0;
         public long attributeOp = RadiusAttribute.Operator.EQ;
+        public long attributeValueLength = 0;
         public byte[] attributeValue = null;
         public int headerLength = 0;
         public int vendorNumber = -1;
@@ -200,7 +201,7 @@ public abstract class Format
     	{
 	    	try
 	        {
-        		pos += unpackAttributeHeader(buffer, ctx);
+        		unpackAttributeHeader(buffer, ctx);
 	        }
 	    	catch (Exception e)
 	        {
@@ -208,7 +209,10 @@ public abstract class Format
 	            return;
 	        }
 
-	    	RadiusAttribute attribute = AttributeFactory.newAttribute(ctx.vendorNumber, ctx.attributeType, ctx.attributeLength, (int) ctx.attributeOp, buffer);
+	    	RadiusAttribute attribute = AttributeFactory.newAttribute(
+	    			ctx.vendorNumber, ctx.attributeType, 
+	    			ctx.attributeLength - ctx.headerLength, 
+	    			(int) ctx.attributeOp, buffer);
     		
             if (attribute == null)
             {

@@ -135,7 +135,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
      * @throws Exception 
      * @throws FileNotFoundException 
      */
-    protected void init() throws RadiusException
+    public void init() throws RadiusException
     {
     	try
     	{

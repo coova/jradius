@@ -90,14 +90,14 @@ public class DiameterFormat extends Format
         putUnsignedInt(buffer, a.getVendorId());
     }
 
-    public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
+    public void unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
     {
         ctx.attributeType = (int) getUnsignedInt(buffer);
 
-        long flen = getUnsignedInt(buffer);
-        byte flags = (byte) ((flen >> 24) & 0xff);
-
-        ctx.attributeLength = (int)(flen & 0x00ffffff);
+        int flags = getUnsignedByte(buffer);
+        getUnsignedByte(buffer);
+        
+        ctx.attributeLength = getUnsignedShort(buffer);
         ctx.headerLength = 8;
 
         if ((flags & AVP_VENDOR) > 0)
@@ -107,7 +107,5 @@ public class DiameterFormat extends Format
         }
 
         ctx.padding = (int) (((ctx.attributeLength + 0x03) & ~(0x03)) - ctx.attributeLength);
-
-        return 0;
     }
 }

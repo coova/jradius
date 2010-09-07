@@ -23,7 +23,6 @@ package net.jradius.packet.attribute;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
-import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
@@ -36,7 +35,6 @@ import net.jradius.exception.RadiusException;
 import net.jradius.exception.UnknownAttributeException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusFormat;
-import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.RadiusAttribute.Operator;
 
 import org.apache.commons.pool.KeyedObjectPool;
@@ -563,6 +561,40 @@ public final class AttributeFactory
             cnt++;
         }
         return cnt;
+    }
+    
+    public static byte[] assembleAttributeList(AttributeList list, long type)
+    {
+        Object[] aList;
+        RadiusAttribute a;
+        
+        aList = list.getArray(type);
+
+        if (aList != null)
+        {
+            int length = 0;
+            for (int i=0; i<aList.length; i++)
+            {
+                a = (RadiusAttribute) aList[i];
+                byte[] b = a.getValue().getBytes();
+                if (b != null) length += b.length;
+            }
+
+            byte[] byteBuffer = new byte[length];
+            
+            int offset = 0;
+            for (int i=0; i<aList.length; i++)
+            {
+                a = (RadiusAttribute) aList[i];
+                byte[] b = a.getValue().getBytes();
+                System.arraycopy(b, 0, byteBuffer, offset, b.length);
+                offset += b.length;
+            }
+            
+            return byteBuffer;
+        }
+        
+        return null;
     }
 
     /**

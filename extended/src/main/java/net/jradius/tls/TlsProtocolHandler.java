@@ -829,6 +829,7 @@ public class TlsProtocolHandler
          * Length of Session id
          */
         TlsUtils.writeUint8((short)0, os);
+        //TlsUtils.writeUint8((short)1, os);
 
         /*
          * Cipher suites
@@ -836,7 +837,7 @@ public class TlsProtocolHandler
         this.offeredCipherSuites = this.tlsClient.getCipherSuites();
 
         // Note: 1 extra slot for TLS_EMPTY_RENEGOTIATION_INFO_SCSV
-        TlsUtils.writeUint16(2 * (offeredCipherSuites.length + 1), os);
+        TlsUtils.writeUint16(2 * (offeredCipherSuites.length/* + 1*/), os);
         for (int i = 0; i < offeredCipherSuites.length; ++i)
         {
             TlsUtils.writeUint16(offeredCipherSuites[i], os);
@@ -844,7 +845,7 @@ public class TlsProtocolHandler
 
         // RFC 5746 3.3
         // Note: If renegotiation added, remove this (and extra slot above)
-        TlsUtils.writeUint16(TLS_EMPTY_RENEGOTIATION_INFO_SCSV, os);
+        //TlsUtils.writeUint16(TLS_EMPTY_RENEGOTIATION_INFO_SCSV, os);
 
         /*
          * Compression methods, just the null method.

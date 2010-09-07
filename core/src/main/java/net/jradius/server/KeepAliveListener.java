@@ -82,8 +82,7 @@ public class KeepAliveListener extends JRadiusThread
         }
         catch (Exception e)
         {
-        	e.printStackTrace();
-            RadiusLog.debug("JRadius/KeepAliveListener.run(): shutting down tcp socket listener", e);
+            RadiusLog.info("JRadius/KeepAliveListener.run(): shutting down tcp socket listener", e);
         }
         
         shutdown(false);

@@ -210,15 +210,16 @@ public class FreeRadiusFormat extends RadiusFormat
     }
      */
 
-    public int unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
+    public void unpackAttributeHeader(ByteBuffer buffer, AttributeParseContext ctx) throws IOException
     {
     	ctx.attributeOp = 0;
     	ctx.vendorNumber = -1;
     	ctx.padding = 0;
 
 	    ctx.attributeType = getUnsignedInt(buffer);
-	    ctx.attributeLength = getUnsignedInt(buffer);
+	    ctx.attributeLength = getUnsignedInt(buffer) + 12;
 	    ctx.attributeOp = getUnsignedInt(buffer);
+	    ctx.headerLength = 12;
 		
         if (ctx.attributeType > (1 << 16))
         {
@@ -227,7 +228,5 @@ public class FreeRadiusFormat extends RadiusFormat
             ctx.vendorNumber = (int)((ctx.attributeType >> 16) & 0xffff);
             ctx.attributeType &= 0xffff;
         }
-        
-        return 12;
     }
 }

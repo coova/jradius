@@ -51,7 +51,7 @@ public class PEAPAuthenticator extends EAPTLSAuthenticator
     /* (non-Javadoc)
      * @see net.jradius.client.auth.EAPTLSAuthenticator#init()
      */
-    protected void init() throws RadiusException
+    public void init() throws RadiusException
     {
         super.init();
         tunnelAuth = new EAPMSCHAPv2Authenticator(true);
