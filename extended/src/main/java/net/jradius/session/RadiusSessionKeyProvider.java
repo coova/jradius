@@ -30,6 +30,7 @@ import net.jradius.dictionary.Attr_Class;
 import net.jradius.dictionary.Attr_NASIPAddress;
 import net.jradius.dictionary.Attr_NASIdentifier;
 import net.jradius.dictionary.Attr_ServiceType;
+import net.jradius.dictionary.Attr_State;
 import net.jradius.dictionary.Attr_UserName;
 import net.jradius.dictionary.vsa_dhcp.Attr_DHCPClientHardwareAddress;
 import net.jradius.dictionary.vsa_dhcp.Attr_DHCPGatewayIPAddress;
@@ -149,6 +150,16 @@ public class RadiusSessionKeyProvider implements SessionKeyProvider
         RadiusPacket req = request.getRequestPacket();
         // Look for our own Class attribute value
         byte[] bClass = (byte[]) req.getAttributeValue(Attr_Class.TYPE);
+        if (bClass != null)
+        {
+            String sClass = new String(bClass);
+            if (sClass.startsWith(RadiusSessionHandler.ClassPrefix))
+            {
+                RadiusLog.debug("Using " + sClass);
+                return sClass.substring(RadiusSessionHandler.ClassPrefix.length());
+            }
+        }
+        bClass = (byte[]) req.getAttributeValue(Attr_State.TYPE);
         if (bClass != null)
         {
             String sClass = new String(bClass);

@@ -50,7 +50,7 @@ public class KeepAliveListener extends JRadiusThread
     
     public void run()
     {
-        RadiusLog.debug("JRadius/KeepAliveListener.run(): starting tcp socket listener");
+        RadiusLog.debug(this.getClass().getName() + ".run(): starting tcp socket listener");
 
         try
         {
@@ -62,7 +62,7 @@ public class KeepAliveListener extends JRadiusThread
 
                 if (lr == null || lr.event == null)
                 {
-                    RadiusLog.debug("JRadius/KeepAliveListener.run(): shutting down tcp socket listener");
+                    RadiusLog.info(this.getClass().getName() + ".run(): shutting down tcp socket listener");
                     break;
                 }
                 
@@ -82,7 +82,7 @@ public class KeepAliveListener extends JRadiusThread
         }
         catch (Exception e)
         {
-            RadiusLog.info("JRadius/KeepAliveListener.run(): shutting down tcp socket listener", e);
+            RadiusLog.info(this.getClass().getName() + ".run(): shutting down tcp socket listener", e);
         }
         
         shutdown(false);

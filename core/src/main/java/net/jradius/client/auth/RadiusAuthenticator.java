@@ -55,11 +55,12 @@ public abstract class RadiusAuthenticator
     public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException
     {
         client = c;
-        username = p.findAttribute(AttributeDictionary.USER_NAME);
         
         if (username == null)
         {
-            throw new RadiusException("You must at least have a User-Name attribute in a Access-Request");
+            username = p.findAttribute(AttributeDictionary.USER_NAME);
+            if (username == null)
+            	throw new RadiusException("You must at least have a User-Name attribute in a Access-Request");
         }
         
         if (password == null)

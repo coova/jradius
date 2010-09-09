@@ -258,6 +258,30 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         return response;
     }
 
+    protected byte[] eapSuccess(byte id)
+    {
+        byte[] response;
+        int length = EAP_HEADERLEN;
+        response = new byte[length];
+        response[0] = EAP_SUCCESS;
+        response[1] = id;
+        response[2] = (byte)(length >> 8 & 0xFF);
+        response[3] = (byte)(length & 0xFF);
+        return response;
+    }
+
+    protected byte[] eapFailure(byte id)
+    {
+        byte[] response;
+        int length = EAP_HEADERLEN;
+        response = new byte[length];
+        response[0] = EAP_FAILURE;
+        response[1] = id;
+        response[2] = (byte)(length >> 8 & 0xFF);
+        response[3] = (byte)(length & 0xFF);
+        return response;
+    }
+
     /*
      *<pre>   
      * 2.3.1.  Result AVP

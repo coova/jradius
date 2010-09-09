@@ -78,7 +78,7 @@ public class RadSecListener extends TCPListener
         
         RadiusRequest req = (RadiusRequest) PacketFactory.parseUDP(code, identifier, length, buffer);
 
-        System.err.println(req);
+        //System.err.println(req);
         
         if (req == null) 
         	return null;

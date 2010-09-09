@@ -22,6 +22,7 @@
 package net.jradius.handler.authorize;
 
 import net.jradius.dictionary.Attr_Class;
+import net.jradius.dictionary.Attr_State;
 import net.jradius.exception.RadiusException;
 import net.jradius.handler.RadiusSessionHandler;
 import net.jradius.packet.AccessAccept;
@@ -55,7 +56,7 @@ public class PostAuthorizeClassHandler extends RadiusSessionHandler
             session.setRadiusClass(spClass);
         }
         
-        rep.overwriteAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, (ClassPrefix + session.getSessionKey()).getBytes()));
+        rep.overwriteAttribute(AttributeFactory.newAttribute(rep instanceof AccessAccept ? Attr_Class.TYPE : Attr_State.TYPE, (ClassPrefix + session.getSessionKey()).getBytes()));
         
         return false;
     }

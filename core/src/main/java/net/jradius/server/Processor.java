@@ -25,14 +25,12 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import net.jradius.handler.chain.JRCommand;
-import net.jradius.log.RadiusLog;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool.ObjectPool;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
 
 /**
  * Base abstract class of all Processors
@@ -45,9 +43,13 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
 	protected Log log = LogFactory.getLog(getClass());
 
     private ApplicationContext applicationContext;
+
     private EventDispatcher eventDispatcher;
+    
     private List<JRCommand> requestHandlers;
+    
     private BlockingQueue<ListenerRequest> queue;
+    
     private boolean active = true;
 
     public Processor()
@@ -107,7 +109,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
             catch (Throwable e)
             {
             	e.printStackTrace();
-                RadiusLog.error("Error in radius task Processor", e);
+                log.error("Error in radius task Processor", e);
             }
         }
     }

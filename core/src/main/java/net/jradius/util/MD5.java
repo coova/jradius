@@ -69,9 +69,28 @@ public class MD5
 
 	private static ThreadLocalHMACMD5 hmacmd5 = new ThreadLocalHMACMD5();
 
+	private static class ThreadLocalHMACSHA1 extends ThreadLocal<IMac> 
+	{
+		public IMac initialValue() 
+		{
+			return MacFactory.getInstance("HMAC-SHA1");
+		}
+
+		public IMac getHMACSHA1() 
+		{ 
+			IMac md = super.get();
+			md.reset();
+			return md;
+		}
+	}
+
+	private static ThreadLocalHMACSHA1 hmacsha1 = new ThreadLocalHMACSHA1();
+
 	public static IMessageDigest getMD5() { return md5.getMD5(); }
 
 	public static IMac getHMACMD5() { return hmacmd5.getHMACMD5(); }
+	
+	public static IMac getHMACSHA1() { return hmacsha1.getHMACSHA1(); }
 	
     public static byte[] md5(byte[] text)
     {

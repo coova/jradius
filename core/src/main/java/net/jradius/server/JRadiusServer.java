@@ -107,8 +107,9 @@ public class JRadiusServer implements InitializingBean
     public void afterPropertiesSet() throws Exception 
     {
     	if (eventDispatcher == null)
+    	{
     		eventDispatcher = new EventDispatcher();
-        
+    	}
     	initializeServer();
 	}
 

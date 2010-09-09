@@ -107,8 +107,6 @@ public class RadSecClientTransport extends RadiusClientTransport
 		}
 	}
 
-	
-	
 	protected RadiusResponse receive(RadiusRequest req) throws Exception {
         RadiusResponse res = null;
         DataInputStream in = new DataInputStream(socket.getInputStream());

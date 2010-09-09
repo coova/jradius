@@ -101,13 +101,20 @@ public class EAPMSCHAPv2Authenticator extends EAPAuthenticator
                  *  |     Type      |   OpCode      |
                  *  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                  */
+            	setState(STATE_AUTHENTICATED);
                 byte[] response = new byte[1];
                 response[0] = EAP_MSCHAPV2_SUCCESS;
                 return response;
             }
+            
+            default:
+            {
+            	setState(STATE_FAILURE);
+                byte[] response = new byte[1];
+                response[0] = EAP_MSCHAPV2_FAILURE;
+                return response;
+            }
         }
-
-        return null;
     }
     
     protected static final byte EAP_MSCHAPV2_ACK          = 0;
