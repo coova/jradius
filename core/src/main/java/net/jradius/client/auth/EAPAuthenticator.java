@@ -49,7 +49,8 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
 	public static final int STATE_CHALLENGE = 0;
 	public static final int STATE_AUTHENTICATED = 1;
 	public static final int STATE_REJECTED = 2;
-	public static final int STATE_FAILURE = 3;
+	public static final int STATE_SUCCESS = 3;
+	public static final int STATE_FAILURE = 4;
     
     /**
      * @see net.jradius.client.auth.RadiusAuthenticator#processRequest(net.jradius.packet.RadiusPacket)
@@ -116,6 +117,21 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     	return doEAPType(id, data);
     }
  
+    protected boolean suedoEAPType(byte[] eap)
+    {
+    	if (peap) 
+    	{
+    		if (eap.length > 4 &&
+    				(eap[0] == EAP_REQUEST || eap[0] == EAP_RESPONSE) &&
+    				eap[4] == EAP_TLV) 
+    		{
+    			return false;
+    		}
+    		return true;
+    	}
+    	return false;
+    }
+    
     /**
      * From: http://tools.ietf.org/id/draft-kamath-pppext-peapv0-00.txt
      *<pre>   
@@ -139,25 +155,23 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     {
         if (eapReply != null)
         {
-            ByteBuffer bb = ByteBuffer.wrap(eapReply);
             byte rtype = EAP_REQUEST;
             byte id = 0;
             int dlen = 0;
 
+            ByteBuffer bb = ByteBuffer.wrap(eapReply);
             byte codeOrType = bb.get();
             
-            // change: check the size
-            // if (!peap || codeOrType == EAP_REQUEST)
-            if (eapReply.length > 4 && (!peap || codeOrType == EAP_REQUEST))
+            if (suedoEAPType(eapReply))
+            {
+                dlen = bb.remaining();
+            }
+            else
             {
                 rtype  = codeOrType;
                 id     = bb.get();
                 dlen   = bb.getShort() - EAP_HEADERLEN - 1;
                 codeOrType = bb.get();
-            }
-            else
-            {
-                dlen = bb.remaining();
             }
             
             if (rtype != EAP_REQUEST)
@@ -166,7 +180,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
                 return null;
             }
             
-            byte eapcode = codeOrType; // change: init the eapcode with codeOrType
+            byte eapcode = codeOrType;
             byte[] data = null;
 
             if (dlen > 0)
@@ -258,7 +272,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         return response;
     }
 
-    protected byte[] eapSuccess(byte id)
+    public byte[] eapSuccess(byte id)
     {
         byte[] response;
         int length = EAP_HEADERLEN;
@@ -270,7 +284,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         return response;
     }
 
-    protected byte[] eapFailure(byte id)
+    public byte[] eapFailure(byte id)
     {
         byte[] response;
         int length = EAP_HEADERLEN;
