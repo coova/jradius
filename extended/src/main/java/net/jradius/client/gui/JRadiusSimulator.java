@@ -1273,11 +1273,11 @@ public class JRadiusSimulator extends JFrame
     {
         DefaultMutableTreeNode standardTree = new DefaultMutableTreeNode("Standard Attributes");
         DefaultMutableTreeNode vsaTree = new DefaultMutableTreeNode("Vendor Specific Attributes");
-        addAttributesToTable(standardTree, AttributeFactory.getAttributeNameMap());
+        addAttributesToTable(standardTree, AttributeFactory.getAttributeNameMap(), true);
         top.add(standardTree);
       
         Map<Long, VendorValue> vendors = AttributeFactory.getVendorValueMap();
-        LinkedHashMap<String, Map<?, ?>> dictList = new LinkedHashMap<String, Map<?, ?>>();
+        LinkedHashMap<String, Map<String, Class<?>>> dictList = new LinkedHashMap<String, Map<String, Class<?>>>();
         for (Iterator<VendorValue> i = vendors.values().iterator(); i.hasNext();)
         {
             VendorValue vendor = i.next();
@@ -1285,7 +1285,9 @@ public class JRadiusSimulator extends JFrame
             {
                 VSADictionary dict = (VSADictionary)vendor.getDictClass().newInstance();
                 String vendorName = dict.getVendorName();
-                dictList.put(vendorName, vendor.getAttributeNameMap());
+                Map<String, Class<?>> map = vendor.getAttributeNameMap();
+                System.out.println("Loading vendor " + vendorName + " with " + map.size() + " attributes.");
+                dictList.put(vendorName, map);
             }
             catch(Exception e) { e.printStackTrace(); }
         }
@@ -1295,16 +1297,16 @@ public class JRadiusSimulator extends JFrame
         {
             String vendorName = i.next();
             DefaultMutableTreeNode vsaNode = new DefaultMutableTreeNode(vendorName);
-            addAttributesToTable(vsaNode, (Map)dictList.get(vendorName));
+            addAttributesToTable(vsaNode, dictList.get(vendorName), false);
             vsaTree.add(vsaNode);
         }
         top.add(vsaTree);
     }
     
-    private void addAttributesToTable(DefaultMutableTreeNode node, Map<String, Class<?>> attributes)
+    private void addAttributesToTable(DefaultMutableTreeNode node, Map<String, Class<?>> map, boolean skipVSA)
     {
         LinkedHashMap<String, String> attributeList = new LinkedHashMap<String, String>();
-        for (Iterator<Map.Entry<String, Class<?>>> i = attributes.entrySet().iterator(); i.hasNext();)
+        for (Iterator<Map.Entry<String, Class<?>>> i = map.entrySet().iterator(); i.hasNext();)
         {
         	Map.Entry<String, Class<?>> entry = i.next();
             String type = entry.getKey();
@@ -1312,7 +1314,7 @@ public class JRadiusSimulator extends JFrame
             try
             {
                 RadiusAttribute attribute = (RadiusAttribute)clazz.newInstance();
-                if (!(attribute instanceof VSAttribute) && attribute.getType() <= 255)
+                if (!skipVSA || (!(attribute instanceof VSAttribute) && attribute.getType() <= 255))
                 {
                     String attributeName = attribute.getAttributeName();
                     if (attributeName.equals("Vendor-Specific")) continue;
