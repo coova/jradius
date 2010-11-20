@@ -22,6 +22,7 @@ package net.jradius.util;
 
 import gnu.crypto.hash.IMessageDigest;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Random;
 
 /**
@@ -129,7 +130,42 @@ public final class RadiusUtils
         
         return encryptedPass;
     }
-                                                                                                                 
+              
+    public static byte[] decodePapPassword(byte[] encryptedPass, byte[] authenticator, String sharedSecret)
+    {
+    	ByteArrayOutputStream out = new ByteArrayOutputStream();
+    	IMessageDigest md5 = MD5.getMD5();
+    	int pwlen = encryptedPass.length;
+        if (pwlen > 128) pwlen = 128;
+        if (pwlen == 0) return out.toByteArray();
+
+        md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
+        md5.update(authenticator, 0, authenticator.length);
+ 
+        byte[] hash = md5.digest();
+        
+        for (int n = 0; n < pwlen; n += 16) {
+        	if (n == 0) {
+        		md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
+        		if (pwlen > 16) {
+        			md5.update(encryptedPass, 0, 16);
+        		}
+        	} else {
+        		hash = md5.digest();
+        		md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
+                if (pwlen > (n + 16)) {
+                	md5.update(encryptedPass, n, 16);
+                }
+            }
+
+        	for (int i = 0; i < 16; i++) {
+        		out.write(encryptedPass[i + n] ^ hash[i]);
+        	}
+        }
+
+        return out.toByteArray();
+    }
+    
     /**
      * This method builds a Request Authenticator for use in outgoing RADIUS
      * Access-Request packets as specified in RFC 2865.

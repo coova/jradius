@@ -89,10 +89,7 @@ public class AttributeList implements Serializable
 
         if (o == null || overwrite)
         {
-        	if (o != null) 
-        	{
-        		removeFromList(o);
-        	}
+        	remove(key);
         	attributeMap.put(key, a);
         }
         else
@@ -167,16 +164,19 @@ public class AttributeList implements Serializable
     {
         Long key = new Long(attributeType);
         Object o = attributeMap.remove(key);
-        if (o instanceof LinkedList<?>)
+        if (o != null)
         {
-        	for (Iterator<?> i = ((LinkedList<?>) o).iterator(); i.hasNext(); )
-        	{
-        		removeFromList(i.next());
-        	}
-        }
-        else 
-        {
-        	removeFromList(o);
+	        if (o instanceof LinkedList<?>)
+	        {
+	        	for (Iterator<?> i = ((LinkedList<?>) o).iterator(); i.hasNext(); )
+	        	{
+	        		removeFromList(i.next());
+	        	}
+	        }
+	        else 
+	        {
+	        	removeFromList(o);
+	        }
         }
     }
     
@@ -190,6 +190,7 @@ public class AttributeList implements Serializable
 
     private void removeFromList(Object o)
     {
+ System.err.println("removing "+o.toString());
     	Object ol[] = attributeOrderList.toArray();
     	for (int i = 0; i < ol.length; i++)
     	{

@@ -671,7 +671,7 @@ public final class AttributeFactory
         try
         {
             attr = (RadiusAttribute)c.newInstance();
-            return attr.getType();
+            return attr.getFormattedType();
         }
         catch (Exception e)
         {
