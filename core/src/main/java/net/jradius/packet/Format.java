@@ -26,12 +26,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.attribute.AttributeDictionary;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 import net.jradius.packet.attribute.RadiusAttribute;
+import net.jradius.packet.attribute.VSAttribute;
 
 /**
  * @author David Bird
@@ -41,6 +44,10 @@ public abstract class Format
 	//abstract public void packAttribute(OutputStream out, RadiusAttribute a) throws IOException;
 
     abstract public void packAttribute(ByteBuffer buffer, RadiusAttribute a);
+    
+    public void packAttributes(ByteBuffer buffer, List<VSAttribute> list) {
+    	for (VSAttribute a : list) packAttribute(buffer, a);
+    }
 
     //abstract public int unpackAttributeHeader(InputStream in, AttributeParseContext ctx) throws IOException;
     
@@ -103,6 +110,24 @@ public abstract class Format
         {
         	RadiusAttribute attr = iterator.next();
 
+            if (attr instanceof VSAttribute)
+            {
+            	VSAttribute vsa = (VSAttribute) attr;
+            	if (vsa.isGrouped())
+            	{
+            		List<VSAttribute> group = new LinkedList<VSAttribute>();
+            		group.add(vsa);
+            		attr = iterator.next();
+            		while (attr != null && attr.getFormattedType() == vsa.getFormattedType())
+            		{
+                		group.add((VSAttribute)attr);
+                		attr = iterator.next();
+            		}
+            		packAttributes(buffer, group);
+            		if (attr == null) break;
+            	}
+            }
+            
         	if (onWire && attr.getType() > 1024)
         	{
         		continue;
@@ -139,6 +164,7 @@ public abstract class Format
         public int headerLength = 0;
         public int vendorNumber = -1;
         public int padding = 0;
+		public long lengthRemaining = 0;
     }
     
     /**
@@ -201,7 +227,7 @@ public abstract class Format
     	{
 	    	try
 	        {
-        		unpackAttributeHeader(buffer, ctx);
+	    		unpackAttributeHeader(buffer, ctx);
 	        }
 	    	catch (Exception e)
 	        {
@@ -209,20 +235,55 @@ public abstract class Format
 	            return;
 	        }
 
-	    	RadiusAttribute attribute = AttributeFactory.newAttribute(
-	    			ctx.vendorNumber, ctx.attributeType, 
-	    			ctx.attributeLength - ctx.headerLength, 
-	    			(int) ctx.attributeOp, buffer);
-    		
-            if (attribute == null)
-            {
-            	RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
-            }
-            else
-            {
-                attrs._add(attribute, false);
-            }
+	    	boolean hasMore;
+	    	boolean seenOne = false;
+	    	long len = ctx.attributeLength - ctx.headerLength;
 
+        	do 
+	    	{
+    	    	hasMore = false;
+    	    	
+		    	RadiusAttribute attribute = AttributeFactory.newAttribute(
+		    			ctx.vendorNumber, ctx.attributeType, 
+		    			len, (int) ctx.attributeOp, buffer);
+	    		
+	            if (attribute == null)
+	            {
+	            	RadiusLog.warn("Unknown attribute with type = " + ctx.attributeType);
+	            }
+	            else
+	            {
+	                attrs._add(attribute, false);
+	            }
+	            
+	            long vlen = attribute.getValue().getLength();
+	            if (vlen < len) 
+	            {
+	            	if (attribute instanceof VSAttribute)
+	            	{
+		            	ctx.vendorNumber = (int) ((VSAttribute)attribute).getVendorId();
+		            	ctx.attributeType = -1;
+
+		            	if (!seenOne) vlen += 4;
+		            	vlen += 2;
+		            	len -= vlen;
+
+		            	seenOne = true;
+		            	hasMore = len > 0;
+	            	}
+	            	else
+	            	{
+	            		break;
+	            	}
+	            }
+	            
+	            if (seenOne)
+	            {
+	            	((VSAttribute)attribute).setGrouped(true);
+	            }
+	    	}
+	    	while(hasMore);
+	    	
             if (ctx.padding > 0) 
             { 
                 pos += ctx.padding; 

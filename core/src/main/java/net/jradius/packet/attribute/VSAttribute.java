@@ -40,6 +40,7 @@ public abstract class VSAttribute extends RadiusAttribute
     protected short extraLength = 0;
     protected boolean hasContinuationByte;
     protected short continuation;
+    protected boolean grouped = false;
     
     public void setFormat(String format)
     {
@@ -144,5 +145,15 @@ public abstract class VSAttribute extends RadiusAttribute
 	public void unsetContinuation()
 	{
 		setContinuation((short)0);
+	}
+
+	public boolean isGrouped() 
+	{
+		return grouped;
+	}
+
+	public void setGrouped(boolean grouped) 
+	{
+		this.grouped = grouped;
 	}    
 }

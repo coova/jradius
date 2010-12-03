@@ -427,14 +427,15 @@ public final class AttributeFactory
         {
             if (vendor > 1 || type == 26)
             {
-            	boolean onWire = (vendor < 1);
+            	boolean needVendorAndType = (vendor < 1);
+            	boolean needVendorType = (type < 1);
 
-                if (onWire)
+                if (needVendorAndType)
                 {
-                	/*
-                	 *  We are parsing an off-the-wire packet
-                	 */
                 	vendor = RadiusFormat.getUnsignedInt(buffer);
+                }
+                if (needVendorAndType || needVendorType)
+                {
                     type = RadiusFormat.getUnsignedByte(buffer);
                 }
 
@@ -447,7 +448,7 @@ public final class AttributeFactory
                 	attr = vsa(vendor, type);
                 }
                 
-                if (onWire)
+                if (needVendorAndType || needVendorType)
                 {
                 	VSAttribute vsa = (VSAttribute) attr;
                     int vsaLength = 0;
