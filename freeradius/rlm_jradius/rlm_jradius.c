@@ -1,7 +1,7 @@
 /**
  * rlm_jradius - The FreeRADIUS JRadius Server Module
  * Copyright (C) 2004-2006 PicoPoint, B.V.
- * Copyright (c) 2007-2009 Coova Technologies, LLC
+ * Copyright (c) 2007-2010 Coova Technologies, LLC
  * 
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -684,12 +684,12 @@ static inline int pack_packet(byte_array * ba, RADIUS_PACKET * p) {
 
   radlog(L_DBG, LOG_PREFIX "packing packet with code: %d (attr length: %d)", p->code, pba.pos);
 
-#ifdef EXTENDED_FMT
-  if (pack_uint32(ba, p->code) == -1) return -1;
-  if (pack_uint32(ba, p->id) == -1) return -1;
-#else
+#ifdef LEGACY_FMT
   if (pack_byte(ba, p->code) == -1) return -1;
   if (pack_byte(ba, p->id) == -1) return -1;
+#else
+  if (pack_uint32(ba, p->code) == -1) return -1;
+  if (pack_uint32(ba, p->id) == -1) return -1;
 #endif
   if (pack_uint32(ba, pba.pos) == -1) return -1;
   if (pba.pos == 0) return 0;
@@ -855,15 +855,15 @@ static inline int read_packet(JRADIUS * inst, JRSOCK *jrsock, RADIUS_PACKET *p) 
   uint32_t id;
   uint32_t plen;
 
-#ifdef EXTENDED_FMT
-  if (read_uint32(inst, jrsock, &code) == -1) return -1;
-  if (read_uint32(inst, jrsock, &id)   == -1) return -1;
-#else
+#ifdef LEGACY_FMT
   { uint8_t c = 0;
   if (read_byte(inst, jrsock, &c) == -1) return -1;
   code = c;
   if (read_byte(inst, jrsock, &c) == -1) return -1;
   id = c; }
+#else
+  if (read_uint32(inst, jrsock, &code) == -1) return -1;
+  if (read_uint32(inst, jrsock, &id)   == -1) return -1;
 #endif
 
   if (read_uint32(inst, jrsock, &plen) == -1) return -1;

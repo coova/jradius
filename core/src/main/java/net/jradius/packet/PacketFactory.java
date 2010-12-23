@@ -117,7 +117,7 @@ public class PacketFactory
 		Class<?> c = (Class<?>) codeMap.get(code);
         if (c == null)
         {
-            throw new RadiusException("bad radius code");
+            throw new RadiusException("bad radius code " + code);
         }
         RadiusPacket p = (RadiusPacket) c.newInstance();
         // System.err.println("Created packet " + p.toString());
