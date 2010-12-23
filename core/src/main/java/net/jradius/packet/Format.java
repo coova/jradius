@@ -117,11 +117,11 @@ public abstract class Format
             	{
             		List<VSAttribute> group = new LinkedList<VSAttribute>();
             		group.add(vsa);
-            		attr = iterator.next();
+            		attr = iterator.hasNext() ? iterator.next() : null;
             		while (attr != null && attr.getFormattedType() == vsa.getFormattedType())
             		{
                 		group.add((VSAttribute)attr);
-                		attr = iterator.next();
+                		attr = iterator.hasNext() ? iterator.next() : null;
             		}
             		packAttributes(buffer, group);
             		if (attr == null) break;

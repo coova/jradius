@@ -7,7 +7,7 @@
   <name>${project.artifactId}-${project.version}</name>
   <version>1.1.4-SNAPSHOT</version>
   <description>JRadius Client/Server Project</description>
-  <url>http://jradius.net/</url>
+  <url>http://www.coova.org/JRadius</url>
 
   <developers>
     <developer>
@@ -127,13 +127,15 @@
   <modules>
     <module>core</module>
     <module>dictionary</module>
-    <module>dictionary-min</module>
+    <!--module>dictionary-min</module-->
     <module>extended</module>
     <module>extras</module>
     <module>example</module>
     <module>client</module>
     <module>applet</module>
-    <!--module>ssl</module-->
+<!--
+-->
+    <module>ssl</module>
     <module>server</module>
   </modules>
 
@@ -163,7 +165,6 @@
       <name>Spring Repository</name>
       <url>http://repository.springsource.com/maven/bundles/release</url>
     </repository>
--->
     <repository>
       <snapshots>
         <enabled>false</enabled>
@@ -172,6 +173,7 @@
       <name>Coova Repository</name>
       <url>http://coova-dev.s3.amazonaws.com/mvn</url>
     </repository>
+-->
   </repositories>
 
   <reporting>

@@ -121,8 +121,7 @@ public class JRadiusWiFiClient extends Applet implements Runnable
     private static String copy = 
         "---------------------------------------------------\n" + 
         " Running JRadius WiFi Client\n" + 
-        " Copyright (c) 2005-2006 PicoPoint B.V.\n"+
-        " Copyright (c) 2007 David Bird <david@coova.com>\n"+
+        " Copyright (c) 2010 Coova Technologies, LLC <support@coova.com>\n"+
         " All Rights Reserved.\n" + 
         "--------------------------------------------------\n";
 

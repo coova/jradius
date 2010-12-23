@@ -429,11 +429,11 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
     
     private void remove(Serializable key)
     {
-        RadiusLog.debug("Removing session key: " + key);
+    	RadiusLog.debug("Removing session key: " + key);
         sessionCache.remove(key);
     }
 
-    private void put(Serializable key, Serializable value)
+    private void put(Object key, Object value)
     {
         RadiusLog.debug("Adding session key: " + key);
         sessionCache.put(new Element(key, value));
