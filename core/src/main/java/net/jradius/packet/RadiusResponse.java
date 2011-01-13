@@ -57,7 +57,7 @@ public abstract class RadiusResponse extends RadiusPacket
      */
     public boolean verifyAuthenticator(byte[] requestAuthenticator, String sharedSecret)
     {
-    	ByteBuffer buffer = ByteBuffer.allocate(1500);
+    	ByteBuffer buffer = ByteBuffer.allocate(4096);
     	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
         byte[] hash = RadiusUtils.makeRFC2865ResponseAuthenticator(sharedSecret,
 		        (byte)(getCode() & 0xff), (byte)(getIdentifier() & 0xff), 
@@ -68,7 +68,7 @@ public abstract class RadiusResponse extends RadiusPacket
 
     public void generateAuthenticator(byte[] requestAuthenticator, String sharedSecret)
     {
-    	ByteBuffer buffer = ByteBuffer.allocate(1500);
+    	ByteBuffer buffer = ByteBuffer.allocate(4096);
     	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
 		setAuthenticator(RadiusUtils.makeRFC2865ResponseAuthenticator( sharedSecret,
 		        (byte)(getCode() & 0xff), (byte)(getIdentifier() & 0xff), 

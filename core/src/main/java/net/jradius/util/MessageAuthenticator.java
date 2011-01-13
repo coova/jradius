@@ -17,7 +17,7 @@ public class MessageAuthenticator
     public static void generateRequestMessageAuthenticator(RadiusPacket request, String sharedSecret) throws IOException
     {
         byte[] hash = new byte[16];
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        ByteBuffer buffer = ByteBuffer.allocate(4096);
         request.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
         format.packPacket(request, sharedSecret, buffer, true);
         System.arraycopy(MD5.hmac_md5(buffer.array(), 0, buffer.position(), sharedSecret.getBytes()), 0, hash, 0, 16);
@@ -28,7 +28,7 @@ public class MessageAuthenticator
         byte[] hash = new byte[16];
         byte[] requestAuth = request.getAuthenticator();
         byte[] replyAuth = reply.getAuthenticator();
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        ByteBuffer buffer = ByteBuffer.allocate(4096);
         reply.setAuthenticator(requestAuth);
         reply.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
         format.packPacket(reply, sharedSecret, buffer, true);
@@ -39,7 +39,7 @@ public class MessageAuthenticator
     public static Boolean verifyRequest(RadiusPacket request, String sharedSecret) throws IOException
     {
         byte[] hash = new byte[16];
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        ByteBuffer buffer = ByteBuffer.allocate(4096);
 
         RadiusAttribute attr = request.findAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR);
         if (attr == null) return null;
@@ -60,7 +60,7 @@ public class MessageAuthenticator
         byte[] replyAuth = reply.getAuthenticator();
         byte[] hash = new byte[16];
 
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        ByteBuffer buffer = ByteBuffer.allocate(4096);
 
         RadiusAttribute attr = reply.findAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR);
         if (attr == null) return null;
