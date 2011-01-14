@@ -120,7 +120,7 @@ public class AccountingRequest extends RadiusRequest
 
     public boolean verifyAuthenticator(String sharedSecret)
     {
-    	ByteBuffer buffer = ByteBuffer.allocate(1500);
+    	ByteBuffer buffer = ByteBuffer.allocate(4096);
     	RadiusFormat.getInstance().packAttributeList(getAttributes(), buffer, true);
 
         byte[] newauth = RadiusUtils.makeRFC2866RequestAuthenticator(sharedSecret,

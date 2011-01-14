@@ -53,7 +53,7 @@ public class TLVValue extends OctetsValue
 	@Override
 	public int getLength() {
 		//XXX
-		ByteBuffer b = ByteBuffer.allocate(1500);
+		ByteBuffer b = ByteBuffer.allocate(4096);
 		format.packAttributeList(list, b, true);
 		return b.position();
 	}

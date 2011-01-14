@@ -92,7 +92,7 @@ public class UDPClientTransport extends RadiusClientTransport
             RadiusLog.warn("RadiusClient retrying request (attempt " + attempt + ")...");
         }
 
-        ByteBuffer buffer = ByteBuffer.allocate(1500);
+        ByteBuffer buffer = ByteBuffer.allocate(4096);
         format.packPacket(req, sharedSecret, buffer, true);
         DatagramPacket request = new DatagramPacket(buffer.array(), buffer.position(), getRemoteInetAddress(), port);
         socket.send(request);
