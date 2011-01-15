@@ -316,12 +316,12 @@ public interface JRadiusSession extends Serializable
     /**
      * @return Returns the radiusClass.
      */
-    public byte[] getRadiusClass();
+    public byte[][] getRadiusClass();
 
     /**
      * @param radiusClass The radiusClass to set.
      */
-    public void setRadiusClass(byte[] radiusClass);
+    public void setRadiusClass(byte[][] radiusClass);
 
     /**
      * @return Returns the sessionState.

@@ -52,14 +52,15 @@ public class AccountingClassHandler extends RadiusSessionHandler
             String sClass = new String(bClass);
             if (sClass.startsWith(ClassPrefix))
             {
-                if (session.getRadiusClass() != null)
+                req.removeAttribute(Attr_Class.TYPE);
+            	byte[][] classes = session.getRadiusClass();
+                if (classes != null)
                 {
-                	RadiusAttribute cattr = AttributeFactory.newAttribute(Attr_Class.TYPE, session.getRadiusClass());
-                    req.overwriteAttribute(cattr);
-                }
-                else
-                {
-                    req.removeAttribute(Attr_Class.TYPE);
+                	for (byte[] c : classes)
+                	{
+	                	RadiusAttribute cattr = AttributeFactory.newAttribute(Attr_Class.TYPE, c);
+	                    req.addAttribute(cattr);
+                	}
                 }
                 return false;
             }

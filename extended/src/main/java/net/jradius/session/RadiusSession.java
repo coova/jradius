@@ -104,7 +104,7 @@ public class RadiusSession implements JRadiusSession, Serializable
     private String nasIPAddress;
     private String clientIPAddress;
     private String framedIPAddress;
-    private byte[] radiusClass;
+    private byte[][] radiusClass;
 
     // Session Accounting Configuration
     private Long idleTimeout;
@@ -856,7 +856,7 @@ public class RadiusSession implements JRadiusSession, Serializable
     /**
      * @return Returns the radiusClass.
      */
-    public byte[] getRadiusClass()
+    public byte[][] getRadiusClass()
     {
         return radiusClass;
     }
@@ -864,7 +864,7 @@ public class RadiusSession implements JRadiusSession, Serializable
     /**
      * @param radiusClass The radiusClass to set.
      */
-    public void setRadiusClass(byte[] radiusClass)
+    public void setRadiusClass(byte[][] radiusClass)
     {
         this.radiusClass = radiusClass;
     }

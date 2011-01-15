@@ -29,6 +29,7 @@ import net.jradius.packet.AccessAccept;
 import net.jradius.packet.AccessChallenge;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeFactory;
+import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.server.JRadiusRequest;
 import net.jradius.session.JRadiusSession;
 
@@ -49,13 +50,19 @@ public class PostAuthorizeClassHandler extends RadiusSessionHandler
         if (!(rep instanceof AccessAccept ||
         		rep instanceof AccessChallenge)) return false;
 
-        byte[] spClass = (byte[]) rep.getAttributeValue(Attr_Class.TYPE);
-
-        if (spClass != null && session.getRadiusClass() == null)
+        Object[] attrs = rep.findAttributes(Attr_Class.TYPE);
+        if (attrs != null && session.getRadiusClass() == null)
         {
-            session.setRadiusClass(spClass);
+        	byte[][] classes = new byte[attrs.length][];
+	        for (int i = 0; i < attrs.length; i++)
+	        {
+	            RadiusAttribute attribute = (RadiusAttribute) attrs[i];
+	            classes[i] = (byte[]) attribute.getValue().getValueObject();
+	        }
+	        System.err.println(this.getClass().getName() + " setting radiusClass");
+	        session.setRadiusClass(classes);
         }
-        
+
         rep.overwriteAttribute(AttributeFactory.newAttribute(rep instanceof AccessAccept ? Attr_Class.TYPE : Attr_State.TYPE, 
         		(ClassPrefix + session.getSessionKey()).getBytes()));
         

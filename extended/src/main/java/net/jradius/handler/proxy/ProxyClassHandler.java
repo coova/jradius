@@ -23,8 +23,11 @@ package net.jradius.handler.proxy;
 import java.util.Arrays;
 
 import net.jradius.dictionary.Attr_Class;
+import net.jradius.dictionary.Attr_State;
 import net.jradius.handler.RadiusSessionHandler;
+import net.jradius.packet.AccessAccept;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.server.JRadiusRequest;
 import net.jradius.session.JRadiusSession;
 
@@ -44,10 +47,12 @@ public class ProxyClassHandler extends RadiusSessionHandler
         JRadiusSession session = request.getSession();
         if (session == null) return noSessionFound(request);
         
+        System.err.println(this.getClass().getName());
+
         RadiusPacket req = request.getRequestPacket();
         
         byte[] packetClass = (byte[])req.getAttributeValue(Attr_Class.TYPE);
-        byte[] sessionClass = session.getRadiusClass();
+        byte[][] sessionClass = session.getRadiusClass();
 
         if (packetClass != null || sessionClass != null)
         {
@@ -55,15 +60,13 @@ public class ProxyClassHandler extends RadiusSessionHandler
             {
                 session.addLogMessage(request, "Request has Class attribute when it should not");
             }
-            else if (packetClass == null)
+            else
             {
                 session.addLogMessage(request, "Missing Class Attribute (added)");
-                req.overwriteAttribute(new Attr_Class(sessionClass));
-            }
-            else if (!Arrays.equals(packetClass, sessionClass))
-            {
-                session.addLogMessage(request, "Bad Class Attribute (replaced)");
-                req.overwriteAttribute(new Attr_Class(sessionClass));
+            	req.removeAttribute(Attr_Class.TYPE);
+            	for (byte[] a : sessionClass) {
+            		req.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, a));
+            	}
             }
         }
         
