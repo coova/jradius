@@ -1,39 +1,4 @@
 
-The road to JRadius 1.0.0 
-
-  - now using Maven 
-
-==== old changelog ===
-
-2005/August/25:
-	- Many bug fixes, important fix to rlm_jradius!
-	- Redid the configurable options of EAPTLSAuthenticator
-	- New JRadiusSimulator version with EAP-TLS and TTLS support
-	  and support for the Class attribute
-	- Packet handlers to utilize the Class attribute for better
-	  RadiusSession association and to proxy the proper Class attribute even
-	  for NASes that do not support the attribute
-	- Packet handler to always rewrite the Acct-Session-Id with the 
-	  JRadius session key when proxying
-	- Added ChilliSpot freeradius dictionary file
-
-2005/April/13:
-	- Now verifying RADIUS authenticator checksum from RadiusClient
-	- Now verifying Message-Authenticator checksum from RadiusClient
-	- Introduced a couple more exceptions: TimeoutException, RadiusSecurityException
-	- Made all jradius.exceptions derived from RadiusException
-	- Introduced RadiusResponse and refactored some methods in RadiusClient to be more
-	  packet type specific, where appropriate
-	- Initial support of IPDR (very preliminary)
-
-2005/April/06:
-	- Refactored some code into java/extended instead of java/src (see dev.html)
-	- Added a JRadius VSA dictionary.jradius (rebuild your JRadius dictionary with it!)
-	- Added EAP-TLS and EAP-TTLS client support	
-	- Website updates
-
-2005/March/25:
-	- Refactored JRadiusServer.RLM_OP_* to RadiusAttribute.Operator.*
-	- Refactored JRadius.operator[From|To]String() to RadiusAttribute.Operator
-	- RadiusClient classes no longer depend on commons-chains (due to refactoring)
-	- Introduction of JAAS Support
+JRadius 1.1.4
+	- Updated FreeRADIUS dictionary
+	- Bug fixes, maintanence release
