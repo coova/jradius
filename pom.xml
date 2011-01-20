@@ -187,7 +187,7 @@
           <maxmemory>1g</maxmemory>
 	  <stylesheetfile>${basedir}/../html/style.css</stylesheetfile>
 	  <doctitle><![CDATA[<h1>${project.description} ${project.version}</h1>]]></doctitle>
-	  <bottom><![CDATA[<i>Copyright &#169; 2010 <a target="top" href="http://www.coova.org/">Coova Technologies, LLC</a>, All Rights Reserved.</i>]]></bottom>
+	  <bottom><![CDATA[<i>Copyright &#169; 2011 <a target="top" href="http://www.coova.org/">Coova Technologies, LLC</a>, All Rights Reserved.</i>]]></bottom>
         </configuration>
       </plugin>
     </plugins>
