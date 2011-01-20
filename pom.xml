@@ -127,15 +127,15 @@
   <modules>
     <module>core</module>
     <module>dictionary</module>
-    <!--module>dictionary-min</module-->
+    <module>dictionary-min</module>
     <module>extended</module>
     <module>extras</module>
     <module>example</module>
     <module>client</module>
     <module>applet</module>
 <!--
--->
     <module>ssl</module>
+-->
     <module>server</module>
   </modules>
 

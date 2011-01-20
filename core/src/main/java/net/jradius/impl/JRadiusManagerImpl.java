@@ -28,7 +28,7 @@ public class JRadiusManagerImpl implements InitializingBean, BeanFactoryAware, D
     
     public JRadiusManagerImpl()
     {
-    	System.err.println(this.getClass().toString());
+    	// System.err.println(this.getClass().toString());
     }
     
     public void start()

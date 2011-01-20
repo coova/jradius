@@ -190,7 +190,7 @@ public class AttributeList implements Serializable
 
     private void removeFromList(Object o)
     {
- System.err.println("removing "+o.toString());
+    	// System.err.println("removing "+o.toString());
     	Object ol[] = attributeOrderList.toArray();
     	for (int i = 0; i < ol.length; i++)
     	{

@@ -59,7 +59,7 @@ public class PostAuthorizeClassHandler extends RadiusSessionHandler
 	            RadiusAttribute attribute = (RadiusAttribute) attrs[i];
 	            classes[i] = (byte[]) attribute.getValue().getValueObject();
 	        }
-	        System.err.println(this.getClass().getName() + " setting radiusClass");
+	        // System.err.println(this.getClass().getName() + " setting radiusClass");
 	        session.setRadiusClass(classes);
         }
 

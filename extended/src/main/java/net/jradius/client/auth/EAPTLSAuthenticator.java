@@ -373,7 +373,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
                     byte[] in = handler.readApplicationData(is, os);
 
-                	System.err.println("doTunnelAuth()");
+                	// System.err.println("doTunnelAuth()");
                     try
                     {
                     	if (doTunnelAuthentication(id, in))

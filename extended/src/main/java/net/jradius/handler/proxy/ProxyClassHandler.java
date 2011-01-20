@@ -20,12 +20,8 @@
 
 package net.jradius.handler.proxy;
 
-import java.util.Arrays;
-
 import net.jradius.dictionary.Attr_Class;
-import net.jradius.dictionary.Attr_State;
 import net.jradius.handler.RadiusSessionHandler;
-import net.jradius.packet.AccessAccept;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.server.JRadiusRequest;
@@ -47,7 +43,7 @@ public class ProxyClassHandler extends RadiusSessionHandler
         JRadiusSession session = request.getSession();
         if (session == null) return noSessionFound(request);
         
-        System.err.println(this.getClass().getName());
+        // System.err.println(this.getClass().getName());
 
         RadiusPacket req = request.getRequestPacket();
         
