@@ -73,12 +73,15 @@ $INCLUDE dictionary.rfc3576
 $INCLUDE dictionary.rfc3580
 $INCLUDE dictionary.rfc4072
 $INCLUDE dictionary.rfc4372
+$INCLUDE dictionary.rfc4603
 $INCLUDE dictionary.rfc4675
 $INCLUDE dictionary.rfc4679
 $INCLUDE dictionary.rfc4818
 $INCLUDE dictionary.rfc4849
 $INCLUDE dictionary.rfc5176
 $INCLUDE dictionary.rfc5580
+$INCLUDE dictionary.rfc5607
+$INCLUDE dictionary.rfc5904
 
 #
 #	Include vendor dictionaries after the standard ones.
@@ -87,8 +90,10 @@ $INCLUDE dictionary.3com
 $INCLUDE dictionary.3gpp
 $INCLUDE dictionary.3gpp2
 $INCLUDE dictionary.acc
+$INCLUDE dictionary.acme
 $INCLUDE dictionary.airespace
 $INCLUDE dictionary.alcatel
+$INCLUDE dictionary.alcatel.sr
 $INCLUDE dictionary.alteon
 $INCLUDE dictionary.alvarion
 $INCLUDE dictionary.apc
@@ -99,8 +104,8 @@ $INCLUDE dictionary.bay
 $INCLUDE dictionary.bintec
 $INCLUDE dictionary.cablelabs
 $INCLUDE dictionary.cabletron
-$INCLUDE dictionary.coova
 $INCLUDE dictionary.chillispot
+$INCLUDE dictionary.coova
 $INCLUDE dictionary.cisco
 #
 #	 The Cisco VPN300 dictionary is the same as the altiga one.
@@ -143,6 +148,7 @@ $INCLUDE dictionary.manzara
 $INCLUDE dictionary.merit
 $INCLUDE dictionary.microsoft
 $INCLUDE dictionary.mikrotik
+$INCLUDE dictionary.motorola.wimax
 $INCLUDE dictionary.navini
 $INCLUDE dictionary.netscreen
 $INCLUDE dictionary.networkphysics
@@ -179,6 +185,7 @@ $INCLUDE dictionary.telebit
 $INCLUDE dictionary.trapeze
 $INCLUDE dictionary.tropos
 $INCLUDE dictionary.t_systems_nova
+$INCLUDE dictionary.unix
 $INCLUDE dictionary.usr
 $INCLUDE dictionary.utstarcom
 $INCLUDE dictionary.valemount
@@ -186,6 +193,7 @@ $INCLUDE dictionary.versanet
 $INCLUDE dictionary.vqp
 $INCLUDE dictionary.waverider
 $INCLUDE dictionary.walabi
+$INCLUDE dictionary.wichorus
 $INCLUDE dictionary.wimax
 $INCLUDE dictionary.wispr
 $INCLUDE dictionary.xedia
@@ -221,5 +229,13 @@ VALUE	NAS-Port-Type			Wireless-CDMA2000	22
 VALUE	NAS-Port-Type			Wireless-UMTS		23
 VALUE	NAS-Port-Type			Wireless-1X-EV		24
 VALUE	NAS-Port-Type			IAPP			25
+
+VALUE   NAS-Port-Type                   FTTP                    26
+VALUE   NAS-Port-Type                   Wireless-802.16         27
+VALUE   NAS-Port-Type                   Wireless-802.20         28
+VALUE   NAS-Port-Type                   Wireless-802.22         29
+
+VALUE   NAS-Port-Type                   xPON                    35
+VALUE   NAS-Port-Type                   Wireless-XGP            36
 
 VALUE	Framed-Protocol			PPTP			9

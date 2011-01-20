@@ -617,7 +617,10 @@ public class RadiusDictionary
                             if (names.get(name) == null)
                             {
                                 names.put(name, name);
-                                writer.println("    public static final Long " + name + " = new Long(" + avdesc.num + "L);");
+                                String pubName = name;
+                                if ("true".equals(pubName) || "false".equals(pubName))
+                                	pubName = pubName.toUpperCase();
+                                writer.println("    public static final Long " + pubName + " = new Long(" + avdesc.num + "L);");
                             }
                         }
                     }
