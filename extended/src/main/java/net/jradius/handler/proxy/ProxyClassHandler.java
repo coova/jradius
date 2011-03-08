@@ -21,7 +21,9 @@
 package net.jradius.handler.proxy;
 
 import net.jradius.dictionary.Attr_Class;
+import net.jradius.dictionary.Attr_State;
 import net.jradius.handler.RadiusSessionHandler;
+import net.jradius.packet.AccessRequest;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.server.JRadiusRequest;
@@ -64,6 +66,16 @@ public class ProxyClassHandler extends RadiusSessionHandler
             		req.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, a));
             	}
             }
+        }
+
+        if (req instanceof AccessRequest)
+        {
+	        byte[] sessionState = session.getRadiusState();
+	        if (sessionState != null)
+	        {
+	        	// System.out.println("Missing State Attribute (added) "+sessionState.length+" "+sessionState[0]);
+	        	req.overwriteAttribute(AttributeFactory.newAttribute(Attr_State.TYPE, sessionState));
+	        }
         }
         
         return false;

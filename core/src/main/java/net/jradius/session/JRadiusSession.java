@@ -324,6 +324,16 @@ public interface JRadiusSession extends Serializable
     public void setRadiusClass(byte[][] radiusClass);
 
     /**
+     * @return Returns the radiusState.
+     */
+    public byte[] getRadiusState();
+
+    /**
+     * @param radiusState The radiusState to set.
+     */
+    public void setRadiusState(byte[] radiusState);
+
+    /**
      * @return Returns the sessionState.
      */
     public int getSessionState();

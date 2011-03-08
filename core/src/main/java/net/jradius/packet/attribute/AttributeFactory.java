@@ -112,6 +112,7 @@ public final class AttributeFactory
 		public Object makeObject(Object arg0) throws Exception 
 		{
 			RadiusAttribute a = newAttribute((Long) arg0);
+			a.recyclable = true;
 			a.recycled = false;
 			return a;
 		}
@@ -145,8 +146,6 @@ public final class AttributeFactory
 			a = attr(type);
 		}
 
-		a.recyclable = true;
-		
 		// System.err.println("Created "+a.toString() + " " + key + " " + a.getFormattedType());
 		
 		return a;
@@ -177,13 +176,21 @@ public final class AttributeFactory
 
     public static RadiusAttribute copyAttribute(RadiusAttribute a)
     {
+    	return copyAttribute(a, true);
+    }
+    
+    public static RadiusAttribute copyAttribute(RadiusAttribute a, boolean pool)
+    {
     	Long key = new Long(a.getFormattedType());
     	RadiusAttribute attr = null;
     	
     	try
     	{
-    		attr = borrow(key);
-
+    		if (pool)
+    		{
+    			attr = borrow(key);
+    		}
+    		
     		if (attr == null)
 	        {
     			attr = newAttribute(key);

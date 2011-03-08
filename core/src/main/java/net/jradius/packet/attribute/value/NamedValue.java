@@ -41,7 +41,7 @@ public class NamedValue extends IntegerValue
         public Long[] getKnownValues();
     }
     
-    private NamedValueMap valueMap = null;
+    private transient NamedValueMap valueMap = null;
 
     public NamedValue(NamedValueMap map)
     {
@@ -73,6 +73,7 @@ public class NamedValue extends IntegerValue
 
     public void setValue(String s)
     {
+    	if (valueMap == null) return;
         Long i = valueMap.getNamedValue(s);
         if (i != null)
         {
@@ -103,6 +104,7 @@ public class NamedValue extends IntegerValue
 
 	public String getValueString()
     {
+    	if (valueMap == null) return null;
         return valueMap.getNamedValue(integerValue);
     }
     
@@ -113,8 +115,11 @@ public class NamedValue extends IntegerValue
     
     public String toString() 
     { 
-        String s = valueMap.getNamedValue(integerValue);
-        if (s != null) return s;
+    	if (valueMap != null)
+    	{
+	        String s = valueMap.getNamedValue(integerValue);
+	        if (s != null) return s;
+    	}
         return "Unknown-" + integerValue;
     }
 }

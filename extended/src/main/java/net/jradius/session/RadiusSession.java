@@ -105,6 +105,7 @@ public class RadiusSession implements JRadiusSession, Serializable
     private String clientIPAddress;
     private String framedIPAddress;
     private byte[][] radiusClass;
+    private byte[] radiusState;
 
     // Session Accounting Configuration
     private Long idleTimeout;
@@ -1193,4 +1194,14 @@ public class RadiusSession implements JRadiusSession, Serializable
     {
         this.acctAuthentic = acctAuthentic;
     }
+
+	public byte[] getRadiusState() 
+	{
+		return radiusState;
+	}
+
+	public void setRadiusState(byte[] radiusState) 
+	{
+		this.radiusState = radiusState;
+	}
 }

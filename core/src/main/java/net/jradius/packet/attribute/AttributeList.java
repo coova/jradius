@@ -60,15 +60,20 @@ public class AttributeList implements Serializable
      */
     public void add(AttributeList list) 
     { 
+    	copy(list, true);
+    }
+    
+    public void copy(AttributeList list, boolean pool) 
+    { 
         if (list != null) 
         {
         	for (RadiusAttribute a : list.getAttributeList())
         	{
-        		_add(AttributeFactory.copyAttribute(a), false);
+        		_add(AttributeFactory.copyAttribute(a, pool), false);
         	}
         }
     }
-    
+
     /**
      * Add an attribute, defaulting to overwriting
      * 

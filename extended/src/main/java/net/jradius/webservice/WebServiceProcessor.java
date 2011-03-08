@@ -104,14 +104,14 @@ public class WebServiceProcessor extends Processor
         {
             if (os != null)
             {
-                os.flush();
+            	try { os.flush(); } catch (Exception e) { }
             }
 
             if (!tcpListenerRequest.isKeepAlive())
             {
 	            if (os != null)
 	            {
-	                os.close();
+	            	try { os.close(); } catch (Exception e) { }
 	            }
 	            socket.close();
             }

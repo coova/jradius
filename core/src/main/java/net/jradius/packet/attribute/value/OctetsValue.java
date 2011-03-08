@@ -47,13 +47,13 @@ public class OctetsValue extends AttributeValue
         byteValue = b;
     }
     
-    @Override
 	public void copy(AttributeValue value) 
     {
     	OctetsValue cValue = (OctetsValue) value;
-    	this.byteValue = cValue.byteValue;
+    	this.byteValue = new byte[cValue.byteValueLength];
     	this.byteValueLength = cValue.byteValueLength;
-    	this.byteValueOffset = cValue.byteValueOffset;
+    	this.byteValueOffset = 0;
+    	System.arraycopy(cValue.byteValue, cValue.byteValueOffset, this.byteValue, 0, cValue.byteValueLength);
 	}
 
     public void getBytes(OutputStream out) throws IOException

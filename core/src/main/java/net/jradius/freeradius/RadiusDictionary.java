@@ -626,7 +626,8 @@ public class RadiusDictionary
                     }
 
                     writer.println("");
-                    writer.println("    protected class NamedValueMap implements NamedValue.NamedValueMap");
+                    writer.println("    @SuppressWarnings(\"serial\")");
+                    writer.println("    protected class NamedValueMap implements NamedValue.NamedValueMap, Serializable");
                     writer.println("    {");
 
                     iter2 = desc.values.values().iterator();
@@ -675,7 +676,7 @@ public class RadiusDictionary
                     writer.println("        }");
                     writer.println("    };");
                     writer.println("");
-                    writer.println("    public static NamedValueMap map = null;");
+                    writer.println("    public static transient NamedValueMap map = null;");
                 }
 
                 writer.println("    public void setup()");

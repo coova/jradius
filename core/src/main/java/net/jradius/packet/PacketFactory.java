@@ -124,11 +124,11 @@ public class PacketFactory
         return p;
     }
     
-    public static RadiusPacket newPacket(Integer code)
+    public static RadiusPacket newPacket(Integer code, boolean pool)
     {
     	try 
     	{
-            if (pktObjectPool != null)
+            if (pool && pktObjectPool != null)
             {
             	RadiusPacket p = (RadiusPacket) pktObjectPool.borrowObject(code);
             	// System.err.println("Borrowed packet " + p.toString());
@@ -141,6 +141,11 @@ public class PacketFactory
     	{
 			throw new RuntimeException(e);
 		}
+    }
+
+    public static RadiusPacket newPacket(Integer code)
+    {
+    	return newPacket(code, true);
     }
 
     public static RadiusPacket newPacket(byte b)
@@ -178,12 +183,12 @@ public class PacketFactory
     	return p;
     }
 
-	public static RadiusPacket copyPacket(RadiusPacket req)
+	public static RadiusPacket copyPacket(RadiusPacket req, boolean pool)
 	{
-		RadiusPacket p = newPacket(req.code);
+		RadiusPacket p = newPacket(req.code, pool);
 		p.setIdentifier(req.getIdentifier());
 		p.setAuthenticator(req.getAuthenticator());
-		p.getAttributes().add(req.getAttributes());
+		p.getAttributes().copy(req.getAttributes(), pool);
 		return p;
 	}
 
