@@ -185,7 +185,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
             if (sessionCache == null)
             {
-            	sessionCache = new Cache(cacheName, 50000, false, false, maxInactiveInterval, maxInactiveInterval);
+            	sessionCache = new Cache(cacheName, 1000, true, false, maxInactiveInterval, maxInactiveInterval);
                 cacheManager.addCache(sessionCache);
             }
         }
@@ -196,7 +196,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
             if (logCache == null)
             {
-            	logCache = new Cache(logCacheName, 20000, false, false, maxInactiveInterval, maxInactiveInterval);
+            	logCache = new Cache(logCacheName, 100, true, false, maxInactiveInterval, maxInactiveInterval);
                 cacheManager.addCache(logCache);
             }
         }
@@ -346,7 +346,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         }
         
         session.setTimeStamp(System.currentTimeMillis());
-        session.setLastRadiusRequest(request);
+        //session.setLastRadiusRequest(request);
         
         return session;
     }
@@ -412,8 +412,8 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
         if (event != null) 
             sender = event.getSender();
         
-        else if (session != null && session.getLastRadiusRequest() != null) 
-            sender = session.getLastRadiusRequest().getSender();
+//        else if (session != null && session.getLastRadiusRequest() != null) 
+//            sender = session.getLastRadiusRequest().getSender();
         
         return getSessionFactory(sender).newSessionLogEntry(event, session, packetId);
     }
@@ -490,7 +490,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
     public void notifyElementExpired(Ehcache cache, Element element)
     {
         Object value = element.getValue();
-        if (value instanceof JRadiusSession)
+        if (value != null && value instanceof JRadiusSession)
         {
             JRadiusSession session = (JRadiusSession) value;
             RadiusLog.debug("Expired session: " + session.getSessionKey());
@@ -521,7 +521,7 @@ public class JRadiusSessionManager implements InitializingBean, ApplicationConte
 
     public Object clone() throws CloneNotSupportedException
     {
-        return super.clone();
+    	throw new CloneNotSupportedException();
     }
 
     public Ehcache getSessionCache()

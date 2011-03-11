@@ -68,7 +68,7 @@ public abstract class RadiusPacket implements Serializable
     {
     	if (list != null)
     	{
-    		attributes.add(list);
+    		attributes.copy(list, recyclable);
     	}
     }
 

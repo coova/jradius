@@ -169,7 +169,8 @@ public class RadiusClient
 
     public void close()
     {
-        transport.close();
+    	if (transport != null)
+    		transport.close();
     }
     
     /**

@@ -489,9 +489,9 @@ public interface JRadiusSession extends Serializable
 
     public void setJRadiusKey(String jRadiusKey);
 
-    public JRadiusRequest getLastRadiusRequest();
+    //public JRadiusRequest getLastRadiusRequest();
 
-    public void setLastRadiusRequest(JRadiusRequest lastRadiusRequest);
+    //public void setLastRadiusRequest(JRadiusRequest lastRadiusRequest);
 
 	public boolean isLogging();
 }

@@ -61,20 +61,26 @@ public class UDPClientTransport extends RadiusClientTransport
 
 	public void close()
 	{
+		if (socket != null)
+		{
+			try 
+			{
+				socket.close();
+			}
+			catch (Throwable e) 
+			{
+			}
+		}
 		if (channel != null)
 		{
 			try 
 			{
 				channel.close();
 			}
-			catch (IOException e) 
+			catch (Throwable e) 
 			{
 				e.printStackTrace();
 			}
-		}
-		if (socket != null)
-		{
-			socket.close();
 		}
 	}
 	
@@ -94,6 +100,7 @@ public class UDPClientTransport extends RadiusClientTransport
 
         ByteBuffer buffer = ByteBuffer.allocate(4096);
         format.packPacket(req, sharedSecret, buffer, true);
+
         DatagramPacket request = new DatagramPacket(buffer.array(), buffer.position(), getRemoteInetAddress(), port);
         socket.send(request);
 
@@ -131,7 +138,8 @@ public class UDPClientTransport extends RadiusClientTransport
     }
 
 	@Override
-	public void setSocketTimeout(int timeout) {
+	public void setSocketTimeout(int timeout) 
+	{
 		super.setSocketTimeout(timeout);
 		try {
 			socket.setSoTimeout(this.socketTimeout);
@@ -139,5 +147,4 @@ public class UDPClientTransport extends RadiusClientTransport
 			e.printStackTrace();
 		}
 	}
-    
 }

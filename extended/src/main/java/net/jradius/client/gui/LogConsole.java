@@ -22,6 +22,7 @@ package net.jradius.client.gui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Rectangle;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.io.FileDescriptor;
@@ -44,7 +45,8 @@ import javax.swing.text.StyleConstants;
  * Console Log JComponent.
  * @author David Bird
  */
-public final class LogConsole extends JComponent implements AdjustmentListener {
+public final class LogConsole extends JComponent implements AdjustmentListener 
+{
     private static final long serialVersionUID = (long)0;
     private static LogConsole singleton = null;
     
@@ -101,7 +103,11 @@ public final class LogConsole extends JComponent implements AdjustmentListener {
         return console.getText();
     }
 
-    public synchronized void append(String category, String s) {
+    public void append(String category, String s) {
+    	SwingUtilities.invokeLater(new Appender(this, category, s));
+    }
+    
+    public void appender(String category, String s) {
         SimpleAttributeSet sas = new SimpleAttributeSet();
 
         if (s == null)
@@ -148,7 +154,9 @@ public final class LogConsole extends JComponent implements AdjustmentListener {
             {
                 int length = doc.getLength();
                 console.setCaretPosition(length);
-                scrollRectToVisible(console.modelToView(length - 1));
+                Rectangle r = console.modelToView(length - 1);
+                if (r != null)
+                	scrollRectToVisible(r);
             } 
             catch (Exception e) 
             {
@@ -180,7 +188,7 @@ public final class LogConsole extends JComponent implements AdjustmentListener {
         } catch (Exception e) {
         }
     }
-
+    
     public OutputStream createFilteredStream(String category) {
         return new ConsoleOutputStream(this, category);
     }

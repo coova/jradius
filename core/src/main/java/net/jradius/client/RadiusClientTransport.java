@@ -95,6 +95,7 @@ public abstract class RadiusClientTransport
             }
             catch (SocketTimeoutException e)
             {
+                RadiusLog.warn("Unable to send or receive radius packet", e);
             }
             catch (IOException e) 
             { 

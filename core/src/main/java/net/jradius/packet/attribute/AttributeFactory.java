@@ -96,39 +96,50 @@ public final class AttributeFactory
         return attr;
     }
     
-    private static KeyedObjectPool attributeObjectPool = new GenericKeyedObjectPool(new KeyedPoolableObjectFactory() 
+    public static class AttributeFactoryPool extends GenericKeyedObjectPool
     {
-		public boolean validateObject(Object arg0, Object arg1) 
-		{
-			return true;
-		}
-		
-		public void passivateObject(Object arg0, Object arg1) throws Exception 
-		{
-			RadiusAttribute a = (RadiusAttribute) arg1;
-			a.recycled = true;
-		}
-		
-		public Object makeObject(Object arg0) throws Exception 
-		{
-			RadiusAttribute a = newAttribute((Long) arg0);
-			a.recyclable = true;
-			a.recycled = false;
-			return a;
-		}
-		
-		public void destroyObject(Object arg0, Object arg1) throws Exception 
-		{
-		}
-		
-		public void activateObject(Object arg0, Object arg1) throws Exception 
-		{
-			RadiusAttribute a = (RadiusAttribute) arg1;
-			a.recycled = false;
-		}
-		
-	}, -1);
+    	public AttributeFactoryPool()
+    	{
+    		super(new KeyedPoolableObjectFactory() 
+    	    {
+    			public boolean validateObject(Object arg0, Object arg1) 
+    			{
+    				return true;
+    			}
+    			
+    			public void passivateObject(Object arg0, Object arg1) throws Exception 
+    			{
+    				RadiusAttribute a = (RadiusAttribute) arg1;
+    				a.recycled = true;
+    			}
+    			
+    			public Object makeObject(Object arg0) throws Exception 
+    			{
+    				RadiusAttribute a = newAttribute((Long) arg0);
+    				a.recyclable = true;
+    				a.recycled = false;
+    				return a;
+    			}
+    			
+    			public void destroyObject(Object arg0, Object arg1) throws Exception 
+    			{
+    			}
+    			
+    			public void activateObject(Object arg0, Object arg1) throws Exception 
+    			{
+    				RadiusAttribute a = (RadiusAttribute) arg1;
+    				a.recycled = false;
+    			}
+    			
+    		});
+    		
+    		setMaxActive(-1);
+    		setMaxIdle(-1);
+    	}
+    }
 
+    private static KeyedObjectPool attributeObjectPool = new AttributeFactoryPool();
+    
     public static RadiusAttribute newAttribute(Long key) throws Exception
     {
 		RadiusAttribute a = null;
@@ -767,9 +778,12 @@ public final class AttributeFactory
 
 	public static void recycle(AttributeList list) 
 	{
-		for (RadiusAttribute a : list.getAttributeList())
+		synchronized (list) 
 		{
-			recycle(a);
+			for (RadiusAttribute a : list.getAttributeList())
+			{
+				recycle(a);
+			}
 		}
 		
 		// poolStatus();

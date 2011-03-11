@@ -78,39 +78,49 @@ public class PacketFactory
         codeMap.put(new Integer(DHCPForceRenew.CODE),      DHCPForceRenew.class);       // 1033
     }
 
-    private static KeyedObjectPool pktObjectPool = new GenericKeyedObjectPool(new KeyedPoolableObjectFactory() 
+    public static class PacketFactoryPool extends GenericKeyedObjectPool
     {
-		public boolean validateObject(Object arg0, Object arg1) 
-		{
-			return true;
-		}
-		
-		public void passivateObject(Object arg0, Object arg1) throws Exception 
-		{
-			RadiusPacket p = (RadiusPacket) arg1;
-			p.recycled = true;
-		}
-		
-		public Object makeObject(Object arg0) throws Exception 
-		{
-			RadiusPacket p = createPacket((Integer) arg0);
-			p.recyclable = true;
-			p.recycled = false;
-			return p;
-		}
-		
-		public void destroyObject(Object arg0, Object arg1) throws Exception 
-		{
-		}
-		
-		public void activateObject(Object arg0, Object arg1) throws Exception 
-		{
-			RadiusPacket p = (RadiusPacket) arg1;
-			p.setAuthenticator(null);
-			p.recycled = false;
-		}
-		
-	}, -1);
+    	public PacketFactoryPool()
+    	{
+    		super(new KeyedPoolableObjectFactory() 
+    	    {
+    			public boolean validateObject(Object arg0, Object arg1) 
+    			{
+    				return true;
+    			}
+    			
+    			public void passivateObject(Object arg0, Object arg1) throws Exception 
+    			{
+    				RadiusPacket p = (RadiusPacket) arg1;
+    				p.recycled = true;
+    			}
+    			
+    			public Object makeObject(Object arg0) throws Exception 
+    			{
+    				RadiusPacket p = createPacket((Integer) arg0);
+    				p.recyclable = true;
+    				p.recycled = false;
+    				return p;
+    			}
+    			
+    			public void destroyObject(Object arg0, Object arg1) throws Exception 
+    			{
+    			}
+    			
+    			public void activateObject(Object arg0, Object arg1) throws Exception 
+    			{
+    				RadiusPacket p = (RadiusPacket) arg1;
+    				p.setAuthenticator(null);
+    				p.recycled = false;
+    			}
+    		});
+    		
+    		setMaxActive(-1);
+    		setMaxIdle(-1);
+    	}
+    }
+    
+    private static KeyedObjectPool pktObjectPool = new PacketFactoryPool();
 
     private static RadiusPacket createPacket(Integer code) throws Exception
     {
@@ -438,24 +448,27 @@ public class PacketFactory
     
 	public static void recycle(RadiusPacket p) 
 	{
-		AttributeList list = p.getAttributes();
-		list.clear();
-		
-		if (pktObjectPool != null && p.recyclable)
+		synchronized (p) 
 		{
-			try
+			AttributeList list = p.getAttributes();
+			list.clear();
+			
+			if (pktObjectPool != null && p.recyclable)
 			{
-				pktObjectPool.returnObject(new Integer(p.getCode()), p);
-				// System.err.print("Recycled packet "+p.toString());
+				try
+				{
+					pktObjectPool.returnObject(new Integer(p.getCode()), p);
+					// System.err.print("Recycled packet "+p.toString());
+				}
+				catch (Exception e)
+				{
+					e.printStackTrace();
+				}
 			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-			}
+			
+			// poolStatus();
+			// AttributeFactory.poolStatus();
 		}
-		
-		// poolStatus();
-		// AttributeFactory.poolStatus();
 	}
 
 	public static void recycle(RadiusPacket[] rp) 

@@ -42,9 +42,8 @@
     
     <dependency>
       <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
-      <version>2.2.0</version>
-      <type>pom</type>
+      <artifactId>ehcache-core</artifactId>
+      <version>2.4.0</version>
     </dependency>
 
     <dependency>

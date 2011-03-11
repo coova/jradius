@@ -105,6 +105,7 @@ public abstract class Processor extends JRadiusThread implements ApplicationCont
             }
             catch (InterruptedException e)
             {
+            	e.printStackTrace();
             }
             catch (Throwable e)
             {

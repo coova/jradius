@@ -12,7 +12,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class Log4JRadiusLogger implements RadiusLogger
 {
-    private final Log log = LogFactory.getLog(this.getClass());
+    private static final Log log = LogFactory.getLog(Log4JRadiusLogger.class);
 
     public boolean isLoggable(int logLevel)
     {
