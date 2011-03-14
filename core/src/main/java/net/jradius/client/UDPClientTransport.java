@@ -122,7 +122,7 @@ public class UDPClientTransport extends RadiusClientTransport
         
         socket.receive(reply);
         
-        RadiusPacket replyPacket = PacketFactory.parse(reply);
+        RadiusPacket replyPacket = PacketFactory.parse(reply, req.isRecyclable());
         
         if (!(replyPacket instanceof RadiusResponse))
         {

@@ -125,7 +125,7 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
             
             ByteBuffer buffer = ByteBuffer.wrap(in);
             
-            diameterFormat.unpackAttributes(list, buffer, buffer.limit());
+            diameterFormat.unpackAttributes(list, buffer, buffer.limit(), false);
             if (tunnelAuth instanceof EAPAuthenticator && tunnelChallenge.findAttribute(Attr_EAPMessage.TYPE) == null)
                 tunnelAuth.setupRequest(client, tunnelRequest);
             else

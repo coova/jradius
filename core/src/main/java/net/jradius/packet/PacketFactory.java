@@ -208,14 +208,14 @@ public class PacketFactory
      * @return Returns the RadiusPacket
      * @throws RadiusException
      */
-    public static RadiusPacket parse(DatagramPacket dp) throws RadiusException
+    public static RadiusPacket parse(DatagramPacket dp, boolean pool) throws RadiusException
     {
     	ByteBuffer buffer = ByteBuffer.wrap(dp.getData(), dp.getOffset(), dp.getLength());
         RadiusPacket rp = null;
 
         try
         {
-            rp = parseUDP(buffer);
+            rp = parseUDP(buffer, pool);
         }
         catch (IOException e)
         {
@@ -225,21 +225,21 @@ public class PacketFactory
         return rp;
     }
 
-    public static RadiusPacket parseUDP(ByteBuffer buffer) throws RadiusException, IOException
+    public static RadiusPacket parseUDP(ByteBuffer buffer, boolean pool) throws RadiusException, IOException
     {
         int code = RadiusFormat.getUnsignedByte(buffer);
         int identifier = RadiusFormat.getUnsignedByte(buffer);
         int length = RadiusFormat.getUnsignedShort(buffer);
 
-        return parseUDP(code, identifier, length, buffer);
+        return parseUDP(code, identifier, length, buffer, pool);
     }
     
-    public static RadiusPacket parseUDP(int code, int identifier, int length, ByteBuffer buffer) throws RadiusException, IOException
+    public static RadiusPacket parseUDP(int code, int identifier, int length, ByteBuffer buffer, boolean pool) throws RadiusException, IOException
     {
     	RadiusPacket rp = null;
         Integer key = new Integer(code);
 
-        if (pktObjectPool != null)
+        if (pktObjectPool != null && pool)
         {
         	try
         	{

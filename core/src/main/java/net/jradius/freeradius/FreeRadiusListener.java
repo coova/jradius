@@ -118,7 +118,7 @@ public class FreeRadiusListener extends TCPListener
         }
         
         AttributeList configItems = new AttributeList();
-        format.unpackAttributes(configItems, buffer, (int) length);
+        format.unpackAttributes(configItems, buffer, (int) length, true);
         
         request.setConfigItems(configItems);
         request.setSender(new String(nameBytes));

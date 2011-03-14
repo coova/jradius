@@ -58,7 +58,7 @@ public class RadiusFormat extends Format
      */
     public static void setAttributeBytes(RadiusPacket packet, ByteBuffer buffer, int length)
     {
-    	staticFormat.unpackAttributes(packet.getAttributes(), buffer, length);
+    	staticFormat.unpackAttributes(packet.getAttributes(), buffer, length, packet.isRecyclable());
     }
 
     /**

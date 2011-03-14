@@ -2313,19 +2313,22 @@ public class JRadiusSimulator extends JFrame
 	    	clearStats();
 	    	setStatus("Simulation Running...");
 
-	    	for (Thread t : simulationThreads)
+	    	if (simulationThreads != null)
 	    	{
-	    		try 
-	    		{
-					t.join();
-				} 
-	    		catch (InterruptedException e) 
-				{
-	    	    	setStatus(statusLabel.getText()+ " Stopped.");
-	    	        runButton.setSelected(false);
-	    	        runButton.setText("Start");
-					return;
-				}
+	    		for (Thread t : simulationThreads)
+		    	{
+		    		try 
+		    		{
+						t.join();
+					} 
+		    		catch (InterruptedException e) 
+					{
+		    	    	setStatus(statusLabel.getText()+ " Stopped.");
+		    	        runButton.setSelected(false);
+		    	        runButton.setText("Start");
+						return;
+					}
+		    	}
 	    	}
 
 	    	if (simulationRunners == null) return;
@@ -2482,6 +2485,106 @@ public class JRadiusSimulator extends JFrame
 	                //case 3: sendPackets[1] = true; interactiveSession = true; break;
 	            }
 
+                if ("RadSec".equals(transportTypeComboBox.getSelectedItem()))
+                {
+                    KeyManager keyManagers[] = KeyStoreUtil.loadKeyManager(
+                    		tlsKeyFileTypeComboBox.getSelectedItem().toString(), 
+                    		new FileInputStream(tlsKeyFileTextField.getText()),
+                    		tlsKeyPasswordTextField.getText());
+
+                    TrustManager trustManagers[];
+                    
+                    if (tlsTrustAll.isSelected()) 
+                    {
+                        trustManagers = KeyStoreUtil.trustAllManager();
+                    }
+                    else
+                    {
+                        trustManagers = KeyStoreUtil.loadTrustManager(
+                        		tlsCAFileTypeComboBox.getSelectedItem().toString(), 
+                        		new FileInputStream(tlsCAFileTextField.getText()), 
+                        		tlsCAPasswordTextField.getText());
+                    }
+
+                    transport = new RadSecClientTransport(keyManagers, trustManagers);
+                }
+                else
+                {
+                	transport = new UDPClientTransport();
+                }
+
+                transport.setRemoteInetAddress(InetAddress.getByName(radiusServer));
+                transport.setSharedSecret(sharedSecret);
+                transport.setAuthPort(authPort);
+                transport.setAcctPort(acctPort);
+                transport.setSocketTimeout(timeout);
+                
+                transport.setStatusListener(new TransportStatusListener() 
+                {
+                	long t = 0;
+                	
+					public void onAfterReceive(RadiusClientTransport transport, RadiusPacket packet)
+					{
+                        long d = System.currentTimeMillis() - t;
+
+                        if      (d <= 1)   		pkts[0]++;
+                        else if (d <= 10) 		pkts[1]++;
+                        else if (d <= 100) 		pkts[2]++;
+                        else if (d <= 1000) 	pkts[3]++;
+                        else if (d <= 10000) 	pkts[4]++;
+                        else if (d <= 100000) 	pkts[5]++;
+                        else if (d <= 1000000) 	pkts[6]++;
+                        
+                        if (doLog)
+                        {
+                        	// statusLabel.setText("Received RADIUS Packet " + packet.getClass().getName());
+	                        
+                        	logRecv.println("Received RADIUS Packet:");
+	                        logRecv.println(logSepLine);
+	                        logRecv.println(packet.toString());
+	                        logRecv.flush();
+	                        
+	                        checkStandard(getRadiusStandard(), packet);
+                        }
+
+						switch(packet.getCode())
+						{
+							case 2:  cntAccept++;     break;
+							case 3:  cntReject++;     break;
+							case 5:  cntAcctResp++;   break;
+							case 11: cntChallenge++;  break;
+						}
+						
+                        recd++;
+					}
+
+					public void onAfterSend(RadiusClientTransport transport)
+					{
+					}
+
+					public void onBeforeReceive(RadiusClientTransport transport)
+					{
+						//if (doLog)
+						//statusLabel.setText("Waiting for response...");
+					}
+
+					public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) 
+					{
+						if (doLog)
+						{
+	                        logSent.println("Sending RADIUS Packet:");
+	                        logSent.println(logSepLine);
+	                        logSent.println(packet.toString());
+	                        logSent.flush();
+	                        checkStandard(getRadiusStandard(), packet);
+	                        // statusLabel.setText("Sending RADIUS Packet " + packet.getClass().getName());
+						}
+
+						t = System.currentTimeMillis();
+                        sent++;
+					}
+                });
+                
 		    	long startTime = System.currentTimeMillis();
 	
 		        for (int r=0; r < requests; r++)
@@ -2490,106 +2593,6 @@ public class JRadiusSimulator extends JFrame
 		            try
 		            {
 		                // Run the Simulation
-		                
-		                if ("RadSec".equals(transportTypeComboBox.getSelectedItem()))
-		                {
-		                    KeyManager keyManagers[] = KeyStoreUtil.loadKeyManager(
-		                    		tlsKeyFileTypeComboBox.getSelectedItem().toString(), 
-		                    		new FileInputStream(tlsKeyFileTextField.getText()),
-		                    		tlsKeyPasswordTextField.getText());
-
-		                    TrustManager trustManagers[];
-		                    
-		                    if (tlsTrustAll.isSelected()) 
-		                    {
-		                        trustManagers = KeyStoreUtil.trustAllManager();
-		                    }
-		                    else
-		                    {
-		                        trustManagers = KeyStoreUtil.loadTrustManager(
-		                        		tlsCAFileTypeComboBox.getSelectedItem().toString(), 
-		                        		new FileInputStream(tlsCAFileTextField.getText()), 
-		                        		tlsCAPasswordTextField.getText());
-		                    }
-
-		                    transport = new RadSecClientTransport(keyManagers, trustManagers);
-		                }
-		                else
-		                {
-		                	transport = new UDPClientTransport();
-		                }
-
-		                transport.setRemoteInetAddress(InetAddress.getByName(radiusServer));
-		                transport.setSharedSecret(sharedSecret);
-		                transport.setAuthPort(authPort);
-		                transport.setAcctPort(acctPort);
-		                transport.setSocketTimeout(timeout);
-		                
-		                transport.setStatusListener(new TransportStatusListener() 
-		                {
-		                	long t = 0;
-		                	
-							public void onAfterReceive(RadiusClientTransport transport, RadiusPacket packet)
-							{
-		                        long d = System.currentTimeMillis() - t;
-
-		                        if      (d <= 1)   		pkts[0]++;
-		                        else if (d <= 10) 		pkts[1]++;
-		                        else if (d <= 100) 		pkts[2]++;
-		                        else if (d <= 1000) 	pkts[3]++;
-		                        else if (d <= 10000) 	pkts[4]++;
-		                        else if (d <= 100000) 	pkts[5]++;
-		                        else if (d <= 1000000) 	pkts[6]++;
-		                        
-		                        if (doLog)
-		                        {
-		                        	// statusLabel.setText("Received RADIUS Packet " + packet.getClass().getName());
-			                        
-		                        	logRecv.println("Received RADIUS Packet:");
-			                        logRecv.println(logSepLine);
-			                        logRecv.println(packet.toString());
-			                        logRecv.flush();
-			                        
-			                        checkStandard(getRadiusStandard(), packet);
-		                        }
-
-								switch(packet.getCode())
-								{
-									case 2:  cntAccept++;     break;
-									case 3:  cntReject++;     break;
-									case 5:  cntAcctResp++;   break;
-									case 11: cntChallenge++;  break;
-								}
-								
-		                        recd++;
-							}
-
-							public void onAfterSend(RadiusClientTransport transport)
-							{
-							}
-
-							public void onBeforeReceive(RadiusClientTransport transport)
-							{
-								//if (doLog)
-								//statusLabel.setText("Waiting for response...");
-							}
-
-							public void onBeforeSend(RadiusClientTransport transport, RadiusPacket packet) 
-							{
-								if (doLog)
-								{
-			                        logSent.println("Sending RADIUS Packet:");
-			                        logSent.println(logSepLine);
-			                        logSent.println(packet.toString());
-			                        logSent.flush();
-			                        checkStandard(getRadiusStandard(), packet);
-			                        // statusLabel.setText("Sending RADIUS Packet " + packet.getClass().getName());
-								}
-
-								t = System.currentTimeMillis();
-		                        sent++;
-							}
-		                });
 		                
 		                radiusClient = new RadiusClient(transport);
 	
@@ -2722,10 +2725,6 @@ public class JRadiusSimulator extends JFrame
 		            }
 		            finally
 		            {
-			        	if (transport != null)
-			        	{
-			        		transport.close();
-			        	}
 		            }
 		        }
 	

@@ -435,7 +435,7 @@ public final class AttributeFactory
         return attr;
     }
 
-    public static RadiusAttribute newAttribute(long vendor, long type, long len, int op, ByteBuffer buffer)
+    public static RadiusAttribute newAttribute(long vendor, long type, long len, int op, ByteBuffer buffer, boolean pool)
     {
     	RadiusAttribute attr = null;
         
@@ -459,7 +459,10 @@ public final class AttributeFactory
 
                 Long key = new Long(vendor << 16 | type);
                 
-                attr = borrow(key);
+                if (pool)
+                {
+                	attr = borrow(key);
+                }
                 
                 if (attr == null) 
                 {
@@ -498,8 +501,11 @@ public final class AttributeFactory
             }
             else 
             {
-            	attr = borrow(type);
-
+            	if (pool)
+            	{
+            		attr = borrow(type);
+            	}
+            	
             	if (attr == null)
                 {
                 	attr = attr(type);

@@ -56,7 +56,7 @@ public class FreeRadiusFormat extends RadiusFormat
 
     public static void setAttributeBytes(RadiusPacket p, ByteBuffer buffer, int length)
     {
-    	staticFormat.unpackAttributes(p.getAttributes(), buffer, length);
+    	staticFormat.unpackAttributes(p.getAttributes(), buffer, length, true);
     }
 
     /*

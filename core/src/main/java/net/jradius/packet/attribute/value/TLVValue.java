@@ -69,7 +69,7 @@ public class TLVValue extends OctetsValue
 		if (b != null && b.length > 0)
 		{
 			ByteBuffer bb = ByteBuffer.wrap(b);
-			format.unpackAttributes(list, bb, bb.limit());
+			format.unpackAttributes(list, bb, bb.limit(), false);
 		}
 	}
 
@@ -79,7 +79,7 @@ public class TLVValue extends OctetsValue
 		if (b != null && len > 0)
 		{
 			ByteBuffer bb = ByteBuffer.wrap(b, off, len);
-			format.unpackAttributes(list, bb, len);
+			format.unpackAttributes(list, bb, len, false);
 		}
     }
     

@@ -318,4 +318,8 @@ public abstract class RadiusPacket implements Serializable
     { 
         return toString(true, true); 
     }
+
+	public boolean isRecyclable() {
+		return recyclable;
+	}
 }

@@ -218,7 +218,7 @@ public abstract class Format
     }
      */
 
-    public void unpackAttributes(AttributeList attrs, ByteBuffer buffer, int length) 
+    public void unpackAttributes(AttributeList attrs, ByteBuffer buffer, int length, boolean pool) 
     {
     	AttributeParseContext ctx = new AttributeParseContext();
 		int pos = 0;
@@ -243,9 +243,9 @@ public abstract class Format
 	    	{
     	    	hasMore = false;
     	    	
-		    	RadiusAttribute attribute = AttributeFactory.newAttribute(
+    	    	RadiusAttribute attribute = AttributeFactory.newAttribute(
 		    			ctx.vendorNumber, ctx.attributeType, 
-		    			len, (int) ctx.attributeOp, buffer);
+		    			len, (int) ctx.attributeOp, buffer, pool);
 	    		
 	            if (attribute == null)
 	            {

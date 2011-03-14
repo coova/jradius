@@ -122,7 +122,7 @@ public class RadSecClientTransport extends RadiusClientTransport
             buffer_in.clear();
             buffer_in.limit(in.read(buffer_in.array(), 0, length));
             
-            res = (RadiusResponse) PacketFactory.parseUDP(code, identifier, length, buffer_in);
+            res = (RadiusResponse) PacketFactory.parseUDP(code, identifier, length, buffer_in, false);
 
             if (statusListener != null)
         		statusListener.onAfterReceive(this, res);

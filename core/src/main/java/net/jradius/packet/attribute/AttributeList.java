@@ -140,14 +140,14 @@ public class AttributeList implements Serializable
     			}
 
     			((VSAWithSubAttributes)pAttribute).getSubAttributes()._add(a, false);
-			}
+    		}
     		catch (Exception e) 
     		{
 				e.printStackTrace();
 			}
     	}
     	else
-    	{
+    	{	
     		_add(a, overwrite);
     	}
     }
