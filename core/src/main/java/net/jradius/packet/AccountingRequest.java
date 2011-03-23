@@ -98,7 +98,7 @@ public class AccountingRequest extends RadiusRequest
     
     public void setAccountingStatusType(int type)
     {
-        RadiusAttribute a = AttributeFactory.newAttribute(AttributeDictionary.ACCT_STATUS_TYPE, null);
+        RadiusAttribute a = AttributeFactory.newAttribute(AttributeDictionary.ACCT_STATUS_TYPE, null, isRecyclable());
         NamedValue s = (NamedValue)a.getValue();
         s.setValue(new Long(type));
         overwriteAttribute(a);

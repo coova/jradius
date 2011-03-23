@@ -202,7 +202,7 @@ public final class LogConsole extends JComponent implements AdjustmentListener
     }
 
     private static class ConsoleOutputStream extends OutputStream {
-        private StringBuffer buf = new StringBuffer("");
+        private StringBuilder buf = new StringBuilder("");
         private String category = null;
         private LogConsole reference;
 
@@ -225,15 +225,10 @@ public final class LogConsole extends JComponent implements AdjustmentListener
         }
 
         public synchronized void flush() {
-            synchronized (buf) {
-                if (buf.length() > 0) {
-                    char last = buf.charAt(buf.length() - 1);
-                    if (last == '\n' || last == '\r') {
-                        String text = buf.toString();
-                        SwingUtilities.invokeLater(new Appender(reference, category, text));
-                        buf.setLength(0);
-                    }
-                }
+            if (buf.length() > 0) {
+                String text = buf.toString();
+                SwingUtilities.invokeLater(new Appender(reference, category, text));
+                buf = new StringBuilder();
             }
         }
     }
@@ -251,8 +246,9 @@ public final class LogConsole extends JComponent implements AdjustmentListener
 
         public void run() {
             try {
-                textView.append(category, line);
+                textView.appender(category, line);
             } catch (Throwable t) {
+            	t.printStackTrace();
             }
         }
     }

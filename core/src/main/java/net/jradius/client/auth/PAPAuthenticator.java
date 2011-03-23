@@ -24,6 +24,8 @@ import java.util.Arrays;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeFactory;
+import net.jradius.packet.attribute.RadiusAttribute;
 import net.jradius.util.RadiusUtils;
 
 
@@ -43,10 +45,14 @@ public class PAPAuthenticator extends RadiusAuthenticator
     
     public void processRequest(RadiusPacket p) throws RadiusException
     {
-        password.setValue(RadiusUtils.encodePapPassword(
-	            password.getValue().getBytes(), 
+        p.removeAttribute(password);
+        
+        RadiusAttribute attr;
+        p.addAttribute(attr = AttributeFactory.newAttribute("User-Password"));
+        attr.setValue(RadiusUtils.encodePapPassword(
+    			password.getValue().getBytes(), 
 	            // Create an authenticator (AccessRequest just needs shared secret)
-	            p.createAuthenticator(null, 0, 0, client.getSharedSecret()), 
+    			p.createAuthenticator(null, 0, 0, client.getSharedSecret()), 
 	            client.getSharedSecret()));
     }
 

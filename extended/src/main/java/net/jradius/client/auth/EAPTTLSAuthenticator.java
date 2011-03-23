@@ -35,6 +35,7 @@ import net.jradius.packet.AccessChallenge;
 import net.jradius.packet.AccessRequest;
 import net.jradius.packet.DiameterFormat;
 import net.jradius.packet.RadiusPacket;
+import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.AttributeList;
 
 
@@ -107,8 +108,10 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
         super.setupRequest(c, p);
         tunnelRequest = new AccessRequest(tunneledAttributes);
         AttributeList attrs = tunnelRequest.getAttributes();
-        if (attrs.get(Attr_UserName.TYPE) == null) attrs.add(username);
-        if (attrs.get(Attr_UserPassword.TYPE) == null) attrs.add(password);
+        if (attrs.get(Attr_UserName.TYPE) == null) 
+        	attrs.add(AttributeFactory.copyAttribute(username, false));
+        if (attrs.get(Attr_UserPassword.TYPE) == null) 
+        	attrs.add(AttributeFactory.copyAttribute(password, false));
         tunnelAuth.setupRequest(c, tunnelRequest);
         if (!(tunnelAuth instanceof PAPAuthenticator)) // do not encode pap password
         {

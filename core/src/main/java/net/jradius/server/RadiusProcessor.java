@@ -50,7 +50,7 @@ public abstract class RadiusProcessor extends Processor
     {
         JRadiusSession session = request.getSession();
         String error = e.getMessage();
-        RadiusLog.error(error);
+        RadiusLog.warn(error);
 
         if (session != null)
         {

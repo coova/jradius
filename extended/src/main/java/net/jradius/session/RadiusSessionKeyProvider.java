@@ -233,7 +233,7 @@ public class RadiusSessionKeyProvider implements SessionKeyProvider
         {
             if (required)
             {
-                a = AttributeFactory.newAttribute(type, null);
+                a = AttributeFactory.newAttribute(type, null, false);
                 throw new RadiusException("Missing required attribute: " + a.getAttributeName());
             }
             return null;

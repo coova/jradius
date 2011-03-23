@@ -162,14 +162,17 @@ public final class AttributeFactory
 		return a;
     }
     
-    public static RadiusAttribute newAttribute(Long key, Serializable value) 
+    public static RadiusAttribute newAttribute(Long key, Serializable value, boolean pool) 
     {
     	RadiusAttribute attr = null;
     	
     	try
     	{
-    		attr = borrow(key);
-
+    		if (pool)
+    		{
+    			attr = borrow(key);
+    		}
+    		
     		if (attr == null)
 	        {
     			attr = newAttribute(key);
@@ -351,7 +354,7 @@ public final class AttributeFactory
      * @param op The Attribute Operator
      * @return Returns the newly created RadiusAttribute
      */
-    public static RadiusAttribute newAttribute(long vendor, long type, byte[] value, int op)
+    public static RadiusAttribute newAttribute(long vendor, long type, byte[] value, int op, boolean pool)
     {
         RadiusAttribute attr = null;
         
@@ -375,9 +378,12 @@ public final class AttributeFactory
                 }
 
                 Long key = new Long(vendor << 16 | type);
-                
-                attr = borrow(key);
 
+                if (pool)
+                {
+                	attr = borrow(key);
+                }
+                
                 if (attr == null)
                 {
                 	attr = vsa(vendor, type);
@@ -415,8 +421,11 @@ public final class AttributeFactory
             }
             else 
             {
-            	attr = borrow(type);
-
+            	if (pool)
+            	{
+            		attr = borrow(type);
+            	}
+            	
             	if (attr == null)
             	{
                 	attr = attr(type);
@@ -541,9 +550,9 @@ public final class AttributeFactory
      * @param value The value of the attribute
      * @return Returns the newly created RadiusAttribute
      */
-    public static RadiusAttribute newAttribute(long type, byte[] value)
+    public static RadiusAttribute newAttribute(long type, byte[] value, boolean pool)
     {
-        return newAttribute((type >> 16), type & 0xFFFF, value, -1);
+        return newAttribute((type >> 16), type & 0xFFFF, value, -1, pool);
     }
 
     /**
@@ -551,10 +560,10 @@ public final class AttributeFactory
      * @param value The value of the attribute
      * @return Returns the newly created AttributeList
      */
-    public static AttributeList newAttributeList(long type, byte[] value)
+    public static AttributeList newAttributeList(long type, byte[] value, boolean pool)
     {
         AttributeList list = new AttributeList();
-        addToAttributeList(list, type, value);
+        addToAttributeList(list, type, value, pool);
         return list;
     }
 
@@ -564,7 +573,7 @@ public final class AttributeFactory
      * @param value The value of the attribute
      * @return Returns how many attributes created
      */
-    public static int addToAttributeList(AttributeList list, long type, byte[] value)
+    public static int addToAttributeList(AttributeList list, long type, byte[] value, boolean pool)
     {
         int left = (value == null) ? 0 : value.length;
         int offset = 0;
@@ -580,7 +589,7 @@ public final class AttributeFactory
             if (left < maxlen) len = left;
             byte b[] = new byte[len];
             System.arraycopy(value, offset, b, 0, len);
-            list.add(AttributeFactory.newAttribute(vendor, type, b, Operator.ADD), false);
+            list.add(AttributeFactory.newAttribute(vendor, type, b, Operator.ADD, pool), false);
             offset += len;
             left -= len;
             cnt++;

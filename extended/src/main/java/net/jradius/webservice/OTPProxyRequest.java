@@ -170,7 +170,7 @@ public class OTPProxyRequest extends JRadiusThread implements WebServiceRequestO
                     type == Attr_JRadiusSessionId.TYPE ||
                     type == Attr_NASPortType.TYPE ||
                     type == Attr_NASPort.TYPE)
-                        reqList.add(AttributeFactory.newAttribute(type, at.getValue().getBytes()));
+                        reqList.add(AttributeFactory.newAttribute(type, at.getValue().getBytes(), false));
             }
 
             reqList.add(new Attr_UserName(userName));
@@ -266,7 +266,7 @@ public class OTPProxyRequest extends JRadiusThread implements WebServiceRequestO
                 type == Attr_AcctDelayTime.TYPE ||
                 type == Attr_AcctSessionTime.TYPE ||
                 type == Attr_AcctStatusType.TYPE)
-                newRequest.addAttribute(AttributeFactory.newAttribute(type, at.getValue().getBytes()));
+                newRequest.addAttribute(AttributeFactory.newAttribute(type, at.getValue().getBytes(), false));
         }
         radiusClient.accounting(newRequest, 2);
     }
@@ -337,7 +337,7 @@ public class OTPProxyRequest extends JRadiusThread implements WebServiceRequestO
     {
         public void processRequest(RadiusPacket p) throws RadiusException
         {
-            p.addAttribute(AttributeFactory.newAttribute(AttributeDictionary.EAP_MESSAGE, readData()));
+            p.addAttribute(AttributeFactory.newAttribute(AttributeDictionary.EAP_MESSAGE, readData(), p.isRecyclable()));
         }
         
         public byte[] doEAP(byte[] eapReply)

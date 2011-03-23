@@ -18,7 +18,7 @@ public class MessageAuthenticator
     {
         byte[] hash = new byte[16];
         ByteBuffer buffer = ByteBuffer.allocate(4096);
-        request.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
+        request.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash, request.isRecyclable()));
         format.packPacket(request, sharedSecret, buffer, true);
         System.arraycopy(MD5.hmac_md5(buffer.array(), 0, buffer.position(), sharedSecret.getBytes()), 0, hash, 0, 16);
 	}
@@ -30,7 +30,7 @@ public class MessageAuthenticator
         byte[] replyAuth = reply.getAuthenticator();
         ByteBuffer buffer = ByteBuffer.allocate(4096);
         reply.setAuthenticator(requestAuth);
-        reply.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash));
+        reply.overwriteAttribute(AttributeFactory.newAttribute(AttributeDictionary.MESSAGE_AUTHENTICATOR, hash, reply.isRecyclable()));
         format.packPacket(reply, sharedSecret, buffer, true);
         System.arraycopy(MD5.hmac_md5(buffer.array(), 0, buffer.position(), sharedSecret.getBytes()), 0, hash, 0, 16);
         reply.setAuthenticator(replyAuth);

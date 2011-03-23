@@ -64,7 +64,7 @@ public class StandardViolatedException extends RadiusException
         for (Iterator i = missingAttributes.iterator(); i.hasNext(); )
         {
             Long type = (Long)i.next();
-            RadiusAttribute a = AttributeFactory.newAttribute(type.longValue(), null);
+            RadiusAttribute a = AttributeFactory.newAttribute(type.longValue(), null, false);
             if (a != null) sb.append(sep).append(a.getAttributeName());
         }
         return sb.substring(sep.length());

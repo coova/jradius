@@ -60,12 +60,12 @@ public class InitSessionHandler extends RadiusSessionHandler
         
         if (ci.get(Attr_JRadiusSessionId.TYPE) == null)
         {
-            ci.add(AttributeFactory.newAttribute(Attr_JRadiusSessionId.TYPE, session.getSessionKey()));
+            ci.add(AttributeFactory.newAttribute(Attr_JRadiusSessionId.TYPE, session.getSessionKey(), false));
         }
         
         if (ci.get(Attr_JRadiusRequestId.TYPE) == null)
         {
-            ci.add(AttributeFactory.newAttribute(Attr_JRadiusRequestId.TYPE, Integer.toString(req.getIdentifier())));
+            ci.add(AttributeFactory.newAttribute(Attr_JRadiusRequestId.TYPE, Integer.toString(req.getIdentifier()), false));
         }
 
         return session.onPreProcessing(request);

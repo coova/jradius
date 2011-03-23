@@ -60,16 +60,21 @@ public abstract class RadiusAuthenticator
         if (username == null)
         {
         	a = p.findAttribute(AttributeDictionary.USER_NAME);
-            if (a == null)
+            
+        	if (a == null)
             	throw new RadiusException("You must at least have a User-Name attribute in a Access-Request");
-            username = AttributeFactory.copyAttribute(a, false);
+
+        	username = AttributeFactory.copyAttribute(a, false);
         }
         
         if (password == null)
         {
         	a = p.findAttribute(AttributeDictionary.USER_PASSWORD);
+
         	if (a != null)
+        	{
         		password = AttributeFactory.copyAttribute(a, false);
+        	}
         }
     }
 

@@ -59,7 +59,7 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     {
         p.removeAttribute(AttributeDictionary.USER_PASSWORD);
         RadiusAttribute a = AttributeFactory.newAttribute(AttributeDictionary.EAP_MESSAGE, 
-                isStartWithIdentity() ? eapResponse(EAP_IDENTITY, (byte)0, getUsername()) : null);
+                isStartWithIdentity() ? eapResponse(EAP_IDENTITY, (byte)0, getUsername()) : null, p.isRecyclable());
         p.overwriteAttribute(a);
     }
     
@@ -80,7 +80,8 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
         RadiusAttribute a = p.findAttribute(AttributeDictionary.EAP_MESSAGE);
         if (a != null) p.removeAttribute(a);
         
-        AttributeFactory.addToAttributeList(p.getAttributes(), AttributeDictionary.EAP_MESSAGE, eapMessage);
+        AttributeFactory.addToAttributeList(p.getAttributes(), 
+        		AttributeDictionary.EAP_MESSAGE, eapMessage, p.isRecyclable());
 
         RadiusLog.debug("Sending Challenge:\n" + p.toString());
     }

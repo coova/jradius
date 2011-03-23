@@ -60,8 +60,8 @@ public abstract class RadiusSessionHandler extends PacketHandlerChain
     protected void setPlainTextPassword(JRadiusRequest request, String password, boolean overwrite)
     {
         AttributeList ci = request.getConfigItems();
-        ci.add(AttributeFactory.newAttribute(Attr_CleartextPassword.TYPE, password), overwrite);
-        ci.add(AttributeFactory.newAttribute(Attr_UserPassword.TYPE, password), overwrite);
+        ci.add(AttributeFactory.newAttribute(Attr_CleartextPassword.TYPE, password, false), overwrite);
+        ci.add(AttributeFactory.newAttribute(Attr_UserPassword.TYPE, password, false), overwrite);
     }
 
     protected void reverseAccounting(RadiusPacket req) throws RadiusException
@@ -77,20 +77,20 @@ public abstract class RadiusSessionHandler extends PacketHandlerChain
         
         if (octetsIn != null && octetsOut != null)
         {
-            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputOctets.TYPE, octetsOut));
-            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputOctets.TYPE, octetsIn));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputOctets.TYPE, octetsOut, req.isRecyclable()));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputOctets.TYPE, octetsIn, req.isRecyclable()));
         }
         
         if (gigaIn != null && gigaOut != null)
         {
-            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputGigawords.TYPE, gigaOut));
-            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputGigawords.TYPE, gigaIn));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputGigawords.TYPE, gigaOut, req.isRecyclable()));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputGigawords.TYPE, gigaIn, req.isRecyclable()));
         }
         
         if (packetsIn != null && packetsOut != null)
         {
-            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputPackets.TYPE, packetsOut));
-            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputPackets.TYPE, packetsIn));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctInputPackets.TYPE, packetsOut, req.isRecyclable()));
+            req.overwriteAttribute(AttributeFactory.newAttribute(Attr_AcctOutputPackets.TYPE, packetsIn, req.isRecyclable()));
         }
     }
 }

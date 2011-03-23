@@ -111,7 +111,7 @@ public final class RadiusUtils
                                                                                                                   
         if (encryptedPass.length > 16)
         {
-            for (int i = 16; i < encryptedPass.length; i+=16)
+            for (int i = 16; i < encryptedPass.length; i += 16)
             {
                 md5.reset();
                 // add the shared secret
@@ -144,21 +144,28 @@ public final class RadiusUtils
  
         byte[] hash = md5.digest();
         
-        for (int n = 0; n < pwlen; n += 16) {
-        	if (n == 0) {
+        for (int n = 0; n < pwlen; n += 16) 
+        {
+        	if (n == 0)
+        	{
         		md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
-        		if (pwlen > 16) {
+        		if (pwlen > 16) 
+        		{
         			md5.update(encryptedPass, 0, 16);
         		}
-        	} else {
+        	}
+        	else 
+        	{
         		hash = md5.digest();
         		md5.update(sharedSecret.getBytes(), 0, sharedSecret.length());
-                if (pwlen > (n + 16)) {
+                if (pwlen > (n + 16)) 
+                {
                 	md5.update(encryptedPass, n, 16);
                 }
             }
 
-        	for (int i = 0; i < 16; i++) {
+        	for (int i = 0; i < 16; i++) 
+        	{
         		out.write(encryptedPass[i + n] ^ hash[i]);
         	}
         }

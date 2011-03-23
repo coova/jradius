@@ -58,8 +58,8 @@ public class AccountingClassHandler extends RadiusSessionHandler
                 {
                 	for (byte[] c : classes)
                 	{
-	                	RadiusAttribute cattr = AttributeFactory.newAttribute(Attr_Class.TYPE, c);
-	                    req.addAttribute(cattr);
+	                	RadiusAttribute cattr = AttributeFactory.newAttribute(Attr_Class.TYPE, c, req.isRecyclable());
+	                	req.addAttribute(cattr);
                 	}
                 }
                 return false;

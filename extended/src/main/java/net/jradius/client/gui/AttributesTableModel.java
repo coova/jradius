@@ -76,13 +76,13 @@ public class AttributesTableModel extends AbstractTableModel {
     public Object getValueAt(int row, int col) {
         AttributesTableEntry entry = (AttributesTableEntry)entries.get(row);
         switch(col) {
-        case 0: return entry.getAttributeName();
-        case 1: return entry.getAccessRequest();
-        case 2: return entry.getTunnelRequest();
-        case 3: return entry.getAccountingStart();
-        case 4: return entry.getAccountingUpdate();
-        case 5: return entry.getAccountingStop();
-        case 6: return entry.getAttributeValue();
+	        case 0: return entry.getAttributeName();
+	        case 1: return entry.getAccessRequest();
+	        case 2: return entry.getTunnelRequest();
+	        case 3: return entry.getAccountingStart();
+	        case 4: return entry.getAccountingUpdate();
+	        case 5: return entry.getAccountingStop();
+	        case 6: return entry.getAttributeValue();
         }
         return null;
     }
@@ -110,13 +110,13 @@ public class AttributesTableModel extends AbstractTableModel {
     public void setValueAt(Object v, int row, int col) {
         AttributesTableEntry entry = (AttributesTableEntry)entries.get(row);
         switch(col) {
-        case 0: entry.setAttributeName((String)v); break;
-        case 1: entry.setAccessRequest((Boolean)v); break;
-        case 2: entry.setTunnelRequest((Boolean)v); break;
-        case 3: entry.setAccountingStart((Boolean)v); break;
-        case 4: entry.setAccountingUpdate((Boolean)v); break;
-        case 5: entry.setAccountingStop((Boolean)v); break;
-        case 6: entry.setAttributeValue((String)v); break;
+	        case 0: entry.setAttributeName((String)v); break;
+	        case 1: entry.setAccessRequest((Boolean)v); break;
+	        case 2: entry.setTunnelRequest((Boolean)v); break;
+	        case 3: entry.setAccountingStart((Boolean)v); break;
+	        case 4: entry.setAccountingUpdate((Boolean)v); break;
+	        case 5: entry.setAccountingStop((Boolean)v); break;
+	        case 6: entry.setAttributeValue((String)v); break;
         }
         fireTableCellUpdated(row, col);
     }

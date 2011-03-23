@@ -63,7 +63,7 @@ public class ProxyClassHandler extends RadiusSessionHandler
                 session.addLogMessage(request, "Missing Class Attribute (added)");
             	req.removeAttribute(Attr_Class.TYPE);
             	for (byte[] a : sessionClass) {
-            		req.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, a));
+            		req.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, a, req.isRecyclable()));
             	}
             }
         }
@@ -74,7 +74,7 @@ public class ProxyClassHandler extends RadiusSessionHandler
 	        if (sessionState != null)
 	        {
 	        	// System.out.println("Missing State Attribute (added) "+sessionState.length+" "+sessionState[0]);
-	        	req.overwriteAttribute(AttributeFactory.newAttribute(Attr_State.TYPE, sessionState));
+	        	req.overwriteAttribute(AttributeFactory.newAttribute(Attr_State.TYPE, sessionState, req.isRecyclable()));
 	        }
         }
         

@@ -93,6 +93,7 @@ import net.jradius.dictionary.Attr_AcctSessionId;
 import net.jradius.dictionary.Attr_AcctStatusType;
 import net.jradius.dictionary.Attr_Class;
 import net.jradius.dictionary.Attr_ReplyMessage;
+import net.jradius.dictionary.Attr_UserPassword;
 import net.jradius.exception.StandardViolatedException;
 import net.jradius.exception.TimeoutException;
 import net.jradius.exception.UnknownAttributeException;
@@ -496,7 +497,7 @@ public class JRadiusSimulator extends JFrame
                             "Version 1.3.0\n\n" +
                             "For help, go to http://www.coova.org/JRadius\n" +
                             "Licensed under the GNU General Public License (GPL).\n" + 
-                            "Copyright (c) 2007-2010 Coova Technologies, LLC\n",
+                            "Copyright (c) 2007-2011 Coova Technologies, LLC\n",
                             "Copyright (c) 2006 PicoPoint B.V.\n" +
                             "About JRadiusSimulator", JOptionPane.INFORMATION_MESSAGE, null);
                 }
@@ -2628,9 +2629,9 @@ public class JRadiusSimulator extends JFrame
 		                        {
 		                            switch(i)
 		                            {
-		                            case 1: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Start)); break;
-		                            case 2: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.InterimUpdate)); break;
-		                            case 3: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Stop)); break;
+			                            case 1: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Start, false)); break;
+			                            case 2: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.InterimUpdate, false)); break;
+			                            case 3: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Stop, false)); break;
 		                            }
 		                        }
 		                    }
@@ -2639,12 +2640,12 @@ public class JRadiusSimulator extends JFrame
 		                    
 		                    if (bClass != null) 
 		                    {
-		                    	request.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, bClass));
+		                    	request.addAttribute(AttributeFactory.newAttribute(Attr_Class.TYPE, bClass, false));
 		                    }
 		    
 		    	            if (generateAcctSessionIdCheckBox.isSelected())
 		    	            {
-		    	            	Attr_AcctSessionId generatedAcctSessionId = (Attr_AcctSessionId) AttributeFactory.newAttribute(Attr_AcctSessionId.TYPE, sessionId);
+		    	            	Attr_AcctSessionId generatedAcctSessionId = (Attr_AcctSessionId) AttributeFactory.newAttribute(Attr_AcctSessionId.TYPE, sessionId, false);
 			                    if (generatedAcctSessionId != null && request.findAttribute(Attr_AcctSessionId.TYPE) != null)
 			                    {
 			                        request.overwriteAttribute(generatedAcctSessionId);

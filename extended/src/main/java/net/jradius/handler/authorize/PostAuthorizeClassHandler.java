@@ -73,7 +73,7 @@ public class PostAuthorizeClassHandler extends RadiusSessionHandler
         }
 
         rep.overwriteAttribute(AttributeFactory.newAttribute(rep instanceof AccessAccept ? Attr_Class.TYPE : Attr_State.TYPE, 
-        		(ClassPrefix + session.getSessionKey()).getBytes()));
+        		(ClassPrefix + session.getSessionKey()).getBytes(), rep.isRecyclable()));
         
         return false;
     }
