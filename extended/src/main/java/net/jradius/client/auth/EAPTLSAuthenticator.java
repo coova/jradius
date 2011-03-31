@@ -359,8 +359,12 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                     {
                     	state = 2;
                     }
+                    else
+                    {
+                    	break;
+                    }
                 }
-                break;
+                // drop through....
 
                 case 2:
                 {
