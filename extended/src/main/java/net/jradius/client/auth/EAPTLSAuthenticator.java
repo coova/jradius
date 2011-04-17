@@ -110,7 +110,10 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     private DefaultTlsClient tlsClient = null;
     
     private ByteBuffer receivedEAP = ByteBuffer.allocate(10000000);
-    
+
+    private KeyManager keyManagers[] = null;
+    private TrustManager trustManagers[] = null;
+
     public EAPTLSAuthenticator()
     {
         setEAPType(EAP_TLS);
@@ -139,9 +142,6 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     {
     	try
     	{
-	        KeyManager keyManagers[] = null;
-	        TrustManager trustManagers[] = null;
-	        
 	        if (getKeyFile() != null)
 	        {
 	        	keyManagers = KeyStoreUtil.loadKeyManager(getKeyFileType(), new FileInputStream(getKeyFile()), getKeyPassword());
@@ -704,5 +704,21 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 	protected boolean isCertificateRequired() 
 	{
 		return true;
+	}
+
+	public KeyManager[] getKeyManagers() {
+		return keyManagers;
+	}
+
+	public void setKeyManagers(KeyManager[] keyManagers) {
+		this.keyManagers = keyManagers;
+	}
+
+	public TrustManager[] getTrustManagers() {
+		return trustManagers;
+	}
+
+	public void setTrustManagers(TrustManager[] trustManagers) {
+		this.trustManagers = trustManagers;
 	}
 }

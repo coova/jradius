@@ -23,6 +23,7 @@ package net.jradius.packet.attribute.value;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.util.Date;
 
 /**
@@ -72,6 +73,12 @@ public class DateValue extends IntegerValue
     {
         super.setValue(l);
         dateValue = new Date(integerValue.longValue() * 1000);
+    }
+    
+    public void getBytes(ByteBuffer buffer)
+    {
+	    integerValue = new Long(dateValue.getTime() / 1000);
+	    super.getBytes(buffer);
     }
  
     public String toString()
