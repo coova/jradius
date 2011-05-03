@@ -66,14 +66,14 @@
 	</configuration>
       </plugin>
     </plugins>
-
+<!--
     <extensions>
       <extension>
         <groupId>org.apache.maven.wagon</groupId>
         <artifactId>wagon-ssh-external</artifactId>
-        <version>1.0-alpha-5</version>
       </extension>
     </extensions>
+-->
     <defaultGoal>install</defaultGoal>
   </build>
 
@@ -134,46 +134,37 @@
     <module>client</module>
     <module>applet</module>
 <!--
-    <module>ssl</module>
 -->
+    <module>ssl</module>
     <module>server</module>
   </modules>
 
   <repositories>
     <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
       <id>central</id>
       <name>Maven Repository Switchboard</name>
       <url>http://repo1.maven.org/maven2</url>
     </repository>
     <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
       <id>ibiblio</id>
       <name>ibiblio Repository Switchboard</name>
-      <url>http://www.ibiblio.org/maven</url>
-    </repository>
-<!--
-    <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>springframework</id>
-      <name>Spring Repository</name>
-      <url>http://repository.springsource.com/maven/bundles/release</url>
+      <url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
     </repository>
     <repository>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-      <id>coova</id>
-      <name>Coova Repository</name>
-      <url>http://coova-dev.s3.amazonaws.com/mvn</url>
+      <id>jboss</id>
+      <name>JBoss Repository</name>
+      <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
     </repository>
--->
+    <repository>
+      <id>java.net</id>
+      <name>java.net Repository</name>
+      <url>http://download.java.net/maven/2/</url>
+    </repository>
+    <repository>
+      <id>opennms</id>
+      <name>openmms Repository</name>
+      <url>http://repo.opennms.org/maven2/</url>
+    </repository>
   </repositories>
 
   <reporting>

@@ -56,11 +56,25 @@
      <groupId>log4j</groupId>
      <artifactId>log4j</artifactId>
      <version>1.2.15</version>
+     <exclusions>
+		<exclusion>
+            <groupId>javax.jms</groupId>
+            <artifactId>jms</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.sun.jmx</groupId>
+            <artifactId>jmxri</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.sun.jdmk</groupId>
+            <artifactId>jmxtools</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
-      <groupId>org.gnu</groupId>
-      <artifactId>java-getopt</artifactId>
+      <groupId>gnu-getopt</groupId>
+      <artifactId>getopt</artifactId>
       <version>1.0.13</version>
     </dependency>
 

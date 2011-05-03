@@ -28,17 +28,6 @@
       <version>1.1.5-SNAPSHOT</version>
     </dependency>
     
-    <dependency>
-      <groupId>applet-dev</groupId>
-      <artifactId>sun</artifactId>
-      <version>1.0</version>
-    </dependency>
-    
-    <dependency>
-      <groupId>applet-dev</groupId>
-      <artifactId>ms</artifactId>
-      <version>1.0</version>
-    </dependency>
   </dependencies>
   
 </project>
