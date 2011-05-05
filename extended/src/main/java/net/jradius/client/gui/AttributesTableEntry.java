@@ -37,6 +37,7 @@ public class AttributesTableEntry implements Serializable {
     private Boolean accountingStart = Boolean.FALSE;
     private Boolean accountingUpdate = Boolean.FALSE;
     private Boolean accountingStop = Boolean.FALSE;
+    private Boolean coaRequest = Boolean.FALSE;
     private Class valueClass;
     
     public AttributesTableEntry()
@@ -90,6 +91,13 @@ public class AttributesTableEntry implements Serializable {
      */
     public Boolean getAccountingStop() {
         return accountingStop;
+    }
+
+    /**
+     * @return Returns the coaRequest.
+     */
+    public Boolean getCoARequest() {
+        return coaRequest;
     }
 
     /**
@@ -154,6 +162,10 @@ public class AttributesTableEntry implements Serializable {
     public void setValueClass(Class valueClass) {
         this.valueClass = valueClass;
     }
+
+	public void setCoARequest(Boolean v) {
+		this.coaRequest = v;
+	}
 
 };
 

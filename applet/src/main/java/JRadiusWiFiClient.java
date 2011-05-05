@@ -29,6 +29,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -219,8 +221,12 @@ public class JRadiusWiFiClient extends Applet implements Runnable
         {
             try
             {
-                netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-                netscape.security.PrivilegeManager.enablePrivilege("UniversalConnect");
+            	@SuppressWarnings("rawtypes")
+				Class privilegeManager = Class.forName("netscape.security.PrivilegeManager");
+            	@SuppressWarnings("unchecked")
+				Method enablePrivilege = privilegeManager.getMethod("enablePrivilege", new Class[] {String.class});
+            	enablePrivilege.invoke(null, new Object[] { "UniversalXPConnect" });
+            	enablePrivilege.invoke(null, new Object[] { "UniversalConnect" });
             }
             catch (Throwable e)
             { }
@@ -229,7 +235,14 @@ public class JRadiusWiFiClient extends Applet implements Runnable
         {
             try
             {
-                com.ms.security.PolicyEngine.assertPermission(com.ms.security.PermissionID.NETIO);
+            	@SuppressWarnings("rawtypes")
+				Class policyEngine = Class.forName("com.ms.security.PolicyEngine");
+            	@SuppressWarnings("rawtypes")
+            	Class permissionID = Class.forName("com.ms.security.PermissionID");
+				@SuppressWarnings("unchecked")
+				Method assertPermission = policyEngine.getMethod("assertPermission", new Class[] {permissionID});
+				Field permId = permissionID.getField("NETIO");
+				assertPermission.invoke(null, new Object[] { permId.get(null) });
             }
             catch (Throwable e)
             { }

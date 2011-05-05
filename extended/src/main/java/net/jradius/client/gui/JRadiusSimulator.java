@@ -948,12 +948,12 @@ public class JRadiusSimulator extends JFrame
         if (attributesTable == null) 
         {
             attributesTable = new JTable(attributesTableModel);
-            TableColumn col = attributesTable.getColumnModel().getColumn(6);
+            TableColumn col = attributesTable.getColumnModel().getColumn(7);
             col.setCellEditor(new ValueTableCellEditor());
             for (int i = 0; i < attributesTableModel.getColumnCount(); i++) 
             {
                 col = attributesTable.getColumnModel().getColumn(i);
-                if (i == 0 || i == 6) {
+                if (i == 0 || i == 7) {
                     col.setPreferredWidth(120); 
                 } else {
                     col.setPreferredWidth(40);
@@ -2444,7 +2444,7 @@ public class JRadiusSimulator extends JFrame
 		        }
 	
 	            AttributeList[] authAttributes = { new AttributeList(), new AttributeList() };
-	            AttributeList[] acctAttributes = { new AttributeList(), new AttributeList(), new AttributeList() };
+	            AttributeList[] acctAttributes = { new AttributeList(), new AttributeList(), new AttributeList(), new AttributeList() };
 	
 	            Object[] entries = attributesTableModel.getEntries().toArray();
 	            for (int i = 0; i < entries.length; i++)
@@ -2461,6 +2461,7 @@ public class JRadiusSimulator extends JFrame
 		                if ((bool = entry.getAccountingStart()) != null   && bool.booleanValue()) acctAttributes[0].add(AttributeFactory.copyAttribute(attribute), false);
 		                if ((bool = entry.getAccountingUpdate()) != null  && bool.booleanValue()) acctAttributes[1].add(AttributeFactory.copyAttribute(attribute), false);
 		                if ((bool = entry.getAccountingStop()) != null    && bool.booleanValue()) acctAttributes[2].add(AttributeFactory.copyAttribute(attribute), false);
+		                if ((bool = entry.getCoARequest()) != null        && bool.booleanValue()) acctAttributes[3].add(AttributeFactory.copyAttribute(attribute), false);
 					} 
 					catch (UnknownAttributeException e) 
 					{
@@ -2610,11 +2611,11 @@ public class JRadiusSimulator extends JFrame
 		                    {
 		                        if (sendDisconnectRequest)
 		                        {
-		                        	request = PacketFactory.newPacket(DisconnectRequest.CODE, radiusClient, authAttributes[0]);
+		                        	request = PacketFactory.newPacket(DisconnectRequest.CODE, radiusClient, acctAttributes[3]);
 		                        }
 		                        else if (sendCoARequest)
 		                        {
-		                        	request = PacketFactory.newPacket(CoARequest.CODE, radiusClient, authAttributes[0]);
+		                        	request = PacketFactory.newPacket(CoARequest.CODE, radiusClient, acctAttributes[3]);
 		                        }
 		                        else
 		                        {
@@ -2735,6 +2736,7 @@ public class JRadiusSimulator extends JFrame
 	            acctAttributes[0].clear();
 	            acctAttributes[1].clear();
 	            acctAttributes[2].clear();
+	            acctAttributes[3].clear();
 	            
 	            System.out.println("Sent: "+sent+" Recd: "+recd+" in "+((System.currentTimeMillis() - startTime))+"ms");
 	        }

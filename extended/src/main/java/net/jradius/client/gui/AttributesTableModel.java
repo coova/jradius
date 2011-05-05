@@ -44,6 +44,7 @@ public class AttributesTableModel extends AbstractTableModel {
             "AcctStart", 
             "AcctUpdate", 
             "AcctStop", 
+            "CoA", 
             "Attribute Value" 
     };
     
@@ -82,7 +83,8 @@ public class AttributesTableModel extends AbstractTableModel {
 	        case 3: return entry.getAccountingStart();
 	        case 4: return entry.getAccountingUpdate();
 	        case 5: return entry.getAccountingStop();
-	        case 6: return entry.getAttributeValue();
+	        case 6: return entry.getCoARequest();
+	        case 7: return entry.getAttributeValue();
         }
         return null;
     }
@@ -91,7 +93,7 @@ public class AttributesTableModel extends AbstractTableModel {
      * @see javax.swing.table.AbstractTableModel#getColumnClass(int)
      */
     public Class getColumnClass(int col) {
-        if (col == 0 || col == 6) return String.class;
+        if (col == 0 || col == 7) return String.class;
         return Boolean.class;
     }
 
@@ -116,7 +118,8 @@ public class AttributesTableModel extends AbstractTableModel {
 	        case 3: entry.setAccountingStart((Boolean)v); break;
 	        case 4: entry.setAccountingUpdate((Boolean)v); break;
 	        case 5: entry.setAccountingStop((Boolean)v); break;
-	        case 6: entry.setAttributeValue((String)v); break;
+	        case 6: entry.setCoARequest((Boolean)v); break;
+	        case 7: entry.setAttributeValue((String)v); break;
         }
         fireTableCellUpdated(row, col);
     }
