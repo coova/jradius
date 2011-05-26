@@ -21,6 +21,8 @@
 
 package net.jradius.client.auth;
 
+import java.security.NoSuchAlgorithmException;
+
 import net.jradius.util.MSCHAP;
 
 /**
@@ -51,7 +53,7 @@ public class EAPMSCHAPv2Authenticator extends EAPAuthenticator
         return NAME;
     }
     
-    public byte[] doEAPType(byte id, byte[] data)
+    public byte[] doEAPType(byte id, byte[] data) throws NoSuchAlgorithmException
     {
         byte opCode = data[0];
         switch (opCode)

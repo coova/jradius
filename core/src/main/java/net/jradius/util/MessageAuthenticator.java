@@ -1,5 +1,7 @@
 package net.jradius.util;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -14,7 +16,7 @@ public class MessageAuthenticator
 {
     private static final RadiusFormat format = RadiusFormat.getInstance();
 
-    public static void generateRequestMessageAuthenticator(RadiusPacket request, String sharedSecret) throws IOException
+    public static void generateRequestMessageAuthenticator(RadiusPacket request, String sharedSecret) throws IOException, InvalidKeyException, NoSuchAlgorithmException
     {
         byte[] hash = new byte[16];
         ByteBuffer buffer = ByteBuffer.allocate(4096);
@@ -23,7 +25,7 @@ public class MessageAuthenticator
         System.arraycopy(MD5.hmac_md5(buffer.array(), 0, buffer.position(), sharedSecret.getBytes()), 0, hash, 0, 16);
 	}
     
-    public static void generateResponseMessageAuthenticator(RadiusPacket request, RadiusPacket reply, String sharedSecret) throws IOException
+    public static void generateResponseMessageAuthenticator(RadiusPacket request, RadiusPacket reply, String sharedSecret) throws IOException, InvalidKeyException, NoSuchAlgorithmException
     {
         byte[] hash = new byte[16];
         byte[] requestAuth = request.getAuthenticator();
@@ -36,7 +38,7 @@ public class MessageAuthenticator
         reply.setAuthenticator(replyAuth);
 	}
     
-    public static Boolean verifyRequest(RadiusPacket request, String sharedSecret) throws IOException
+    public static Boolean verifyRequest(RadiusPacket request, String sharedSecret) throws IOException, InvalidKeyException, NoSuchAlgorithmException
     {
         byte[] hash = new byte[16];
         ByteBuffer buffer = ByteBuffer.allocate(4096);
@@ -55,7 +57,7 @@ public class MessageAuthenticator
         return new Boolean(Arrays.equals(pval, hash));
     }
 
-    public static Boolean verifyReply(byte[] requestAuth, RadiusPacket reply, String sharedSecret) throws IOException
+    public static Boolean verifyReply(byte[] requestAuth, RadiusPacket reply, String sharedSecret) throws IOException, InvalidKeyException, NoSuchAlgorithmException
     {
         byte[] replyAuth = reply.getAuthenticator();
         byte[] hash = new byte[16];

@@ -20,14 +20,13 @@
 
 package net.jradius.util;
 
-import gnu.crypto.hash.HashFactory;
-import gnu.crypto.hash.IMessageDigest;
-import gnu.crypto.mac.IMac;
-import gnu.crypto.mac.MacFactory;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
-import java.util.HashMap;
-
-import net.jradius.log.RadiusLog;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * MD5 Utils including HMAC-MD5
@@ -35,16 +34,21 @@ import net.jradius.log.RadiusLog;
  */
 public class MD5 
 {
-	private static class ThreadLocalMD5 extends ThreadLocal<IMessageDigest> 
+	private static class ThreadLocalMD5 extends ThreadLocal<MessageDigest> 
 	{
-		public IMessageDigest initialValue() 
+		public MessageDigest initialValue() 
 		{
-			return HashFactory.getInstance("MD5");
+			try {
+				return MessageDigest.getInstance("MD5");
+			} catch (NoSuchAlgorithmException e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
 
-		public IMessageDigest getMD5() 
+		public MessageDigest getMD5() 
 		{ 
-			IMessageDigest md = super.get();
+			MessageDigest md = super.get();
 			md.reset();
 			return md;
 		}
@@ -52,67 +56,44 @@ public class MD5
 
 	private static ThreadLocalMD5 md5 = new ThreadLocalMD5();
 
-	private static class ThreadLocalHMACMD5 extends ThreadLocal<IMac> 
-	{
-		public IMac initialValue() 
-		{
-			return MacFactory.getInstance("HMAC-MD5");
-		}
-
-		public IMac getHMACMD5() 
-		{ 
-			IMac md = super.get();
-			md.reset();
-			return md;
-		}
+	public static Mac getHmac(byte[] keyBytes, String algorithm) throws NoSuchAlgorithmException, InvalidKeyException {
+		Key key = new SecretKeySpec(keyBytes, 0, keyBytes.length, algorithm); 
+		Mac mac = Mac.getInstance(algorithm);
+		mac.init(key); 
+		return mac;
 	}
 
-	private static ThreadLocalHMACMD5 hmacmd5 = new ThreadLocalHMACMD5();
-
-	private static class ThreadLocalHMACSHA1 extends ThreadLocal<IMac> 
-	{
-		public IMac initialValue() 
-		{
-			return MacFactory.getInstance("HMAC-SHA1");
-		}
-
-		public IMac getHMACSHA1() 
-		{ 
-			IMac md = super.get();
-			md.reset();
-			return md;
-		}
+	public static Mac getHMACMD5(byte[] key) throws InvalidKeyException, NoSuchAlgorithmException {
+		return getHmac(key, "HmacMD5");
 	}
 
-	private static ThreadLocalHMACSHA1 hmacsha1 = new ThreadLocalHMACSHA1();
+	public static Mac getHMACSHA1(byte[] key) throws InvalidKeyException, NoSuchAlgorithmException {
+		return getHmac(key, "HmacSHA1");
+	}
 
-	public static IMessageDigest getMD5() { return md5.getMD5(); }
+	public static MessageDigest getMD5() { return md5.getMD5(); }
 
-	public static IMac getHMACMD5() { return hmacmd5.getHMACMD5(); }
-	
-	public static IMac getHMACSHA1() { return hmacsha1.getHMACSHA1(); }
-	
     public static byte[] md5(byte[] text)
     {
-    	IMessageDigest md = md5.getMD5();
+    	MessageDigest md = md5.getMD5();
         md.update(text, 0, text.length);
         return md.digest();
     }
 
     public static byte[] md5(byte[] text1, byte[] text2)
     {
-    	IMessageDigest md = md5.getMD5();
+    	MessageDigest md = md5.getMD5();
         md.update(text1, 0, text1.length);
         md.update(text2, 0, text2.length);
         return md.digest();
     }
 
-    public static byte[] hmac_md5(byte[] text, byte[] key)
+    public static byte[] hmac_md5(byte[] text, byte[] key) throws InvalidKeyException, NoSuchAlgorithmException
     {
     	return hmac_md5(text, 0, text.length, key);
     }
     
-    public static byte[] hmac_md5(byte[] text, int toff, int tlen, byte[] key)
+    public static byte[] hmac_md5(byte[] text, int toff, int tlen, byte[] key) throws InvalidKeyException, NoSuchAlgorithmException
     {
         int minKeyLen = 64;
         byte[] digest = new byte[16];
@@ -124,23 +105,9 @@ public class MD5
             key = t;
         }
         
-        IMac mac = hmacmd5.getHMACMD5();
-        HashMap attributes = new HashMap();
-        
-        attributes.put(IMac.MAC_KEY_MATERIAL, key);
-        attributes.put(IMac.TRUNCATED_SIZE, new Integer(16));
-    
-        try
-        {
-            mac.init(attributes);
-        }
-        catch (Exception e)
-        {
-            RadiusLog.warn(e.getMessage(), e);
-        }
-        
+        Mac mac = getHMACMD5(key);
         mac.update(text, toff, tlen);
-        System.arraycopy(mac.digest(), 0, digest, 0, 16);
+        System.arraycopy(mac.doFinal(), 0, digest, 0, 16);
         return digest;
     }
 }

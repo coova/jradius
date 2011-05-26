@@ -23,6 +23,8 @@ package net.jradius.client;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketTimeoutException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.exception.RadiusSecurityException;
@@ -77,7 +79,7 @@ public abstract class RadiusClientTransport
             {
 	        	generateMessageAuthenticator(p);
             }
-            catch(IOException e)
+            catch(Exception e)
             {
                 throw new RadiusException(e);
             }
@@ -129,8 +131,10 @@ public abstract class RadiusClientTransport
     /**
      * Add the Message-Authentivator attribute to the given RadiusPacket
      * @param request The RadiusPacket
+     * @throws NoSuchAlgorithmException 
+     * @throws InvalidKeyException 
      */
-    protected void generateMessageAuthenticator(RadiusPacket request) throws IOException
+    protected void generateMessageAuthenticator(RadiusPacket request) throws IOException, InvalidKeyException, NoSuchAlgorithmException
     {
     	MessageAuthenticator.generateRequestMessageAuthenticator(request, sharedSecret);
     }
@@ -161,7 +165,7 @@ public abstract class RadiusClientTransport
 			if (verified == null) return true;
 			return verified.booleanValue();
 		}
-		catch(IOException e)
+		catch(Exception e)
 		{
 			return false;
 		}

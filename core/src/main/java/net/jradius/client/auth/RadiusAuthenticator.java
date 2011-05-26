@@ -20,6 +20,8 @@
 
 package net.jradius.client.auth;
 
+import java.security.NoSuchAlgorithmException;
+
 import net.jradius.client.RadiusClient;
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.RadiusPacket;
@@ -51,8 +53,9 @@ public abstract class RadiusAuthenticator
      * @param c The RadiusClient context being used
      * @param p Setup the Authenticator with packet data
      * @throws RadiusException
+     * @throws NoSuchAlgorithmException 
      */
-    public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException
+    public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException, NoSuchAlgorithmException
     {
     	RadiusAttribute a;
         client = c;
@@ -81,8 +84,9 @@ public abstract class RadiusAuthenticator
     /**
      * @param p The RadiusPacket to be processed
      * @throws RadiusException
+     * @throws NoSuchAlgorithmException 
      */
-    public abstract void processRequest(RadiusPacket p) throws RadiusException;
+    public abstract void processRequest(RadiusPacket p) throws RadiusException, NoSuchAlgorithmException;
     
     /**
      * If the protocol has a request/challenge process, this function must
@@ -90,8 +94,9 @@ public abstract class RadiusAuthenticator
      * @param request The original AccessRequest RadiusPacket
      * @param challenge The AccessChallenge packet
      * @throws RadiusException
+     * @throws NoSuchAlgorithmException 
      */
-    public void processChallenge(RadiusPacket request, RadiusPacket challenge)  throws RadiusException
+    public void processChallenge(RadiusPacket request, RadiusPacket challenge)  throws RadiusException, NoSuchAlgorithmException
     {
     	classAttribute = challenge.findAttribute(AttributeDictionary.CLASS);
         if (classAttribute != null)

@@ -57,7 +57,13 @@ public class DateValue extends IntegerValue
         super.getBytes(out);
     }
     
-    public void setValue(byte[] b)
+	public void setValue(byte[] b, int off, int len) 
+	{
+		super.setValue(b, off, len);
+        dateValue = new Date(integerValue.longValue() * 1000);
+	}
+
+	public void setValue(byte[] b)
     {
         super.setValue(b);
         dateValue = new Date(integerValue.longValue() * 1000);
@@ -75,7 +81,19 @@ public class DateValue extends IntegerValue
         dateValue = new Date(integerValue.longValue() * 1000);
     }
     
-    public void getBytes(ByteBuffer buffer)
+	public void setValue(String v) 
+	{
+		super.setValue(v);
+        dateValue = new Date(integerValue.longValue() * 1000);
+	}
+
+	public void setLong(Long l) 
+	{
+		super.setLong(l);
+        dateValue = new Date(integerValue.longValue() * 1000);
+	}
+
+	public void getBytes(ByteBuffer buffer)
     {
 	    integerValue = new Long(dateValue.getTime() / 1000);
 	    super.getBytes(buffer);

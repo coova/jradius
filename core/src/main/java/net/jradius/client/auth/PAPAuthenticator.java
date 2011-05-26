@@ -45,7 +45,9 @@ public class PAPAuthenticator extends RadiusAuthenticator
     
     public void processRequest(RadiusPacket p) throws RadiusException
     {
-        p.removeAttribute(password);
+    	if (password == null) throw new RadiusException("no password given");
+
+    	p.removeAttribute(password);
         
         RadiusAttribute attr;
         p.addAttribute(attr = AttributeFactory.newAttribute("User-Password"));

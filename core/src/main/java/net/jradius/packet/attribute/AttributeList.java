@@ -158,7 +158,8 @@ public class AttributeList implements Serializable
      */
     public void remove(RadiusAttribute a)
     {
-    	remove(a.getFormattedType());
+    	if (a != null)
+    		remove(a.getFormattedType());
     }
 
     /**

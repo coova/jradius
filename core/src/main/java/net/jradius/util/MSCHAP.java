@@ -21,15 +21,16 @@
 
 package net.jradius.util;
 
-import gnu.crypto.cipher.CipherFactory;
-import gnu.crypto.cipher.IBlockCipher;
-import gnu.crypto.cipher.WeakKeyException;
-import gnu.crypto.hash.HashFactory;
-import gnu.crypto.hash.IMessageDigest;
-
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.KeySpec;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.DESKeySpec;
+import javax.crypto.spec.IvParameterSpec;
 
 import net.jradius.log.RadiusLog;
 
@@ -68,10 +69,10 @@ public final class MSCHAP
         return b;
     }
 
-    private static byte[] ChallengeHash(final byte[] PeerChallenge, final byte[] AuthenticatorChallenge, final byte[] UserName)
+    private static byte[] ChallengeHash(final byte[] PeerChallenge, final byte[] AuthenticatorChallenge, final byte[] UserName) throws NoSuchAlgorithmException
     {
         byte Challenge[] = new byte[8];
-        IMessageDigest md = HashFactory.getInstance("SHA-1");
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
         md.update(PeerChallenge, 0, 16);
         md.update(AuthenticatorChallenge, 0, 16);
         md.update(UserName, 0, UserName.length);
@@ -79,11 +80,11 @@ public final class MSCHAP
         return Challenge;
     }
 
-    private static byte[] NtPasswordHash(byte[] Password)
+    private static byte[] NtPasswordHash(byte[] Password) throws NoSuchAlgorithmException
     {
         byte PasswordHash[] = new byte[16];
         byte uniPassword[] = unicode(Password);
-        IMessageDigest md = HashFactory.getInstance("MD4");
+        MessageDigest md = MessageDigest.getInstance("MD4");
         md.update(uniPassword, 0, uniPassword.length);
         System.arraycopy(md.digest(), 0, PasswordHash, 0, 16);
         return PasswordHash;
@@ -105,18 +106,17 @@ public final class MSCHAP
         byte szParityKey[] = new byte[8];
         parity_key(szParityKey, Key, keyOffset);
 
-        IBlockCipher cipher = CipherFactory.getInstance("DES");
-        Map attributes = new HashMap();
-
-        attributes.put(IBlockCipher.CIPHER_BLOCK_SIZE, new Integer(8));
-        attributes.put(IBlockCipher.KEY_MATERIAL, szParityKey);
-
         try
         {
-            cipher.init(attributes);
-            cipher.encryptBlock(Clear, clearOffset, Cypher, cypherOffset);
+            KeySpec ks = new DESKeySpec(szParityKey);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("DES");
+            SecretKey sk = skf.generateSecret(ks);
+            Cipher c = Cipher.getInstance("DES/CBC/NoPadding");
+            IvParameterSpec ips = new IvParameterSpec(new byte[] {0,0,0,0,0,0,0,0});
+            c.init(Cipher.ENCRYPT_MODE, sk, ips);
+
+            c.doFinal(Clear, clearOffset, Clear.length - clearOffset, Cypher, cypherOffset);
         }
-        catch (WeakKeyException e) { }
         catch (Exception e)
         {
             RadiusLog.warn(e.getMessage(), e);
@@ -141,13 +141,13 @@ public final class MSCHAP
         return Response;
     }
 
-    private static byte[] NtChallengeResponse(byte[] Challenge, byte[] Password)
+    private static byte[] NtChallengeResponse(byte[] Challenge, byte[] Password) throws NoSuchAlgorithmException
     {
         byte[] PasswordHash = NtPasswordHash(Password);
         return ChallengeResponse(Challenge, PasswordHash);
     }
     
-    private static byte[] GenerateNTResponse(byte[] AuthenticatorChallenge, byte[] PeerChallenge, byte[] UserName, byte[] Password)
+    private static byte[] GenerateNTResponse(byte[] AuthenticatorChallenge, byte[] PeerChallenge, byte[] UserName, byte[] Password) throws NoSuchAlgorithmException
     {
     	byte Challenge[] = ChallengeHash(PeerChallenge, AuthenticatorChallenge, UserName);
         byte PasswordHash[] = NtPasswordHash(Password);
@@ -197,8 +197,9 @@ public final class MSCHAP
      * @param Password The User's Password value in bytes
      * @param AuthChallenge The 16 byte authentication challenge
      * @return Returns a 50 byte array - the MSCHAP Response
+     * @throws NoSuchAlgorithmException 
      */
-    public static byte[] doMSCHAPv1(byte[] Password, byte[] AuthChallenge)
+    public static byte[] doMSCHAPv1(byte[] Password, byte[] AuthChallenge) throws NoSuchAlgorithmException
     {
         byte[] response = new byte[50];
         // There is currently a problem with the LmChallengeResponse value!
@@ -218,8 +219,9 @@ public final class MSCHAP
      * @param Password The User's Password value in bytes
      * @param AuthChallenge The 16 byte authentication challenge
      * @return Returns a 50 byte array - the MSCHAPv2 Response
+     * @throws NoSuchAlgorithmException 
      */
-    public static byte[] doMSCHAPv2(byte[] UserName, byte[] Password, byte[] AuthChallenge)
+    public static byte[] doMSCHAPv2(byte[] UserName, byte[] Password, byte[] AuthChallenge) throws NoSuchAlgorithmException
     {
         byte[] response = new byte[50];
         byte peerChallenge[] = RadiusRandom.getBytes(16);
@@ -229,7 +231,7 @@ public final class MSCHAP
         return response;
     }
     
-    public static boolean verifyMSCHAPv2(byte[] UserName, byte[] Password, byte[] Challenge, byte[] Response)
+    public static boolean verifyMSCHAPv2(byte[] UserName, byte[] Password, byte[] Challenge, byte[] Response) throws NoSuchAlgorithmException
     {
 		byte peerChallenge[] = new byte[16];
 		byte sentNtResponse[] = new byte[24];

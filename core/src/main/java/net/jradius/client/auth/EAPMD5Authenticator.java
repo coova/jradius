@@ -21,6 +21,8 @@
 
 package net.jradius.client.auth;
 
+import java.security.NoSuchAlgorithmException;
+
 import net.jradius.util.CHAP;
 
 /**
@@ -45,7 +47,7 @@ public class EAPMD5Authenticator extends EAPAuthenticator
         return NAME;
     }
     
-    public byte[] doEAPType(byte id, byte[] data)
+    public byte[] doEAPType(byte id, byte[] data) throws NoSuchAlgorithmException
     {
         byte md5len = data[0];
         byte[] md5data = new byte[md5len];

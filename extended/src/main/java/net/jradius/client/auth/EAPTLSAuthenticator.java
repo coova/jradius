@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.Vector;
@@ -127,7 +128,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     /* (non-Javadoc)
      * @see net.sf.jradius.client.auth.RadiusAuthenticator#setupRequest(net.sf.jradius.client.RadiusClient, net.sf.jradius.packet.RadiusPacket)
      */
-    public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException
+    public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException, NoSuchAlgorithmException
     {
         super.setupRequest(c, p);
         init();

@@ -22,6 +22,7 @@
 package net.jradius.client.auth;
 
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 
 import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
@@ -66,9 +67,10 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
     /**
      * EAP requires a challenge/response. The request packet is reset with a new 
      * RADIUS identifier and the EAP-Message is encoded.
+     * @throws NoSuchAlgorithmException 
      * @see net.jradius.client.auth.RadiusAuthenticator#processChallenge(net.jradius.packet.RadiusPacket, net.jradius.packet.RadiusPacket)
      */
-    public void processChallenge(RadiusPacket p, RadiusPacket r)  throws RadiusException
+    public void processChallenge(RadiusPacket p, RadiusPacket r)  throws RadiusException, NoSuchAlgorithmException
     {
     	super.processChallenge(p, r);
     	
@@ -106,14 +108,15 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
      * @param id The EAP ID
      * @param data The EAP Data
      * @return Returns the EAP-Type specific EAP-Message
+     * @throws NoSuchAlgorithmException 
      */
-    public abstract byte[] doEAPType(byte id, byte[] data) throws RadiusException;
+    public abstract byte[] doEAPType(byte id, byte[] data) throws RadiusException, NoSuchAlgorithmException;
 
     /*
      * Override this method if the eap authenticator requires the original eap message.
      * 
      */
-    public byte[] doEAPType(byte id, byte[] data, byte[] fullEAPPacket) throws RadiusException
+    public byte[] doEAPType(byte id, byte[] data, byte[] fullEAPPacket) throws RadiusException, NoSuchAlgorithmException
     {
     	return doEAPType(id, data);
     }
@@ -151,8 +154,9 @@ public abstract class EAPAuthenticator extends RadiusAuthenticator
      *</pre>   
      * @param eapReply The in-coming EAP-Message
      * @return Returns the out-bound EAP-Message
+     * @throws NoSuchAlgorithmException 
      */
-    public byte[] doEAP(byte[] eapReply) throws RadiusException
+    public byte[] doEAP(byte[] eapReply) throws RadiusException, NoSuchAlgorithmException
     {
         if (eapReply != null)
         {

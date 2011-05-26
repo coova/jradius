@@ -28,6 +28,7 @@ import java.lang.reflect.Method;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 
@@ -328,9 +329,10 @@ public class RadiusClient
      * @return Returns the reply RadiusPacket
      * @throws RadiusException
      * @throws UnknownAttributeException
+     * @throws NoSuchAlgorithmException 
      */
     public RadiusResponse authenticate(AccessRequest p, RadiusAuthenticator auth, int retries)
-    	throws RadiusException, UnknownAttributeException
+    	throws RadiusException, UnknownAttributeException, NoSuchAlgorithmException
     {
         if (auth == null) auth = new PAPAuthenticator();
         

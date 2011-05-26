@@ -20,8 +20,8 @@
 
 package net.jradius.util;
 
-import gnu.crypto.hash.HashFactory;
-import gnu.crypto.hash.IMessageDigest;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * CHAP Utils. 
@@ -35,10 +35,11 @@ public final class CHAP
      * @param Password The User's Password value in bytes
      * @param Challenge The 16 byte authentication challenge
      * @return Returns the CHAP-Password
+     * @throws NoSuchAlgorithmException 
      */
-    public static byte[] chapMD5(byte id, byte[] Password, byte[] Challenge)
+    public static byte[] chapMD5(byte id, byte[] Password, byte[] Challenge) throws NoSuchAlgorithmException
     {
-        IMessageDigest md = HashFactory.getInstance("MD5");
+        MessageDigest md = MessageDigest.getInstance("MD5");
         md.update(id);
         md.update(Password, 0, Password.length);
         md.update(Challenge, 0, Challenge.length);
@@ -52,8 +53,9 @@ public final class CHAP
      * @param Password The User's Password value in bytes
      * @param Challenge The 16 byte authentication challenge
      * @return Returns the CHAP-Password
+     * @throws NoSuchAlgorithmException 
      */
-    public static byte[] chapResponse(byte id, byte[] Password, byte[] Challenge)
+    public static byte[] chapResponse(byte id, byte[] Password, byte[] Challenge) throws NoSuchAlgorithmException
     {
         byte[] Response = new byte[17];
         Response[0] = id;

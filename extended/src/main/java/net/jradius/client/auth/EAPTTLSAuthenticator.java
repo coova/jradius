@@ -22,6 +22,7 @@
 package net.jradius.client.auth;
 
 import java.nio.ByteBuffer;
+import java.security.NoSuchAlgorithmException;
 
 import javax.net.ssl.SSLException;
 
@@ -101,9 +102,10 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
     }
     
     /**
+     * @throws NoSuchAlgorithmException 
      * @see net.jradius.client.auth.RadiusAuthenticator#setupRequest(net.jradius.client.RadiusClient, net.jradius.packet.RadiusPacket)
      */
-    public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException
+    public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException, NoSuchAlgorithmException
     {
         super.setupRequest(c, p);
         tunnelRequest = new AccessRequest(tunneledAttributes);
@@ -119,7 +121,7 @@ public class EAPTTLSAuthenticator extends EAPTLSAuthenticator implements TunnelA
         }
     }
     
-    protected boolean doTunnelAuthentication(byte id, byte[] in) throws RadiusException, SSLException
+    protected boolean doTunnelAuthentication(byte id, byte[] in) throws RadiusException, SSLException, NoSuchAlgorithmException
     {
         if (tunnelChallenge != null && in != null)
         {

@@ -20,6 +20,7 @@
 
 package net.jradius.client.auth;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 import net.jradius.exception.RadiusException;
@@ -44,9 +45,11 @@ public class CHAPAuthenticator extends RadiusAuthenticator
         return NAME;
     }
     
-    public void processRequest(RadiusPacket p) throws RadiusException
+    public void processRequest(RadiusPacket p) throws RadiusException, NoSuchAlgorithmException
     {
-        p.removeAttribute(password);
+    	if (password == null) throw new RadiusException("no password given");
+
+    	p.removeAttribute(password);
         
         RadiusAttribute attr;
         byte authChallenge[] = RadiusRandom.getBytes(16);
@@ -59,7 +62,7 @@ public class CHAPAuthenticator extends RadiusAuthenticator
         attr.setValue(chapResponse);
     }
 
-	public static boolean verifyPassword(byte[] response, byte[] challenge, byte id, byte[] clearText) 
+	public static boolean verifyPassword(byte[] response, byte[] challenge, byte id, byte[] clearText) throws NoSuchAlgorithmException 
 	{
         byte chapResponse[] = CHAP.chapResponse(response[0], clearText, challenge);
         return Arrays.equals(response, chapResponse);

@@ -20,9 +20,8 @@
 
 package net.jradius.util;
 
-import gnu.crypto.hash.IMessageDigest;
-
 import java.io.ByteArrayOutputStream;
+import java.security.MessageDigest;
 import java.util.Random;
 
 /**
@@ -48,7 +47,7 @@ public final class RadiusUtils
             byte[] requestAuthenticator,
             String sharedSecret) 
     {
-    	IMessageDigest md5 = MD5.getMD5();
+    	MessageDigest md5 = MD5.getMD5();
 
     	// encrypt the password.
         byte[] userPassBytes = null;
@@ -134,7 +133,7 @@ public final class RadiusUtils
     public static byte[] decodePapPassword(byte[] encryptedPass, byte[] authenticator, String sharedSecret)
     {
     	ByteArrayOutputStream out = new ByteArrayOutputStream();
-    	IMessageDigest md5 = MD5.getMD5();
+    	MessageDigest md5 = MD5.getMD5();
     	int pwlen = encryptedPass.length;
         if (pwlen > 128) pwlen = 128;
         if (pwlen == 0) return out.toByteArray();
@@ -180,7 +179,7 @@ public final class RadiusUtils
      */
     public static byte[] makeRFC2865RequestAuthenticator(String sharedSecret) 
     {
-    	IMessageDigest md5 = MD5.getMD5();
+    	MessageDigest md5 = MD5.getMD5();
         byte [] requestAuthenticator = new byte[16];
  
         Random r = new Random();
@@ -216,7 +215,7 @@ public final class RadiusUtils
             byte[] responseAttributeBytes,
             int responseAttributeLength) 
     {
-    	IMessageDigest md5 = MD5.getMD5();
+    	MessageDigest md5 = MD5.getMD5();
                                                                                                                   
         md5.update((byte)code);
         md5.update((byte)identifier);
@@ -247,7 +246,7 @@ public final class RadiusUtils
             int attributesOffset,
             int attributesLength) 
     {
-    	IMessageDigest md5 = MD5.getMD5();
+    	MessageDigest md5 = MD5.getMD5();
     	
         byte[] requestAuthenticator = new byte[16];
                                                                                                                   

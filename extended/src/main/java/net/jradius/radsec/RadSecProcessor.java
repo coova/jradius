@@ -23,6 +23,8 @@ package net.jradius.radsec;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 import net.jradius.dictionary.Attr_SharedSecret;
 import net.jradius.exception.RadiusException;
@@ -76,7 +78,7 @@ public class RadSecProcessor extends RadiusProcessor
         }
     }
 
-    public void writeResponse(JRadiusRequest request, ByteBuffer buffer, OutputStream outputStream) throws IOException, RadiusException 
+    public void writeResponse(JRadiusRequest request, ByteBuffer buffer, OutputStream outputStream) throws IOException, RadiusException, InvalidKeyException, NoSuchAlgorithmException 
     {
         if (Configuration.isDebug()) 
             request.printDebugInfo();

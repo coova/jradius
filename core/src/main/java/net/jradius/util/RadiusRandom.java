@@ -21,14 +21,7 @@
 
 package net.jradius.util;
 
-import gnu.crypto.prng.IRandom;
-import gnu.crypto.prng.MDGenerator;
-import gnu.crypto.prng.PRNGFactory;
-
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Random;
 
 import net.jradius.log.RadiusLog;
 
@@ -39,17 +32,7 @@ import net.jradius.log.RadiusLog;
  */
 public class RadiusRandom
 {
-    static final Map attrib = new LinkedHashMap();
-    static final IRandom rand = PRNGFactory.getInstance("MD");
-    
-    static
-    {
-        Calendar cal = GregorianCalendar.getInstance();
-        byte seed[] = Long.toBinaryString(cal.getTimeInMillis()).getBytes();
-        attrib.put(MDGenerator.MD_NAME, "MD5");
-        attrib.put(MDGenerator.SEEED, seed);
-        rand.init(attrib);
-    }
+    static final Random rand = new Random();
     
     /**
      * Generates an array of random bytes.
@@ -65,7 +48,7 @@ public class RadiusRandom
             {
                 try
                 {
-                    result[i] ^= rand.nextByte();
+                    result[i] ^= rand.nextInt();
                 }
                 catch (Exception e)
                 {

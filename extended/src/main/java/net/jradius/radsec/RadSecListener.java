@@ -112,8 +112,9 @@ public class RadSecListener extends TCPListener
                     throw new RadiusException("Bad RadSec tunnel shared secret, set to "+tunnelSharedSecret);
         		}
         	} 
-        	catch (IOException e) 
+        	catch (Exception e) 
         	{
+        		e.printStackTrace();
         	}
         }
         

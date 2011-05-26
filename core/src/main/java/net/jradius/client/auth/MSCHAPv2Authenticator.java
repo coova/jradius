@@ -20,6 +20,8 @@
 
 package net.jradius.client.auth;
 
+import java.security.NoSuchAlgorithmException;
+
 import net.jradius.exception.RadiusException;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeFactory;
@@ -42,7 +44,7 @@ public class MSCHAPv2Authenticator extends RadiusAuthenticator
         return NAME;
     }
     
-    public void processRequest(RadiusPacket p) throws RadiusException
+    public void processRequest(RadiusPacket p) throws RadiusException, NoSuchAlgorithmException
     {
         if (password == null) throw new RadiusException("Password required");
         p.removeAttribute(password);

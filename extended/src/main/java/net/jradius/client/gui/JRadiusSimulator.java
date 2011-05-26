@@ -2723,7 +2723,7 @@ public class JRadiusSimulator extends JFrame
 		            catch (Exception e)
 		            {
 		            	// statusLabel.setText("Problem: " + e.getMessage());
-		            	System.err.println(e.getMessage());
+		            	e.printStackTrace();
 		            }
 		            finally
 		            {
