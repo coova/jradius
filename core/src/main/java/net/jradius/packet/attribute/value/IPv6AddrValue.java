@@ -40,6 +40,6 @@ public class IPv6AddrValue extends IPAddrValue
 
     public int getLength()
     {
-        return 6;
+        return 16;
     }
 }

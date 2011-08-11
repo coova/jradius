@@ -27,7 +27,6 @@ import net.jradius.exception.RadiusException;
 import net.jradius.handler.RadiusSessionHandler;
 import net.jradius.packet.AccessAccept;
 import net.jradius.packet.AccessChallenge;
-import net.jradius.packet.AccessRequest;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.packet.attribute.AttributeFactory;
 import net.jradius.packet.attribute.RadiusAttribute;
@@ -47,7 +46,7 @@ public class PostAuthorizeClassHandler extends RadiusSessionHandler
         if (session == null) return noSessionFound(request);
         
         RadiusPacket rep = request.getReplyPacket();
-        
+
         if (!(rep instanceof AccessAccept ||
         		rep instanceof AccessChallenge)) return false;
 

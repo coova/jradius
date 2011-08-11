@@ -24,3 +24,4 @@ $INCLUDE ../dict/dictionary.rfc5580
 
 $INCLUDE ../dict/dictionary.coova
 $INCLUDE ../dict/dictionary.chillispot
+$INCLUDE ../dict/dictionary.microsoft

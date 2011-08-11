@@ -61,6 +61,11 @@ public class EventHandlerChain extends EventHandlerBase implements BeanFactoryAw
 
         Catalog c = this.getCatalog();
 
+        if (c == null) {
+        	System.err.println("Could not find catalog for "+cfg.getName());
+        	return;
+        }
+        
         {
             Iterator i = c.getNames();
 
