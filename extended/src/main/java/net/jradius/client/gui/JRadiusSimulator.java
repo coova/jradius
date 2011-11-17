@@ -1760,7 +1760,9 @@ public class JRadiusSimulator extends JFrame
                     "Auth & Acct (Start, Stop)",
                     "Auth & Acct (Start Only)",
                     "Acct Only (Start, Interim, Stop)", 
+                    "Acct Only (Start Only)", 
                     "Acct Only (Stop Only)", 
+                    "Acct On/Off", 
                     "Disconnect Request",
     		        "CoA Request"});
 // "Auth & Acct (Start until you Stop)" });
@@ -2472,6 +2474,7 @@ public class JRadiusSimulator extends JFrame
 	            boolean sendPackets[] = { true, false, false, false };
 	            boolean sendDisconnectRequest = false;
 	            boolean sendCoARequest = false;
+	            boolean sendOnOff = false;
 	            boolean simulationSuccess = true;
 	            interactiveSession = false; 
 	            
@@ -2481,9 +2484,11 @@ public class JRadiusSimulator extends JFrame
 	                case 2: sendPackets[1] = sendPackets[3] = true; break;
 	                case 3: sendPackets[1] = true; break;
 	                case 4: sendPackets = new boolean[]{ false, true, true, true }; break;
-	                case 5: sendPackets = new boolean[]{ false, false, false, true }; break;
-	                case 6: sendDisconnectRequest = true; break;
-	                case 7: sendCoARequest = true; break;
+	                case 5: sendPackets = new boolean[]{ false, true, false, false }; break;
+	                case 6: sendPackets = new boolean[]{ false, false, false, true }; break;
+	                case 7: sendPackets = new boolean[]{ false, true, false, true }; sendOnOff = true; break;
+	                case 8: sendDisconnectRequest = true; break;
+	                case 9: sendCoARequest = true; break;
 	                //case 3: sendPackets[1] = true; interactiveSession = true; break;
 	            }
 
@@ -2624,15 +2629,15 @@ public class JRadiusSimulator extends JFrame
 		                    }
 		                    else 
 		                    {
-		                    	request = PacketFactory.newPacket(AccountingRequest.CODE, radiusClient, acctAttributes[i - 1]);
+		                    	request = PacketFactory.newPacket(AccountingRequest.CODE, radiusClient, acctAttributes[sendOnOff ? 3 : (i - 1)]);
 		                    	
 		                        if (request.findAttribute(Attr_AcctStatusType.TYPE) == null)
 		                        {
 		                            switch(i)
 		                            {
-			                            case 1: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Start, false)); break;
+			                            case 1: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, sendOnOff ? Attr_AcctStatusType.AccountingOn : Attr_AcctStatusType.Start, false)); break;
 			                            case 2: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.InterimUpdate, false)); break;
-			                            case 3: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, Attr_AcctStatusType.Stop, false)); break;
+			                            case 3: request.addAttribute(AttributeFactory.newAttribute(Attr_AcctStatusType.TYPE, sendOnOff ? Attr_AcctStatusType.AccountingOff : Attr_AcctStatusType.Stop, false)); break;
 		                            }
 		                        }
 		                    }

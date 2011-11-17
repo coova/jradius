@@ -60,6 +60,8 @@ public class WebServiceRequest extends JRadiusEvent
     
     private Object sessionObject;
     
+    private Object userObject;
+
     /**
      * @return the request type
      */
@@ -237,5 +239,13 @@ public class WebServiceRequest extends JRadiusEvent
 
 	public void setServerVariableMap(Map<String, String> serverVariableMap) {
 		this.serverVariableMap = serverVariableMap;
+	}
+
+	public Object getUserObject() {
+		return userObject;
+	}
+
+	public void setUserObject(Object userObject) {
+		this.userObject = userObject;
 	}
 }

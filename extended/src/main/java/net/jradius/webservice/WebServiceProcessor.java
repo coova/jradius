@@ -70,9 +70,9 @@ public class WebServiceProcessor extends Processor
         {
         	SSLSocket sslSocket = (SSLSocket) socket;
         	sslSocket.setWantClientAuth(true);
-        	SSLSession sslSession = sslSocket.getSession();
         	try
         	{
+            	SSLSession sslSession = sslSocket.getSession();
 	        	Certificate[] certs = sslSession.getPeerCertificates();
 				if (certs != null)
 				{
@@ -81,7 +81,7 @@ public class WebServiceProcessor extends Processor
 						x509 = (X509Certificate) cert;
 				}
 			} 
-			catch (Exception e) 
+			catch (Throwable e) 
 			{
 			}
         }
@@ -188,7 +188,7 @@ public class WebServiceProcessor extends Processor
         
         writer.write(server);
         writer.write(conclose);
-        for (Iterator i = headers.entrySet().iterator(); i.hasNext();)
+        for (Iterator<?> i = headers.entrySet().iterator(); i.hasNext();)
         {
             Map.Entry entry = (Map.Entry)i.next();
             String key = (String)entry.getKey();

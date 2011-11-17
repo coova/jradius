@@ -53,7 +53,8 @@ public class OctetsValue extends AttributeValue
     	this.byteValue = new byte[cValue.byteValueLength];
     	this.byteValueLength = cValue.byteValueLength;
     	this.byteValueOffset = 0;
-    	System.arraycopy(cValue.byteValue, cValue.byteValueOffset, this.byteValue, 0, cValue.byteValueLength);
+    	if (this.byteValueLength > 0)
+    		System.arraycopy(cValue.byteValue, cValue.byteValueOffset, this.byteValue, 0, this.byteValueLength);
 	}
 
     public void getBytes(OutputStream out) throws IOException
