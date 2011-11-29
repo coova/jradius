@@ -21,7 +21,10 @@
 
 package net.jradius.webservice;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -169,10 +172,12 @@ public class WebServiceProcessor extends Processor
             return;
         }
 
-        writeResponse(out, request.getHttpVersion(), response.getHeaders(), response.getContent());
+        writeResponse(out, request.getHttpVersion(), response.getHeaders(), 
+        		response.getContent(), response.getSendFile());
     }
     
-    private void writeResponse(OutputStream writer, String httpVersion, Map headers, byte[] payload) throws IOException
+    private void writeResponse(OutputStream writer, String httpVersion, Map headers,
+    		byte[] payload, File sendFile) throws IOException
     {
         boolean wroteCT = false;
         boolean wroteCL = false;
@@ -202,12 +207,27 @@ public class WebServiceProcessor extends Processor
         if (!wroteCT) writer.write(ctype);
         if (!wroteCL)
         {
+        	long totalLength = payload == null ? 0 : payload.length;
+        	totalLength += sendFile == null ? 0 : sendFile.length();
             writer.write(clength);
-            writer.write(toHTTPBytes(Integer.toString(payload.length)));
+            writer.write(toHTTPBytes(Long.toString(totalLength)));
             writer.write(newline);
         }
         writer.write(newline);
-        writer.write(payload);
+        if (payload != null)
+        	writer.write(payload);
+        if (sendFile != null)
+        {
+        	int len;
+        	byte[] data = new byte[512];
+        	InputStream in = new FileInputStream(sendFile);
+        	do {
+        		len = in.read(data);
+        		if (len > 0)
+        			writer.write(data, 0, len);
+        	} while (len > 0);
+        	in.close();
+        }
     }
 
     private void writeBadRequest(OutputStream writer, String httpVersion) throws IOException

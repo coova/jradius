@@ -20,6 +20,7 @@
 
 package net.jradius.webservice;
 
+import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import net.jradius.server.JRadiusEvent;
 public class WebServiceResponse extends JRadiusEvent
 {
     private static final long serialVersionUID = 0L;
+    private File sendFile;
     private byte[] content;
     private int type;
 
@@ -76,4 +78,12 @@ public class WebServiceResponse extends JRadiusEvent
     {
         return this.headers;
     }
+
+	public void setSendFile(File file) {
+		sendFile = file;
+	}
+
+	public File getSendFile() {
+		return sendFile;
+	}
 }

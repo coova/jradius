@@ -1761,6 +1761,7 @@ public class JRadiusSimulator extends JFrame
                     "Auth & Acct (Start Only)",
                     "Acct Only (Start, Interim, Stop)", 
                     "Acct Only (Start Only)", 
+                    "Acct Only (Interim Only)", 
                     "Acct Only (Stop Only)", 
                     "Acct On/Off", 
                     "Disconnect Request",
@@ -2485,10 +2486,11 @@ public class JRadiusSimulator extends JFrame
 	                case 3: sendPackets[1] = true; break;
 	                case 4: sendPackets = new boolean[]{ false, true, true, true }; break;
 	                case 5: sendPackets = new boolean[]{ false, true, false, false }; break;
-	                case 6: sendPackets = new boolean[]{ false, false, false, true }; break;
-	                case 7: sendPackets = new boolean[]{ false, true, false, true }; sendOnOff = true; break;
-	                case 8: sendDisconnectRequest = true; break;
-	                case 9: sendCoARequest = true; break;
+	                case 6: sendPackets = new boolean[]{ false, false, true, false }; break;
+	                case 7: sendPackets = new boolean[]{ false, false, false, true }; break;
+	                case 8: sendPackets = new boolean[]{ false, true, false, true }; sendOnOff = true; break;
+	                case 9: sendDisconnectRequest = true; break;
+	                case 10: sendCoARequest = true; break;
 	                //case 3: sendPackets[1] = true; interactiveSession = true; break;
 	            }
 
