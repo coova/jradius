@@ -29,6 +29,7 @@ import java.nio.ByteOrder;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 
@@ -42,14 +43,16 @@ import net.jradius.packet.RadiusResponse;
 
 public class RadSecClientTransport extends RadiusClientTransport
 {
-	private Socket socket;
-	private Socket socketAcct;
+	private SSLSocket socket;
+	private SSLSocket socketAcct;
 	private KeyManager keyManagers[];
 	private TrustManager trustManagers[];
 	
     protected final ByteBuffer buffer_in;
     protected final ByteBuffer buffer_out;
 
+    private String[] protocols = new String[] { "TLSv1" };
+    
 	public RadSecClientTransport(KeyManager keyManager, TrustManager trustManager) 
 	{
 		this(new KeyManager[] { keyManager } , new TrustManager[] { trustManager });
@@ -71,19 +74,21 @@ public class RadSecClientTransport extends RadiusClientTransport
 	{
 		try
 		{
-	        SSLContext sslContext = SSLContext.getInstance("SSLv3");
+	        SSLContext sslContext = SSLContext.getInstance(protocols[0]);
 	        sslContext.init(keyManagers, trustManagers, null);
 	        
 	        SSLSocketFactory socketFactory = sslContext.getSocketFactory();
-	        socket = socketFactory.createSocket(getRemoteInetAddress(), getAuthPort());
+	        socket = (SSLSocket) socketFactory.createSocket(getRemoteInetAddress(), getAuthPort());
 	        socket.setReuseAddress(true);
 	        socket.setSoTimeout(getSocketTimeout() * 1000);
+	        socket.setEnabledProtocols(protocols);
 	        
 	        if (getAcctPort() != getAuthPort())
 	        {
-		        socketAcct = socketFactory.createSocket(getRemoteInetAddress(), getAcctPort());
+		        socketAcct = (SSLSocket) socketFactory.createSocket(getRemoteInetAddress(), getAcctPort());
 		        socketAcct.setReuseAddress(true);
 		        socketAcct.setSoTimeout(getSocketTimeout() * 1000);
+		        socketAcct.setEnabledProtocols(protocols);
 	        }
 		} 
 		catch (Exception e)
