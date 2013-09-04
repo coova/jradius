@@ -20,20 +20,20 @@
 
 package net.jradius.webservice;
 
-import gnu.crypto.cipher.CipherFactory;
-import gnu.crypto.cipher.IBlockCipher;
-import gnu.crypto.util.Base64;
-
 import java.net.URLDecoder;
 import java.security.InvalidKeyException;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 
 import net.jradius.handler.EventHandlerBase;
 import net.jradius.log.RadiusLog;
 import net.jradius.server.JRadiusEvent;
 import net.jradius.session.JRadiusSession;
 import net.jradius.session.JRadiusSessionManager;
+import net.jradius.util.Base64;
 
 
 public class SSOProxyService extends EventHandlerBase
@@ -64,29 +64,15 @@ public class SSOProxyService extends EventHandlerBase
         
         if (!"sso".equals(command)) throw new WebServiceException("invalid command");
         if (payload == null) throw new WebServiceException("invalid security");
+
+        byte[] KeyData = cipherKey.getBytes();
+        SecretKeySpec KS = new SecretKeySpec(KeyData, cipherType);
+        Cipher cipher = Cipher.getInstance(cipherType);
+        cipher.init(Cipher.DECRYPT_MODE, KS);
         
-        IBlockCipher cipher = CipherFactory.getInstance(cipherType);
-        Map attributes = new HashMap();
-        attributes.put(IBlockCipher.KEY_MATERIAL, cipherKey.getBytes());
-
-        try
-        {
-            cipher.init(attributes);
-        }
-        catch(InvalidKeyException e)
-        {
-            RadiusLog.warn(e.getMessage(), e);
-        }
-
-        int bs = cipher.currentBlockSize();
         byte[] data = Base64.decode(payload);
-        byte[] plaintext = new byte[(data.length / bs + 1) * bs];
+        byte[] plaintext = cipher.doFinal(data);
 
-        for (int i = 0; i + bs < data.length; i += bs)
-        {
-            cipher.decryptBlock(data, i, plaintext, i);
-        }
-        
         String scommand = URLDecoder.decode(new String(plaintext).trim(), "US-ASCII");
         RadiusLog.debug("Secure command: " + scommand);
         String session = scommand.substring("session=".length());

@@ -43,8 +43,10 @@ public class KeyStoreUtil
 {
 	public static void loadBC()
 	{
-        if (java.security.Security.getProvider("BC") == null)
-        	java.security.Security.addProvider(new BouncyCastleProvider());
+		try {
+			if (java.security.Security.getProvider("BC") == null)
+				java.security.Security.addProvider(new BouncyCastleProvider());
+		} catch (Throwable e) { }
 	}
 	
 	public static KeyManager[] loadKeyManager(String type, InputStream in, String password) throws Exception

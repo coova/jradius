@@ -461,10 +461,10 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         	else 
         	{ 
         		length -= 1;
-                response[1] = (byte) (length >> 24 & 0xFF);
-                response[2] = (byte) (length >> 16 & 0xFF);
-                response[3] = (byte) (length >> 8 & 0xFF);
-                response[4] = (byte) (length & 0xFF);
+                response[1] = (byte) (eapFragmentedReply.length >> 24 & 0xFF);
+                response[2] = (byte) (eapFragmentedReply.length >> 16 & 0xFF);
+                response[3] = (byte) (eapFragmentedReply.length >> 8 & 0xFF);
+                response[4] = (byte) (eapFragmentedReply.length & 0xFF);
                 System.arraycopy(data, 0, response, 5, data.length);
         	}
         }
