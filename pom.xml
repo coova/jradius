@@ -34,15 +34,15 @@
   </licenses>
 
   <scm>
-    <connection>scm:svn:https://dev.coova.org/svn/cjradius</connection>
-    <developerConnection>scm:svn:https://dev.coova.org/svn/cjradius</developerConnection>
-    <url>http://dev.coova.org/svn/cjradius</url>
+    <url>https://github.com/coova/jradius</url>
+    <connection>scm:git:git://github.com/coova/jradius.git</connection>
+    <developerConnection>scm:git:git@github.com:coova/jradius.git</developerConnection>
   </scm>
 
   <distributionManagement>
     <repository>
       <id>ssh-repository</id>
-      <url>file:///home/mvn</url>
+      <url>file:///tmp/mvn</url>
     </repository>
   </distributionManagement>
 
