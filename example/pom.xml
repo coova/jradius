@@ -5,13 +5,13 @@
   <groupId>net.jradius</groupId>
   <artifactId>jradius-example</artifactId>
   <name>${project.artifactId}-${project.version}</name>
-  <version>1.1.5-SNAPSHOT</version>
+  <version>1.1.5</version>
   <description>JRadius Examples</description>
   
   <parent>
     <groupId>net.jradius</groupId>
     <artifactId>jradius</artifactId>
-    <version>1.1.5-SNAPSHOT</version>
+    <version>1.1.5</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
@@ -19,19 +19,19 @@
     <dependency>
       <groupId>net.jradius</groupId>
       <artifactId>jradius-core</artifactId>
-      <version>1.1.5-SNAPSHOT</version>
+      <version>1.1.5</version>
     </dependency>
     
     <dependency>
       <groupId>net.jradius</groupId>
       <artifactId>jradius-dictionary</artifactId>
-      <version>1.1.5-SNAPSHOT</version>
+      <version>1.1.5</version>
     </dependency>
     
     <dependency>
       <groupId>net.jradius</groupId>
       <artifactId>jradius-extended</artifactId>
-      <version>1.1.5-SNAPSHOT</version>
+      <version>1.1.5</version>
     </dependency>
 
   </dependencies>
