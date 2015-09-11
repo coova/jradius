@@ -5,13 +5,13 @@
   <groupId>net.jradius</groupId>
   <artifactId>jradius-extras</artifactId>
   <name>${project.artifactId}-${project.version}</name>
-  <version>1.1.5</version>
+  <version>1.1.6-SNAPSHOT</version>
   <description>JRadius Extras</description>
   
   <parent>
     <groupId>net.jradius</groupId>
     <artifactId>jradius</artifactId>
-    <version>1.1.5</version>
+    <version>1.1.6-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   
@@ -19,7 +19,7 @@
     <dependency>
       <groupId>net.jradius</groupId>
       <artifactId>jradius-extended</artifactId>
-      <version>1.1.5</version>
+      <version>1.1.6-SNAPSHOT</version>
     </dependency>
 
   </dependencies>
