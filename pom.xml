@@ -1,194 +1,241 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>net.jradius</groupId>
-  <artifactId>jradius</artifactId>
-  <packaging>pom</packaging>
-  <name>${project.artifactId}-${project.version}</name>
-  <version>1.1.6-SNAPSHOT</version>
-  <description>JRadius Client/Server Project</description>
-  <url>http://www.coova.org/JRadius</url>
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>9</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>net.jradius</groupId>
+    <artifactId>jradius</artifactId>
+    <packaging>pom</packaging>
+    <name>${project.artifactId}-${project.version}</name>
+    <version>1.1.6-SNAPSHOT</version>
+    <description>JRadius Client/Server Project</description>
+    <url>http://www.coova.org/JRadius</url>
 
-  <developers>
-    <developer>
-      <id>david</id>
-      <name>David Bird</name>
-      <email>david@coova.com</email>
-      <roles>
-        <role>Developer</role>
-      </roles>
-      <timezone>GMT+1</timezone>
-    </developer>
-  </developers>
+    <developers>
+        <developer>
+            <id>david</id>
+            <name>David Bird</name>
+            <email>david@coova.com</email>
+            <roles>
+                <role>Developer</role>
+            </roles>
+            <timezone>GMT+1</timezone>
+        </developer>
+    </developers>
 
-  <licenses>
-    <license>
-      <name>GNU Lessor/Library Public License, Version 3.0</name>
-      <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
-    </license>
+    <licenses>
+        <license>
+            <name>GNU Lessor/Library Public License, Version 3.0</name>
+            <url>http://www.gnu.org/licenses/lgpl-3.0.txt</url>
+        </license>
 
-    <license>
-      <name>GNU Public License, Version 3.0</name>
-      <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
-    </license>
-  </licenses>
+        <license>
+            <name>GNU Public License, Version 3.0</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+        </license>
+    </licenses>
 
-  <scm>
-    <url>https://github.com/coova/jradius</url>
-    <connection>scm:git:git://github.com/coova/jradius.git</connection>
-    <developerConnection>scm:git:git@github.com:coova/jradius.git</developerConnection>
-  </scm>
+    <scm>
+        <url>https://github.com/coova/jradius</url>
+        <connection>scm:git:git://github.com/coova/jradius.git</connection>
+        <developerConnection>scm:git:git@github.com:coova/jradius.git</developerConnection>
+    </scm>
 
-  <distributionManagement>
-    <repository>
-      <id>ssh-repository</id>
-      <url>file:///tmp/mvn</url>
-    </repository>
-  </distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>ssh-repository</id>
+            <url>file:///tmp/mvn</url>
+        </repository>
+    </distributionManagement>
 
-  <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>4.6</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.6</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-  <build>
-    <plugins>
-       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.0-beta-9</version>
-      </plugin>
-      <plugin>
-	<groupId>org.apache.maven.plugins</groupId>
-	<artifactId>maven-compiler-plugin</artifactId>
-	<configuration>
-	  <source>1.5</source>
-	  <target>1.5</target>
-	</configuration>
-      </plugin>
-    </plugins>
-<!--
-    <extensions>
-      <extension>
-        <groupId>org.apache.maven.wagon</groupId>
-        <artifactId>wagon-ssh-external</artifactId>
-      </extension>
-    </extensions>
--->
-    <defaultGoal>install</defaultGoal>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>release-profile</id>
-      <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
-      <build>
+    <build>
         <plugins>
-          <plugin>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-            <inherited>true</inherited>
-          </plugin>
-          <plugin>
-            <artifactId>maven-javadoc-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-javadocs</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-            <inherited>true</inherited>
-          </plugin>
-          <plugin>
-            <artifactId>maven-deploy-plugin</artifactId>
-            <inherited>true</inherited>
-            <configuration>
-              <updateReleaseInfo>true</updateReleaseInfo>
-            </configuration>
-          </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.0-beta-9</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                </configuration>
+            </plugin>
         </plugins>
-      </build>
-    </profile>
-  </profiles>
+        <!--
+                    <extensions>
+                      <extension>
+                        <groupId>org.apache.maven.wagon</groupId>
+                        <artifactId>wagon-ssh-external</artifactId>
+                      </extension>
+                    </extensions>
+        -->
+        <defaultGoal>install</defaultGoal>
+    </build>
 
-  <modules>
-    <module>core</module>
-    <module>dictionary</module>
-    <module>dictionary-min</module>
-    <module>extended</module>
-    <module>extras</module>
-    <module>example</module>
-    <module>apps</module>
-    <module>client</module>
-<!--
-    <module>applet</module>
-    <module>ssl</module>
--->
-    <module>server</module>
-  </modules>
+    <profiles>
+        <profile>
+            <id>release-profile</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>true</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <inherited>true</inherited>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <inherited>true</inherited>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <inherited>true</inherited>
+                        <configuration>
+                            <updateReleaseInfo>true</updateReleaseInfo>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.6</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>sonatype-nexus-staging</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>                
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>jdk1.8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <configuration>
+                            <additionalparam>-Xdoclint:none</additionalparam>                    
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
-  <repositories>
-    <repository>
-      <id>central</id>
-      <name>Maven Repository Switchboard</name>
-      <url>http://repo1.maven.org/maven2</url>
-    </repository>
-    <repository>
-      <id>ibiblio</id>
-      <name>ibiblio Repository Switchboard</name>
-      <url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
-    </repository>
-    <repository>
-      <id>jboss</id>
-      <name>JBoss Repository</name>
-      <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
-    </repository>
-    <repository>
-      <id>java.net</id>
-      <name>java.net Repository</name>
-      <url>http://download.java.net/maven/2/</url>
-    </repository>
-    <repository>
-      <id>opennms</id>
-      <name>openmms Repository</name>
-      <url>http://repo.opennms.org/maven2/</url>
-    </repository>
-  </repositories>
+    <modules>
+        <module>core</module>
+        <module>dictionary</module>
+        <module>dictionary-min</module>
+        <module>extended</module>
+        <module>extras</module>
+        <module>example</module>
+        <module>apps</module>
+        <module>client</module>
+        <!--
+                    <module>applet</module>
+                    <module>ssl</module>
+        -->
+        <module>server</module>
+    </modules>
 
-  <reporting>
-    <outputDirectory>${basedir}/../html/${project.artifactId}/</outputDirectory>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <configuration>
-	  <minmemory>128m</minmemory>
-          <maxmemory>1g</maxmemory>
-	  <stylesheetfile>${basedir}/../html/style.css</stylesheetfile>
-	  <doctitle><![CDATA[<h1>${project.description} ${project.version}</h1>]]></doctitle>
-	  <bottom><![CDATA[<i>Copyright &#169; 2011 <a target="top" href="http://www.coova.org/">Coova Technologies, LLC</a>, All Rights Reserved.</i>]]></bottom>
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <url>http://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>ibiblio</id>
+            <name>ibiblio Repository Switchboard</name>
+            <url>http://mirrors.ibiblio.org/pub/mirrors/maven2</url>
+        </repository>
+        <repository>
+            <id>jboss</id>
+            <name>JBoss Repository</name>
+            <url>http://repository.jboss.org/nexus/content/groups/public-jboss/</url>
+        </repository>
+        <repository>
+            <id>java.net</id>
+            <name>java.net Repository</name>
+            <url>http://download.java.net/maven/2/</url>
+        </repository>
+        <repository>
+            <id>opennms</id>
+            <name>openmms Repository</name>
+            <url>http://repo.opennms.org/maven2/</url>
+        </repository>
+    </repositories>
+
+    <reporting>
+        <outputDirectory>${basedir}/../html/${project.artifactId}/</outputDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <minmemory>128m</minmemory>
+                    <maxmemory>1g</maxmemory>
+                    <stylesheetfile>${basedir}/../html/style.css</stylesheetfile>
+                    <doctitle><![CDATA[<h1>${project.description} ${project.version}</h1>]]></doctitle>
+                    <bottom><![CDATA[<i>Copyright &#169; 2011 <a target="top" href="http://www.coova.org/">Coova Technologies, LLC</a>, All Rights Reserved.</i>]]></bottom>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
 
 
 </project>
