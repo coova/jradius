@@ -40,6 +40,7 @@ import java.io.PrintStream;
 import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.URL;
+import java.security.Security;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -121,6 +122,7 @@ import net.jradius.standard.WISPrStandard;
 import net.jradius.util.Base64;
 import net.jradius.util.KeyStoreUtil;
 import net.jradius.util.RadiusRandom;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * Java Swing Graphical User Interface for the JRadius RADIUS Client.
@@ -243,7 +245,7 @@ public class JRadiusSimulator extends JFrame
     public JRadiusSimulator() {
         super();
  
- //       Security.addProvider(new BouncyCastleProvider());
+        Security.addProvider(new BouncyCastleProvider());
         String version = System.getProperty("java.version");
         if (version.startsWith("1.4")) 
         {
