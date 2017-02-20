@@ -36,8 +36,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMReader;
-import org.bouncycastle.openssl.PasswordFinder;
+import org.bouncycastle.util.io.pem.PemReader;
 
 public class KeyStoreUtil 
 {
@@ -57,15 +56,11 @@ public class KeyStoreUtil
 
 		if (type.equalsIgnoreCase("pem"))
 		{
-			PEMReader pemReader = new PEMReader(new InputStreamReader(in), new PasswordFinder() {
-				public char[] getPassword() {
-					return pwd;
-				}
-			});
+			PemReader pemReader = new PemReader(new InputStreamReader(in));
 			
 			Object obj, keyObj=null, certObj=null, keyPair=null;
 
-			while ((obj = pemReader.readObject()) != null)
+			while ((obj = pemReader.readPemObject()) != null)
 			{
 				if (obj instanceof X509Certificate) certObj = obj;
 				else if (obj instanceof PrivateKey) keyObj = obj;
@@ -141,14 +136,10 @@ public class KeyStoreUtil
 	{
 		loadBC();
 
-        PEMReader pemReader = new PEMReader(new InputStreamReader(in), new PasswordFinder() {
-			public char[] getPassword() {
-				return pwd;
-			}
-		});
+        PemReader pemReader = new PemReader(new InputStreamReader(in));
 
 		Object obj;
-		while ((obj = pemReader.readObject()) != null)
+		while ((obj = pemReader.readPemObject()) != null)
 		{
 			if (obj instanceof X509Certificate)
 			{

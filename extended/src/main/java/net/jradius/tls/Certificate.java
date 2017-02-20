@@ -6,9 +6,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Vector;
 
-import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.DERObject;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
 
 /**
@@ -41,7 +40,7 @@ public class Certificate
             TlsUtils.readFully(buf, is);
             ByteArrayInputStream bis = new ByteArrayInputStream(buf);
             ASN1InputStream ais = new ASN1InputStream(bis);
-            DERObject o = ais.readObject();
+            ASN1Primitive o = ais.readObject();
             tmp.addElement(X509CertificateStructure.getInstance(o));
             if (bis.available() > 0)
             {
@@ -69,7 +68,7 @@ public class Certificate
         int totalSize = 0;
         for (int i = 0; i < this.certs.length; ++i)
         {
-            byte[] encCert = certs[i].getEncoded(ASN1Encodable.DER);
+            byte[] encCert = certs[i].getEncoded();
             encCerts.addElement(encCert);
             totalSize += encCert.length + 3;
         }

@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
@@ -242,7 +241,7 @@ class TlsDHKeyExchange implements TlsKeyExchange
             X509Extension ext = exts.getExtension(X509Extensions.KeyUsage);
             if (ext != null)
             {
-                DERBitString ku = KeyUsage.getInstance(ext);
+                KeyUsage ku = KeyUsage.getInstance(ext);
                 int bits = ku.getBytes()[0] & 0xff;
                 if ((bits & keyUsageBits) != keyUsageBits)
                 {
