@@ -2,11 +2,11 @@ package net.jradius.tls;
 
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.digests.NullDigest;
 import org.bouncycastle.crypto.encodings.PKCS1Encoding;
 import org.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.signers.GenericSigner;
-import org.bouncycastle.jce.provider.util.NullDigest;
 
 class TlsRSASigner implements TlsSigner
 {

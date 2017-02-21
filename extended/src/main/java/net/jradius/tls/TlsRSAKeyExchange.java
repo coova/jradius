@@ -141,7 +141,7 @@ class TlsRSAKeyExchange implements TlsKeyExchange
             X509Extension ext = exts.getExtension(X509Extensions.KeyUsage);
             if (ext != null)
             {
-                DERBitString ku = KeyUsage.getInstance(ext);
+                KeyUsage ku = KeyUsage.getInstance(ext);
                 int bits = ku.getBytes()[0] & 0xff;
                 if ((bits & keyUsageBits) != keyUsageBits)
                 {
