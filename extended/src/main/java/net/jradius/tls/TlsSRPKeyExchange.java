@@ -4,12 +4,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 
-import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.x509.Certificate;
+import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.asn1.x509.X509CertificateStructure;
-import org.bouncycastle.asn1.x509.X509Extension;
-import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.Signer;
 import org.bouncycastle.crypto.agreement.srp.SRP6Client;
@@ -27,22 +25,22 @@ import org.bouncycastle.util.BigIntegers;
  */
 class TlsSRPKeyExchange implements TlsKeyExchange
 {
-    private TlsProtocolHandler handler;
-    private CertificateVerifyer verifyer;
-    private short keyExchange;
+    private final TlsProtocolHandler handler;
+    private final CertificateVerifyer verifyer;
+    private final Algorithm algorithm;
     private TlsSigner tlsSigner;
 
     private AsymmetricKeyParameter serverPublicKey = null;
 
     // TODO Need a way of providing these
-    private byte[] SRP_identity = null;
-    private byte[] SRP_password = null;
+    private final byte[] SRP_identity = null;
+    private final byte[] SRP_password = null;
 
     private byte[] s = null;
     private BigInteger B = null;
-    private SRP6Client srpClient = new SRP6Client();
+    private final SRP6Client srpClient = new SRP6Client();
 
-    TlsSRPKeyExchange(TlsProtocolHandler handler, CertificateVerifyer verifyer, short keyExchange)
+    TlsSRPKeyExchange(TlsProtocolHandler handler, CertificateVerifyer verifyer, Algorithm keyExchange)
     {
         switch (keyExchange)
         {
@@ -61,7 +59,7 @@ class TlsSRPKeyExchange implements TlsKeyExchange
 
         this.handler = handler;
         this.verifyer = verifyer;
-        this.keyExchange = keyExchange;
+        this.algorithm = keyExchange;
     }
 
     public void skipServerCertificate() throws IOException
@@ -73,7 +71,7 @@ class TlsSRPKeyExchange implements TlsKeyExchange
         }
     }
 
-    public void processServerCertificate(Certificate serverCertificate) throws IOException
+    public void processServerCertificate(CertificateChain serverCertificate) throws IOException
     {
         if (tlsSigner == null)
         {
@@ -81,7 +79,7 @@ class TlsSRPKeyExchange implements TlsKeyExchange
                 TlsProtocolHandler.AP_unexpected_message);
         }
 
-        X509CertificateStructure x509Cert = serverCertificate.certs[0];
+        Certificate x509Cert = serverCertificate.certs[0];
         SubjectPublicKeyInfo keyInfo = x509Cert.getSubjectPublicKeyInfo();
 
         try
@@ -100,15 +98,15 @@ class TlsSRPKeyExchange implements TlsKeyExchange
             handler.failWithError(TlsProtocolHandler.AL_fatal, TlsProtocolHandler.AP_internal_error);
         }
 
-        // TODO 
+        // TODO
         /*
          * Perform various checks per RFC2246 7.4.2: "Unless otherwise specified, the
          * signing algorithm for the certificate must be the same as the algorithm for the
          * certificate key."
          */
-        switch (this.keyExchange)
+        switch (this.algorithm)
         {
-            case TlsKeyExchange.KE_SRP_RSA:
+            case KE_SRP_RSA:
                 if (!(this.serverPublicKey instanceof RSAKeyParameters))
                 {
                     handler.failWithError(TlsProtocolHandler.AL_fatal,
@@ -116,7 +114,7 @@ class TlsSRPKeyExchange implements TlsKeyExchange
                 }
                 validateKeyUsage(x509Cert, KeyUsage.digitalSignature);
                 break;
-            case TlsKeyExchange.KE_SRP_DSS:
+            case KE_SRP_DSS:
                 if (!(this.serverPublicKey instanceof DSAPublicKeyParameters))
                 {
                     handler.failWithError(TlsProtocolHandler.AL_fatal,
@@ -217,21 +215,17 @@ class TlsSRPKeyExchange implements TlsKeyExchange
         }
     }
 
-    private void validateKeyUsage(X509CertificateStructure c, int keyUsageBits) throws IOException
+    private void validateKeyUsage(Certificate c, int keyUsageBits) throws IOException
     {
-        X509Extensions exts = c.getTBSCertificate().getExtensions();
+        Extensions exts = c.getTBSCertificate().getExtensions();
         if (exts != null)
         {
-            X509Extension ext = exts.getExtension(X509Extensions.KeyUsage);
-            if (ext != null)
+            KeyUsage ku = KeyUsage.getInstance(exts);
+            int bits = ku.getBytes()[0] & 0xff;
+            if ((bits & keyUsageBits) != keyUsageBits)
             {
-                KeyUsage ku = KeyUsage.getInstance(ext);
-                int bits = ku.getBytes()[0] & 0xff;
-                if ((bits & keyUsageBits) != keyUsageBits)
-                {
-                    handler.failWithError(TlsProtocolHandler.AL_fatal,
-                        TlsProtocolHandler.AP_certificate_unknown);
-                }
+                handler.failWithError(TlsProtocolHandler.AL_fatal,
+                    TlsProtocolHandler.AP_certificate_unknown);
             }
         }
     }
@@ -242,5 +236,9 @@ class TlsSRPKeyExchange implements TlsKeyExchange
         signer.update(securityParameters.clientRandom, 0, securityParameters.clientRandom.length);
         signer.update(securityParameters.serverRandom, 0, securityParameters.serverRandom.length);
         return signer;
+    }
+
+    public Algorithm getAlgorithm() {
+        return algorithm;
     }
 }

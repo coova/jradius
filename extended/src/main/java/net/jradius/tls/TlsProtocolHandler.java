@@ -6,14 +6,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
-import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x509.X509Name;
 import org.bouncycastle.crypto.prng.ThreadedSeedGenerator;
@@ -109,16 +110,16 @@ public class TlsProtocolHandler
     /*
      * Queues for data from some protocols.
      */
-    private ByteQueue applicationDataQueue = new ByteQueue();
-    private ByteQueue changeCipherSpecQueue = new ByteQueue();
-    private ByteQueue alertQueue = new ByteQueue();
-    private ByteQueue handshakeQueue = new ByteQueue();
+    private final ByteQueue applicationDataQueue = new ByteQueue();
+    private final ByteQueue changeCipherSpecQueue = new ByteQueue();
+    private final ByteQueue alertQueue = new ByteQueue();
+    private final ByteQueue handshakeQueue = new ByteQueue();
 
     /*
      * The Record Stream we use
      */
-    private RecordStream rs;
-    private SecureRandom random;
+    private final RecordStream rs;
+    private final SecureRandom random;
 
     private TlsInputStream tlsInputStream = null;
     private TlsOutputStream tlsOutputStream = null;
@@ -135,10 +136,10 @@ public class TlsProtocolHandler
     private TlsKeyExchange keyExchange = null;
 
     private short connection_state = 0;
-    
+
     private KeyManager[] keyManagers = null;
     private TrustManager[] trustManagers = null;
-    
+
     private boolean isSendCertificate = false;
 
     private static SecureRandom createSecureRandom()
@@ -169,7 +170,7 @@ public class TlsProtocolHandler
         this.random = sr;
     }
 
-    public TlsProtocolHandler() 
+    public TlsProtocolHandler()
     {
     	this.rs = new RecordStream(this);
     	this.random = createSecureRandom();
@@ -179,7 +180,7 @@ public class TlsProtocolHandler
     {
         return random;
     }
-	
+
 	public void setSendCertificate(boolean b)
 	{
 		this.isSendCertificate = b;
@@ -215,7 +216,7 @@ public class TlsProtocolHandler
             default:
                 /*
                  * Uh, we don't know this protocol.
-                 * 
+                 *
                  * RFC2246 defines on page 13, that we should ignore this.
                  */
         }
@@ -292,11 +293,24 @@ public class TlsProtocolHandler
                     {
                         // Parse the Certificate message and send to cipher suite
 
-                        Certificate serverCertificate = Certificate.parse(is);
+                        CertificateChain serverCertificate = CertificateChain.parse(is);
 
                         assertEmpty(is);
 
                         this.keyExchange.processServerCertificate(serverCertificate);
+
+                        X509TrustManager trustManager = chooseTrustManager(trustManagers);
+
+                        if (trustManager != null) {
+                            try {
+                                trustManager.checkServerTrusted(serverCertificate.toX509(),
+                                                                keyExchange.getAlgorithm().getName());
+                            } catch (CertificateException e) {
+                                // If we encounter a certificate exception it
+                                // is likely the server certificate chain is not trusted..
+                                this.failWithError(AL_fatal, AP_handshake_failure);
+                            }
+                        }
 
                         break;
                     }
@@ -621,7 +635,7 @@ public class TlsProtocolHandler
     {
         /*
          * There is nothing we need to do here.
-         * 
+         *
          * This function could be used for callbacks when application data arrives in the
          * future.
          */
@@ -680,7 +694,7 @@ public class TlsProtocolHandler
 
     /**
      * This method is called, when a change cipher spec message is received.
-     * 
+     *
      * @throws IOException If the message has an invalid content or the handshake is not
      *             in the correct state.
      */
@@ -716,7 +730,7 @@ public class TlsProtocolHandler
         }
     }
 
-    private void sendClientCertificate(Certificate clientCert) throws IOException
+    private void sendClientCertificate(CertificateChain clientCert) throws IOException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         TlsUtils.writeUint8(HP_CERTIFICATE, bos);
@@ -761,9 +775,9 @@ public class TlsProtocolHandler
 
     /**
      * Connects to the remote system.
-     * @param is 
-     * @param out 
-     * 
+     * @param is
+     * @param out
+     *
      * @param verifyer Will be used when a certificate is received to verify that this
      *            certificate is accepted by the client.
      * @throws IOException If handshake was not successful.
@@ -785,7 +799,7 @@ public class TlsProtocolHandler
 
     /**
      * Connects to the remote system using client authentication
-     * 
+     *
      * @param verifyer Will be used when a certificate is received to verify that this
      *            certificate is accepted by the client.
      * @param clientCertificate The client's certificate to be provided to the remote
@@ -808,13 +822,13 @@ public class TlsProtocolHandler
 
         rs.setInputStream(is);
         rs.setOutputStream(out);
-        
+
         this.tlsClient = tlsClient;
         this.tlsClient.init(this);
 
         /*
          * Send Client hello
-         * 
+         *
          * First, generate some random data.
          */
         securityParameters = new SecurityParameters();
@@ -903,7 +917,7 @@ public class TlsProtocolHandler
         while (connection_state != CS_DONE)
         {
             // TODO Should we send fatal alerts in the event of an exception
-            // (see readApplicationData) 
+            // (see readApplicationData)
             rs.readData();
         }
 
@@ -1001,7 +1015,7 @@ public class TlsProtocolHandler
      * Read data from the network. The method will return immediately, if there is still
      * some data left in the buffer, or block until some application data has been read
      * from the network.
-     * 
+     *
      * @param buf The buffer where the data will be copied to.
      * @param offset The position where the data will be placed in the buffer.
      * @param len The maximum number of bytes to read.
@@ -1062,7 +1076,7 @@ public class TlsProtocolHandler
      * Send some application data to the remote system.
      * <p/>
      * The method will handle fragmentation internally.
-     * 
+     *
      * @param buf The buffer with the data.
      * @param offset The position in the buffer where the data is placed.
      * @param len The length of the data.
@@ -1082,7 +1096,7 @@ public class TlsProtocolHandler
 
         /*
          * Protect against known IV attack!
-         * 
+         *
          * DO NOT REMOVE THIS LINE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
          */
         rs.writeMessage(RL_APPLICATION_DATA, emptybuf, 0, 0);
@@ -1143,7 +1157,7 @@ public class TlsProtocolHandler
      * Terminate this connection with an alert.
      * <p/>
      * Can be used for normal closure too.
-     * 
+     *
      * @param alertLevel The level of the alert, an be AL_fatal or AL_warning.
      * @param alertDescription The exact alert message.
      * @throws IOException If alert was fatal.
@@ -1185,13 +1199,13 @@ public class TlsProtocolHandler
         byte[] error = new byte[2];
         error[0] = (byte)alertLevel;
         error[1] = (byte)alertDescription;
-        
+
         rs.writeMessage(RL_ALERT, error, 0, 2);
     }
 
     /**
      * Closes this connection.
-     * 
+     *
      * @throws IOException If something goes wrong during closing.
      */
     public void close() throws IOException
@@ -1204,7 +1218,7 @@ public class TlsProtocolHandler
 
     /**
      * Make sure the InputStream is now empty. Fail otherwise.
-     * 
+     *
      * @param is The InputStream to check.
      * @throws IOException If is is not empty.
      */
@@ -1239,6 +1253,17 @@ public class TlsProtocolHandler
 
 	public void setTrustManagers(TrustManager[] trustManagers) {
 		this.trustManagers = trustManagers;
+	}
+
+	private X509TrustManager chooseTrustManager(TrustManager[] tm) {
+        // We only use the first instance of X509TrustManager passed to us.
+        for (int i = 0; tm != null && i < tm.length; i++) {
+            if (tm[i] instanceof X509TrustManager) {
+                return (X509TrustManager)tm[i];
+            }
+        }
+
+        return null;
 	}
 
 //    private byte[] CreateRenegotiationInfo(byte[] renegotiated_connection) throws IOException

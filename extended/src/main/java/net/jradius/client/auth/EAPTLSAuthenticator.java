@@ -37,17 +37,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509KeyManager;
 
-import net.jradius.client.RadiusClient;
-import net.jradius.exception.RadiusException;
-import net.jradius.log.RadiusLog;
-import net.jradius.packet.RadiusPacket;
-import net.jradius.tls.AlwaysValidVerifyer;
-import net.jradius.tls.Certificate;
-import net.jradius.tls.DefaultTlsClient;
-import net.jradius.tls.TlsProtocolHandler;
-import net.jradius.util.KeyStoreUtil;
 import org.bouncycastle.asn1.ASN1Encodable;
-
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -65,8 +55,8 @@ import org.bouncycastle.asn1.sec.ECPrivateKey;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
 import org.bouncycastle.asn1.teletrust.TeleTrusTNamedCurves;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x509.DSAParameter;
-import org.bouncycastle.asn1.x509.X509CertificateStructure;
 import org.bouncycastle.asn1.x9.X962NamedCurves;
 import org.bouncycastle.asn1.x9.X962Parameters;
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -82,10 +72,20 @@ import org.bouncycastle.crypto.params.ElGamalParameters;
 import org.bouncycastle.crypto.params.ElGamalPrivateKeyParameters;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
 
+import net.jradius.client.RadiusClient;
+import net.jradius.exception.RadiusException;
+import net.jradius.log.RadiusLog;
+import net.jradius.packet.RadiusPacket;
+import net.jradius.tls.AlwaysValidVerifyer;
+import net.jradius.tls.CertificateChain;
+import net.jradius.tls.DefaultTlsClient;
+import net.jradius.tls.TlsProtocolHandler;
+import net.jradius.util.KeyStoreUtil;
+
 
 /**
  * EAP-TLS Authentication (and TLS Tunnel support).
- * 
+ *
  * @author David Bird
  */
 public class EAPTLSAuthenticator extends EAPAuthenticator
@@ -95,22 +95,22 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     private String keyFileType;
     private String keyFile;
     private String keyPassword;
-    
+
     private String caFileType;
     private String caFile;
     private String caPassword;
-    
+
     private Boolean trustAll = Boolean.FALSE;
 
     private ByteArrayOutputStream bout;
     private ByteArrayInputStream bin;
 
-    private TlsProtocolHandler handler = new TlsProtocolHandler();
-    private AlwaysValidVerifyer verifyer = new AlwaysValidVerifyer();
-    
+    private final TlsProtocolHandler handler = new TlsProtocolHandler();
+    private final AlwaysValidVerifyer verifyer = new AlwaysValidVerifyer();
+
     private DefaultTlsClient tlsClient = null;
-    
-    private ByteBuffer receivedEAP = ByteBuffer.allocate(10000000);
+
+    private final ByteBuffer receivedEAP = ByteBuffer.allocate(10000000);
 
     private KeyManager keyManagers[] = null;
     private TrustManager trustManagers[] = null;
@@ -124,10 +124,11 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         caFileType = "pkcs12";
         caPassword = "";
     }
-    
+
     /* (non-Javadoc)
      * @see net.sf.jradius.client.auth.RadiusAuthenticator#setupRequest(net.sf.jradius.client.RadiusClient, net.sf.jradius.packet.RadiusPacket)
      */
+    @Override
     public void setupRequest(RadiusClient c, RadiusPacket p) throws RadiusException, NoSuchAlgorithmException
     {
         super.setupRequest(c, p);
@@ -136,8 +137,8 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
     /**
      * Initializs the SSL layer.
-     * @throws Exception 
-     * @throws FileNotFoundException 
+     * @throws Exception
+     * @throws FileNotFoundException
      */
     public void init() throws RadiusException
     {
@@ -147,8 +148,8 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 	        {
 	        	keyManagers = KeyStoreUtil.loadKeyManager(getKeyFileType(), new FileInputStream(getKeyFile()), getKeyPassword());
 	        }
-	
-	        if (getTrustAll().booleanValue()) 
+
+	        if (getTrustAll().booleanValue())
 	        {
 	        	trustManagers = KeyStoreUtil.trustAllManager();
 	        }
@@ -156,14 +157,14 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 	        {
 	        	trustManagers = KeyStoreUtil.loadTrustManager(getCaFileType(), new FileInputStream(getCaFile()), getCaPassword());
 	        }
-	        
+
 			tlsClient = new DefaultTlsClient(verifyer);
 
 			try
 			{
 				if (keyManagers != null && keyManagers.length > 0)
 				{
-					X509CertificateStructure[] certs = null;
+					Certificate[] certs = null;
 					X509Certificate[] certChain = ((X509KeyManager)keyManagers[0]).getCertificateChain("");
 					PrivateKey key = ((X509KeyManager)keyManagers[0]).getPrivateKey("");
 					Vector tmp = new Vector();
@@ -173,20 +174,20 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 			            ByteArrayInputStream bis = new ByteArrayInputStream(cert.getEncoded());
 			            ASN1InputStream ais = new ASN1InputStream(bis);
 			            ASN1Primitive o = ais.readObject();
-			            tmp.addElement(X509CertificateStructure.getInstance(o));
+			            tmp.addElement(Certificate.getInstance(o));
 			            if (bis.available() > 0)
 			            {
 			                throw new IllegalArgumentException(
 			                    "Sorry, there is garbage data left after the certificate");
 			            }
 			        }
-			        certs = new X509CertificateStructure[tmp.size()];
+			        certs = new Certificate[tmp.size()];
 			        for (int i = 0; i < tmp.size(); i++)
 			        {
-			            certs[i] = (X509CertificateStructure)tmp.elementAt(i);
+			            certs[i] = (Certificate)tmp.elementAt(i);
 			        }
 
-					tlsClient.enableClientAuthentication(new Certificate(certs), createKey(key.getEncoded()));
+					tlsClient.enableClientAuthentication(new CertificateChain(certs), createKey(key.getEncoded()));
 		        }
 			}
 			catch (Exception e)
@@ -208,14 +209,14 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         {
             KeyManager keyManagers[] = null;
             TrustManager trustManagers[] = null;
-            
+
             if (getKeyFile() != null)
             {
                 KeyStore ksKeys = KeyStore.getInstance(getKeyFileType());
                 ksKeys.load(new FileInputStream(getKeyFile()), getKeyPassword().toCharArray());
                 KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
                 kmf.init(ksKeys, getKeyPassword().toCharArray());
-                
+
                 keyManagers = kmf.getKeyManagers();
             }
 
@@ -225,12 +226,12 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                 caKeys.load(new FileInputStream(getCaFile()), getCaPassword().toCharArray());
                 TrustManagerFactory tmf = TrustManagerFactory.getInstance("SunX509");
                 tmf.init(caKeys);
-                
+
                 trustManagers = tmf.getTrustManagers();
             }
-            else 
+            else
             {
-                if (getTrustAll().booleanValue()) 
+                if (getTrustAll().booleanValue())
                 {
                     trustManagers = new TrustManager[]{ new NoopX509TrustManager() };
                 }
@@ -246,6 +247,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 	/**
      * @see net.jradius.client.auth.RadiusAuthenticator#getAuthName()
      */
+    @Override
     public String getAuthName()
     {
         return NAME;
@@ -259,17 +261,17 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     protected static final int TLS_CLIENT_HELLO = 0;
     protected static final int TLS_SERVER_HELLO = 1;
     protected static final int TLS_APP_DATA = 2;
-    
+
     protected byte[] eapFragmentedReply = null;
     protected int eapFragmentedOffset = 0;
-    
+
     ByteArrayOutputStream appOutput = new ByteArrayOutputStream();
-    
+
     public void setServerMode()
     {
     	state = TLS_SERVER_HELLO;
     }
-    
+
     public void putAppBuffer(byte []b)
     {
         try
@@ -294,21 +296,22 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         }
     }
 
-    protected byte[] getAppBuffer() 
+    protected byte[] getAppBuffer()
     {
         byte b[] = appOutput.toByteArray();
         appOutput = new ByteArrayOutputStream();
         return b;
     }
 
+    @Override
     public byte[] doEAPType(byte id, byte[] data) throws RadiusException
     {
         ByteBuffer bb = ByteBuffer.wrap(data);
-        
+
         byte dflags = bb.get();
         byte flags = 0;
         int dlen = 0;
-        
+
         try
         {
             if ((dflags & TLS_HAS_LENGTH) != 0)
@@ -349,14 +352,14 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                 case 1:
                 {
                     receivedEAP.flip();
-                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), 
-                    		receivedEAP.position(), 
+                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(),
+                    		receivedEAP.position(),
                     		receivedEAP.remaining());
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
                     short s = handler.updateConnectState(is, os);
                     data = os.toByteArray();
                     receivedEAP.clear();
-                    if (s == TlsProtocolHandler.CS_DONE) 
+                    if (s == TlsProtocolHandler.CS_DONE)
                     {
                     	state = 2;
                     }
@@ -370,8 +373,8 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                 case 2:
                 {
                     receivedEAP.flip();
-                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(), 
-                    		receivedEAP.position(), 
+                    ByteArrayInputStream is = new ByteArrayInputStream(receivedEAP.array(),
+                    		receivedEAP.position(),
                     		receivedEAP.remaining());
 
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -390,19 +393,19 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
                     {
                         RadiusLog.error(e.getMessage(), e);
                     }
-                    
+
                     data = os.toByteArray();
                     receivedEAP.clear();
                 }
                 break;
             }
-            
+
             if (data != null && data.length > 1024)
             {
                 eapFragmentedReply = data;
                 return nextFragment();
             }
-            
+
             return tlsResponse(flags, data);
         }
         catch (Exception e)
@@ -410,13 +413,13 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
             throw new RadiusException(e);
         }
     }
-    
+
     protected byte[] nextFragment()
     {
         int left = eapFragmentedReply.length - eapFragmentedOffset;
         byte flags = (byte)0;
-        
-        if (left > 1024) 
+
+        if (left > 1024)
         {
             left = 1024;
             flags |= TLS_MORE_FRAGMENTS;
@@ -425,13 +428,13 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         byte[] data = new byte[left];
         System.arraycopy(eapFragmentedReply, eapFragmentedOffset, data, 0, data.length);
         eapFragmentedOffset += data.length;
-        
+
         if (eapFragmentedReply.length == eapFragmentedOffset)
         {
             eapFragmentedReply = null;
             eapFragmentedOffset = 0;
         }
-        
+
         return tlsResponse(flags, data);
     }
 
@@ -439,10 +442,10 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     {
         int length = 1;
 
-        if (data != null && data.length > 0) 
+        if (data != null && data.length > 0)
         {
         	length += data.length;
-        	if (flags != 0) 
+        	if (flags != 0)
         	{
         		length += 4;
         		flags |= TLS_HAS_LENGTH;
@@ -451,15 +454,15 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
         byte[] response = new byte[length];
         response[0] = flags;
-        
-        if (data != null && data.length > 0) 
+
+        if (data != null && data.length > 0)
         {
-        	if (flags == 0) 
+        	if (flags == 0)
         	{
         		System.arraycopy(data, 0, response, 1, data.length);
         	}
-        	else 
-        	{ 
+        	else
+        	{
         		length -= 1;
                 response[1] = (byte) (eapFragmentedReply.length >> 24 & 0xFF);
                 response[2] = (byte) (eapFragmentedReply.length >> 16 & 0xFF);
@@ -471,7 +474,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
         return response;
     }
-    
+
     protected boolean doTunnelAuthentication(byte id, byte[] in) throws Throwable
     {
         // Not needed for EAP-TLS, but dependent protocols (PEAP, EAP-TTLS) implement this
@@ -537,7 +540,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     {
         this.caPassword = caPassword;
     }
-    
+
     public Boolean getTrustAll()
     {
         return trustAll;
@@ -548,10 +551,10 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         this.trustAll = trustAll;
     }
 
-    
+
     /**
      * Create a private key parameter from a PKCS8 PrivateKeyInfo encoding.
-     * 
+     *
      * @param privateKeyInfoData the PrivateKeyInfo encoding
      * @return a suitable private key parameter
      * @throws IOException on an error decoding the key
@@ -567,7 +570,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
     /**
      * Create a private key parameter from a PKCS8 PrivateKeyInfo encoding read from a stream.
-     * 
+     *
      * @param inStr the stream to read the PrivateKeyInfo encoding from
      * @return a suitable private key parameter
      * @throws IOException on an error decoding the key
@@ -583,7 +586,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 
     /**
      * Create a private key parameter from the passed in PKCS8 PrivateKeyInfo object.
-     * 
+     *
      * @param keyInfo the PrivateKeyInfo object containing the key material
      * @return a suitable private key parameter
      * @throws IOException on an error decoding the key
@@ -698,7 +701,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
     }
     */
 
-	protected boolean isCertificateRequired() 
+	protected boolean isCertificateRequired()
 	{
 		return true;
 	}
