@@ -4,6 +4,9 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Vector;
 
 import org.bouncycastle.asn1.ASN1InputStream;
@@ -22,7 +25,7 @@ public class CertificateChain
 
     /**
      * Parse the ServerCertificate message.
-     * 
+     *
      * @param is The stream where to parse from.
      * @return A Certificate object with the certs, the server has sended.
      * @throws IOException If something goes wrong during parsing.
@@ -58,7 +61,7 @@ public class CertificateChain
 
     /**
      * Encodes version of the ClientCertificate message
-     * 
+     *
      * @param os stream to write the message to
      * @throws IOException If something goes wrong
      */
@@ -85,7 +88,7 @@ public class CertificateChain
 
     /**
      * Private constructor from a cert array.
-     * 
+     *
      * @param certs The certs the chain should contain.
      */
     public CertificateChain(X509CertificateStructure[] certs)
@@ -101,5 +104,18 @@ public class CertificateChain
         X509CertificateStructure[] result = new X509CertificateStructure[certs.length];
         System.arraycopy(certs, 0, result, 0, certs.length);
         return result;
+    }
+
+    public X509Certificate[] toX509() throws IOException, CertificateException {
+        X509Certificate[] x509 = new X509Certificate[certs.length];
+        for (int i = 0; i < certs.length; i++) {
+            X509CertificateStructure cert = certs[i];
+            InputStream in = new ByteArrayInputStream(cert.getEncoded());
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            x509[i] = (X509Certificate)certFactory.generateCertificate(in);
+            in.close();
+        }
+
+        return x509;
     }
 }
