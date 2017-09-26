@@ -15,6 +15,8 @@ import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.DSAPrivateKeyParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 
+import net.jradius.tls.TlsKeyExchange.Algorithm;
+
 public class DefaultTlsClient implements TlsClient
 {
     // TODO Add runtime support for this check?
@@ -63,7 +65,7 @@ public class DefaultTlsClient implements TlsClient
     private static final int TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA = 0xC021;
     private static final int TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA = 0xC022;
 
-    private CertificateVerifyer verifyer;
+    private final CertificateVerifyer verifyer;
 
     private TlsProtocolHandler handler;
 
@@ -169,7 +171,7 @@ public class DefaultTlsClient implements TlsClient
 
     public void notifySessionID(byte[] sessionID)
     {
-        // Currently ignored 
+        // Currently ignored
     }
 
     public void notifySelectedCipherSuite(int selectedCipherSuite)
@@ -195,37 +197,37 @@ public class DefaultTlsClient implements TlsClient
             case TLS_DH_DSS_WITH_3DES_EDE_CBC_SHA:
             case TLS_DH_DSS_WITH_AES_128_CBC_SHA:
             case TLS_DH_DSS_WITH_AES_256_CBC_SHA:
-                return createDHKeyExchange(TlsKeyExchange.KE_DH_DSS);
+                return createDHKeyExchange(TlsKeyExchange.Algorithm.KE_DH_DSS);
 
             case TLS_DH_RSA_WITH_3DES_EDE_CBC_SHA:
             case TLS_DH_RSA_WITH_AES_128_CBC_SHA:
             case TLS_DH_RSA_WITH_AES_256_CBC_SHA:
-                return createDHKeyExchange(TlsKeyExchange.KE_DH_RSA);
+                return createDHKeyExchange(TlsKeyExchange.Algorithm.KE_DH_RSA);
 
             case TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA:
             case TLS_DHE_DSS_WITH_AES_128_CBC_SHA:
             case TLS_DHE_DSS_WITH_AES_256_CBC_SHA:
-                return createDHKeyExchange(TlsKeyExchange.KE_DHE_DSS);
+                return createDHKeyExchange(TlsKeyExchange.Algorithm.KE_DHE_DSS);
 
             case TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA:
             case TLS_DHE_RSA_WITH_AES_128_CBC_SHA:
             case TLS_DHE_RSA_WITH_AES_256_CBC_SHA:
-                return createDHKeyExchange(TlsKeyExchange.KE_DHE_RSA);
+                return createDHKeyExchange(TlsKeyExchange.Algorithm.KE_DHE_RSA);
 
             case TLS_SRP_SHA_WITH_3DES_EDE_CBC_SHA:
             case TLS_SRP_SHA_WITH_AES_128_CBC_SHA:
             case TLS_SRP_SHA_WITH_AES_256_CBC_SHA:
-                return createSRPExchange(TlsKeyExchange.KE_SRP);
+                return createSRPExchange(TlsKeyExchange.Algorithm.KE_SRP);
 
             case TLS_SRP_SHA_RSA_WITH_3DES_EDE_CBC_SHA:
             case TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA:
             case TLS_SRP_SHA_RSA_WITH_AES_256_CBC_SHA:
-                return createSRPExchange(TlsKeyExchange.KE_SRP_RSA);
+                return createSRPExchange(TlsKeyExchange.Algorithm.KE_SRP_RSA);
 
             case TLS_SRP_SHA_DSS_WITH_3DES_EDE_CBC_SHA:
             case TLS_SRP_SHA_DSS_WITH_AES_128_CBC_SHA:
             case TLS_SRP_SHA_DSS_WITH_AES_256_CBC_SHA:
-                return createSRPExchange(TlsKeyExchange.KE_SRP_DSS);
+                return createSRPExchange(TlsKeyExchange.Algorithm.KE_SRP_DSS);
 
             default:
                 /*
@@ -242,7 +244,7 @@ public class DefaultTlsClient implements TlsClient
 
     public void processServerCertificateRequest(byte[] certificateTypes, List certificateAuthorities)
     {
-        // TODO There shouldn't be a certificate request for SRP 
+        // TODO There shouldn't be a certificate request for SRP
 
         // TODO Use provided info to choose a certificate in getCertificate()
     }
@@ -317,7 +319,7 @@ public class DefaultTlsClient implements TlsClient
         }
     }
 
-    private TlsKeyExchange createDHKeyExchange(short keyExchange)
+    private TlsKeyExchange createDHKeyExchange(Algorithm keyExchange)
     {
         return new TlsDHKeyExchange(handler, verifyer, keyExchange);
     }
@@ -327,7 +329,7 @@ public class DefaultTlsClient implements TlsClient
         return new TlsRSAKeyExchange(handler, verifyer);
     }
 
-    private TlsKeyExchange createSRPExchange(short keyExchange)
+    private TlsKeyExchange createSRPExchange(Algorithm keyExchange)
     {
         return new TlsSRPKeyExchange(handler, verifyer, keyExchange);
     }

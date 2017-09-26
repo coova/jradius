@@ -3,7 +3,6 @@ package net.jradius.tls;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
@@ -22,8 +21,8 @@ import org.bouncycastle.crypto.util.PublicKeyFactory;
  */
 class TlsRSAKeyExchange implements TlsKeyExchange
 {
-    private TlsProtocolHandler handler;
-    private CertificateVerifyer verifyer;
+    private final TlsProtocolHandler handler;
+    private final CertificateVerifyer verifyer;
 
     private AsymmetricKeyParameter serverPublicKey = null;
 
@@ -63,7 +62,7 @@ class TlsRSAKeyExchange implements TlsKeyExchange
             handler.failWithError(TlsProtocolHandler.AL_fatal, TlsProtocolHandler.AP_internal_error);
         }
 
-        // TODO 
+        // TODO
         /*
          * Perform various checks per RFC2246 7.4.2: "Unless otherwise specified, the
          * signing algorithm for the certificate must be the same as the algorithm for the
@@ -193,5 +192,9 @@ class TlsRSAKeyExchange implements TlsKeyExchange
         }
 
         return key;
+    }
+
+    public Algorithm getAlgorithm() {
+        return Algorithm.KE_RSA;
     }
 }
