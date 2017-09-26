@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.List;
 
-import org.bouncycastle.asn1.x509.X509CertificateStructure;
+import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.digests.SHA1Digest;
@@ -70,7 +70,7 @@ public class DefaultTlsClient implements TlsClient
     private TlsProtocolHandler handler;
 
     // (Optional) details for client-side authentication
-    private CertificateChain clientCert = new CertificateChain(new X509CertificateStructure[0]);
+    private CertificateChain clientCert = new CertificateChain(new Certificate[0]);
     private AsymmetricKeyParameter clientPrivateKey = null;
     private TlsSigner clientSigner = null;
 
