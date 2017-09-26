@@ -292,7 +292,7 @@ public class TlsProtocolHandler
                     {
                         // Parse the Certificate message and send to cipher suite
 
-                        Certificate serverCertificate = Certificate.parse(is);
+                        CertificateChain serverCertificate = CertificateChain.parse(is);
 
                         assertEmpty(is);
 
@@ -716,7 +716,7 @@ public class TlsProtocolHandler
         }
     }
 
-    private void sendClientCertificate(Certificate clientCert) throws IOException
+    private void sendClientCertificate(CertificateChain clientCert) throws IOException
     {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         TlsUtils.writeUint8(HP_CERTIFICATE, bos);

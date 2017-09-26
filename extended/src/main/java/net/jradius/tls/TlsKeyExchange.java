@@ -23,7 +23,7 @@ interface TlsKeyExchange
 
     void skipServerCertificate() throws IOException;
 
-    void processServerCertificate(Certificate serverCertificate) throws IOException;
+    void processServerCertificate(CertificateChain serverCertificate) throws IOException;
 
     void skipServerKeyExchange() throws IOException;
 

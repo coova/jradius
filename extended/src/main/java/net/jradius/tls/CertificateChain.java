@@ -13,7 +13,7 @@ import org.bouncycastle.asn1.x509.X509CertificateStructure;
 /**
  * A representation for a certificate chain as used by a tls server.
  */
-public class Certificate
+public class CertificateChain
 {
     /**
      * The certificates.
@@ -27,7 +27,7 @@ public class Certificate
      * @return A Certificate object with the certs, the server has sended.
      * @throws IOException If something goes wrong during parsing.
      */
-    public static Certificate parse(InputStream is) throws IOException
+    public static CertificateChain parse(InputStream is) throws IOException
     {
         X509CertificateStructure[] certs;
         int left = TlsUtils.readUint24(is);
@@ -53,7 +53,7 @@ public class Certificate
         {
             certs[i] = (X509CertificateStructure)tmp.elementAt(i);
         }
-        return new Certificate(certs);
+        return new CertificateChain(certs);
     }
 
     /**
@@ -88,7 +88,7 @@ public class Certificate
      * 
      * @param certs The certs the chain should contain.
      */
-    public Certificate(X509CertificateStructure[] certs)
+    public CertificateChain(X509CertificateStructure[] certs)
     {
         this.certs = certs;
     }

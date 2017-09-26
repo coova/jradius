@@ -42,7 +42,7 @@ import net.jradius.exception.RadiusException;
 import net.jradius.log.RadiusLog;
 import net.jradius.packet.RadiusPacket;
 import net.jradius.tls.AlwaysValidVerifyer;
-import net.jradius.tls.Certificate;
+import net.jradius.tls.CertificateChain;
 import net.jradius.tls.DefaultTlsClient;
 import net.jradius.tls.TlsProtocolHandler;
 import net.jradius.util.KeyStoreUtil;
@@ -186,7 +186,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
 			            certs[i] = (X509CertificateStructure)tmp.elementAt(i);
 			        }
 
-					tlsClient.enableClientAuthentication(new Certificate(certs), createKey(key.getEncoded()));
+					tlsClient.enableClientAuthentication(new CertificateChain(certs), createKey(key.getEncoded()));
 		        }
 			}
 			catch (Exception e)

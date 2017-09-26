@@ -68,7 +68,7 @@ public class DefaultTlsClient implements TlsClient
     private TlsProtocolHandler handler;
 
     // (Optional) details for client-side authentication
-    private Certificate clientCert = new Certificate(new X509CertificateStructure[0]);
+    private CertificateChain clientCert = new CertificateChain(new X509CertificateStructure[0]);
     private AsymmetricKeyParameter clientPrivateKey = null;
     private TlsSigner clientSigner = null;
 
@@ -79,7 +79,7 @@ public class DefaultTlsClient implements TlsClient
         this.verifyer = verifyer;
     }
 
-    public void enableClientAuthentication(Certificate clientCertificate,
+    public void enableClientAuthentication(CertificateChain clientCertificate,
         AsymmetricKeyParameter clientPrivateKey)
     {
         if (clientCertificate == null)
@@ -265,7 +265,7 @@ public class DefaultTlsClient implements TlsClient
         }
     }
 
-    public Certificate getCertificate()
+    public CertificateChain getCertificate()
     {
         return clientCert;
     }

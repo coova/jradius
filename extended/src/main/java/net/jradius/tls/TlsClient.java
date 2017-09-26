@@ -27,7 +27,7 @@ interface TlsClient
 
     byte[] generateCertificateSignature(byte[] md5andsha1) throws IOException;
 
-    Certificate getCertificate();
+    CertificateChain getCertificate();
 
     TlsCipher createCipher(SecurityParameters securityParameters) throws IOException;
 }

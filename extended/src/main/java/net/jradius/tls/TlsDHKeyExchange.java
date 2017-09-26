@@ -69,7 +69,7 @@ class TlsDHKeyExchange implements TlsKeyExchange
         handler.failWithError(TlsProtocolHandler.AL_fatal, TlsProtocolHandler.AP_unexpected_message);
     }
 
-    public void processServerCertificate(Certificate serverCertificate) throws IOException
+    public void processServerCertificate(CertificateChain serverCertificate) throws IOException
     {
         X509CertificateStructure x509Cert = serverCertificate.certs[0];
         SubjectPublicKeyInfo keyInfo = x509Cert.getSubjectPublicKeyInfo();

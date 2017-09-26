@@ -73,7 +73,7 @@ class TlsSRPKeyExchange implements TlsKeyExchange
         }
     }
 
-    public void processServerCertificate(Certificate serverCertificate) throws IOException
+    public void processServerCertificate(CertificateChain serverCertificate) throws IOException
     {
         if (tlsSigner == null)
         {
