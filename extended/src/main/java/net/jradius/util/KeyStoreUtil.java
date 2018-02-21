@@ -146,14 +146,18 @@ public class KeyStoreUtil
 
 		PEMParser pemParser = new PEMParser(new InputStreamReader(in));
 
-		Object obj;
-		while ((obj = pemParser.readObject()) != null)
-		{
-			if(obj instanceof X509CertificateHolder) {
-				return new JcaX509CertificateConverter()
-					.setProvider("BC")
-					.getCertificate((X509CertificateHolder)obj);
+		try {
+			Object obj;
+			while ((obj = pemParser.readObject()) != null)
+			{
+				if(obj instanceof X509CertificateHolder) {
+					return new JcaX509CertificateConverter()
+						.setProvider("BC")
+						.getCertificate((X509CertificateHolder)obj);
+				}
 			}
+		} finally {
+			pemParser.close();
 		}
 		
 		return null;
