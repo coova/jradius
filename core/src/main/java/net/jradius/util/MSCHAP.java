@@ -25,12 +25,22 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.KeySpec;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
+/* fails, revert to gnu-crypto version
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESKeySpec;
 import javax.crypto.spec.IvParameterSpec;
+*/
+
+import gnu.crypto.cipher.CipherFactory;
+import gnu.crypto.cipher.IBlockCipher;
+import gnu.crypto.cipher.WeakKeyException;
+import gnu.crypto.hash.HashFactory;
+import gnu.crypto.hash.IMessageDigest;
 
 import net.jradius.log.RadiusLog;
 
@@ -80,11 +90,23 @@ public final class MSCHAP
         return Challenge;
     }
 
+    /* fails without MD4 provider, revert to gnu-crypto version
     private static byte[] NtPasswordHash(byte[] Password) throws NoSuchAlgorithmException
     {
         byte PasswordHash[] = new byte[16];
         byte uniPassword[] = unicode(Password);
         MessageDigest md = MessageDigest.getInstance("MD4");
+        md.update(uniPassword, 0, uniPassword.length);
+        System.arraycopy(md.digest(), 0, PasswordHash, 0, 16);
+        return PasswordHash;
+    }
+    */
+
+    private static byte[] NtPasswordHash(byte[] Password) throws NoSuchAlgorithmException
+    {
+        byte PasswordHash[] = new byte[16];
+        byte uniPassword[] = unicode(Password);
+        IMessageDigest md = HashFactory.getInstance("MD4");
         md.update(uniPassword, 0, uniPassword.length);
         System.arraycopy(md.digest(), 0, PasswordHash, 0, 16);
         return PasswordHash;
@@ -101,6 +123,7 @@ public final class MSCHAP
     }
     */
 
+    /* fails, revert to gnu-crypto version
     private static void DesEncrypt(byte[] Clear, int clearOffset, byte[] Key, int keyOffset, byte[] Cypher, int cypherOffset)
     {
         byte szParityKey[] = new byte[8];
@@ -117,6 +140,30 @@ public final class MSCHAP
 
             c.doFinal(Clear, clearOffset, Clear.length - clearOffset, Cypher, cypherOffset);
         }
+        catch (Exception e)
+        {
+            RadiusLog.warn(e.getMessage(), e);
+        }
+    }
+    */
+
+    private static void DesEncrypt(byte[] Clear, int clearOffset, byte[] Key, int keyOffset, byte[] Cypher, int cypherOffset)
+    {
+        byte szParityKey[] = new byte[8];
+        parity_key(szParityKey, Key, keyOffset);
+
+        IBlockCipher cipher = CipherFactory.getInstance("DES");
+        Map attributes = new HashMap();
+
+        attributes.put(IBlockCipher.CIPHER_BLOCK_SIZE, new Integer(8));
+        attributes.put(IBlockCipher.KEY_MATERIAL, szParityKey);
+
+        try
+        {
+            cipher.init(attributes);
+            cipher.encryptBlock(Clear, clearOffset, Cypher, cypherOffset);
+        }
+        catch (WeakKeyException e) { }
         catch (Exception e)
         {
             RadiusLog.warn(e.getMessage(), e);
