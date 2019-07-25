@@ -13,6 +13,10 @@
     <version>1.1.6-SNAPSHOT</version>
     <description>JRadius Client/Server Project</description>
     <url>http://www.coova.org/JRadius</url>
+    <properties>
+        <maven.compiler.source>1.5</maven.compiler.source>
+        <maven.compiler.target>1.5</maven.compiler.target>
+    </properties>
 
     <developers>
         <developer>
@@ -66,14 +70,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>2.0-beta-9</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                </configuration>
             </plugin>
         </plugins>
         <!--
