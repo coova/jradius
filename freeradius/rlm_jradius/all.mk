@@ -1,0 +1,11 @@
+TARGETNAME	:= rlm_jradius
+
+ifneq "$(TARGETNAME)" ""
+TARGET		:= $(TARGETNAME).a
+endif
+
+SOURCES		:= $(TARGETNAME).c
+
+SRC_CFLAGS	:= 
+SRC_CFLAGS	+= -DEXTENDED_FMT
+TGT_LDLIBS	:= 

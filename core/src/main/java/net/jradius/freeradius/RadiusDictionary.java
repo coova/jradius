@@ -423,7 +423,7 @@ public class RadiusDictionary
             String valueClass = "OctetsValue";
             String valueArgs = "";
             String extraImport = null;
-            String extraUtils = null;
+            String extraUtils = null;            
             int integerLength = 4;
             
             (new File(fileSB.toString())).mkdirs();
@@ -443,49 +443,54 @@ public class RadiusDictionary
                     valueClass = "StringValue";
                 }
             }
-            if (desc.type.startsWith("integer"))
+            else if (desc.type.startsWith("integer64"))
+            { 
+                valueClass = "Integer64Value";
+            }
+            else if (desc.type.startsWith("integer"))
             {
                 valueClass = "IntegerValue";
             }
-            if (desc.type.startsWith("singed"))
+            else if (desc.type.startsWith("singed"))
             {
                 valueClass = "IntegerValue";
             }
-            if (desc.type.startsWith("date"))
+            else if (desc.type.startsWith("date"))
             {
                 valueClass = "DateValue";
                 extraUtils = "import java.util.Date;\n";
             }
-            if (desc.type.startsWith("ipaddr"))
+            else if (desc.type.startsWith("ipaddr"))
             {
                 valueClass = "IPAddrValue";
                 extraUtils = "import java.net.InetAddress;\n";
             }
-            if (desc.type.startsWith("ipv6addr"))
+            else if (desc.type.startsWith("ipv6addr"))
             {
                 valueClass = "IPv6AddrValue";
                 extraUtils = "import java.net.InetAddress;\n";
             }
-            if (desc.type.startsWith("byte"))
+            else if (desc.type.startsWith("byte"))
             {
                 valueClass = "IntegerValue";
                 integerLength = 1;
             }
-            if (desc.type.startsWith("short"))
+            else if (desc.type.startsWith("short"))
             {
                 valueClass = "IntegerValue";
                 integerLength = 2;
             }
             // WiMAX: signed
-            if (desc.type.startsWith("signed"))
+            else if (desc.type.startsWith("signed"))
             {
                 valueClass = "SignedValue";
             }
             // WiMAX: combo-ip
-            if (desc.type.startsWith("combo-ip"))
+            else if (desc.type.startsWith("combo-ip"))
             {
                 valueClass = "ComboIPAddrValue";
             }
+            
             if (desc.values != null)
             {
                 valueClass = "NamedValue";
