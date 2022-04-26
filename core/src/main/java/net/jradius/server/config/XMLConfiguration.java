@@ -23,13 +23,12 @@ package net.jradius.server.config;
 import java.io.Reader;
 
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalXMLConfiguration;
 
 /**
  * JRadius XML Configuration Parser.
  * @author David Bird
  */
-public class XMLConfiguration extends HierarchicalXMLConfiguration
+public class XMLConfiguration extends org.apache.commons.configuration.XMLConfiguration
 {
     XMLConfiguration(Reader reader) throws ConfigurationException
     {
