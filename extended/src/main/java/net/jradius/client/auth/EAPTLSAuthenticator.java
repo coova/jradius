@@ -60,6 +60,7 @@ import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.DHParameter;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;
 import org.bouncycastle.asn1.sec.ECPrivateKey;
 import org.bouncycastle.asn1.sec.SECNamedCurves;
@@ -595,8 +596,7 @@ public class EAPTLSAuthenticator extends EAPAuthenticator
         AlgorithmIdentifier     algId = keyInfo.getPrivateKeyAlgorithm();
         if (algId.getAlgorithm().equals(PKCSObjectIdentifiers.rsaEncryption))
         {
-            RSAPrivateKeyStructure  keyStructure = new RSAPrivateKeyStructure((ASN1Sequence)keyInfo.getPrivateKey());
-
+            RSAPrivateKey keyStructure=RSAPrivateKey.getInstance(keyInfo.parsePrivateKey());
             return new RSAPrivateCrtKeyParameters(
                                         keyStructure.getModulus(),
                                         keyStructure.getPublicExponent(),
